@@ -39,7 +39,7 @@ extern void obcTaskInitEpsMgr(void);
 extern void obcTaskInitPayloadMgr(void);
 extern void obcTaskInitTimekeeper(void);
 extern void obcTaskInitAlarmMgr(void);
-extern void obcTaskInitHealthCollector(void);
+extern void obcTaskInitThermalMgr(void);
 extern void obcTaskInitStatsCollector(void);
 extern void obcTaskInitLogger(void);
 extern void obcTaskInitGncMgr(void);
@@ -56,7 +56,7 @@ extern void obcTaskFunctionPayloadMgr(void *params);
 extern void obcTaskFunctionTimekeeper(void *params);
 extern void obcTaskFunctionSwWatchdog(void *params);
 extern void obcTaskFunctionAlarmMgr(void *params);
-extern void obcTaskFunctionHealthCollector(void *params);
+extern void obcTaskFunctionThermalMgr(void *params);
 extern void obcTaskFunctionStatsCollector(void *params);
 extern void obcTaskFunctionLogger(void *params);
 extern void obcTaskFunctionGncMgr(void *params);
@@ -87,8 +87,8 @@ static StackType_t obcTaskStackSwWatchdog[128U];
 static StaticTask_t obcTaskBufferSwWatchdog;
 static StackType_t obcTaskStackAlarmMgr[512U];
 static StaticTask_t obcTaskBufferAlarmMgr;
-static StackType_t obcTaskStackHealthCollector[256U];
-static StaticTask_t obcTaskBufferHealthCollector;
+static StackType_t obcTaskStackThermalMgr[256U];
+static StaticTask_t obcTaskBufferThermalMgr;
 #if ENABLE_TASK_STATS_COLLECTOR == 1
 static StackType_t obcTaskStackStatsCollector[1024U];
 static StaticTask_t obcTaskBufferStatsCollector;
@@ -209,15 +209,15 @@ static obc_scheduler_config_t obcSchedulerConfig[] = {
             .taskFunc = obcTaskFunctionAlarmMgr,
             .taskInit = obcTaskInitAlarmMgr,
         },
-    [OBC_SCHEDULER_CONFIG_ID_HEALTH_COLLECTOR] =
+    [OBC_SCHEDULER_CONFIG_ID_THERMAL_MGR] =
         {
-            .taskName = "health_collector",
-            .taskStack = obcTaskStackHealthCollector,
-            .taskBuffer = &obcTaskBufferHealthCollector,
+            .taskName = "thermal_mgr",
+            .taskStack = obcTaskStackThermalMgr,
+            .taskBuffer = &obcTaskBufferThermalMgr,
             .stackSize = 256U,
             .priority = 1U,
-            .taskFunc = obcTaskFunctionHealthCollector,
-            .taskInit = obcTaskInitHealthCollector,
+            .taskFunc = obcTaskFunctionThermalMgr,
+            .taskInit = obcTaskInitThermalMgr,
         },
 #if ENABLE_TASK_STATS_COLLECTOR == 1
     [OBC_SCHEDULER_CONFIG_ID_STATS_COLLECTOR] =

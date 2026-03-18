@@ -8,14 +8,19 @@
 #include <stdint.h>
 
 /* Declare all unpack functions for telemetry data */
-static void unpackObcTemp(const uint8_t *buffer, uint32_t *offset, telemetry_data_t *data);
+
+static void unpackLM75BDTemp(const uint8_t *buffer, uint32_t *offset, telemetry_data_t *data);
+static void unpackCC1120Temp(const uint8_t *buffer, uint32_t *offset, telemetry_data_t *data);
+static void unpackRTCTemp(const uint8_t *buffer, uint32_t *offset, telemetry_data_t *data);
 static void unpackObcState(const uint8_t *buffer, uint32_t *offset, telemetry_data_t *data);
 static void unpackPong(const uint8_t *buffer, uint32_t *offset, telemetry_data_t *data);
 
 typedef void (*telemetry_unpack_func_t)(const uint8_t *, uint32_t *, telemetry_data_t *);
 
 static const telemetry_unpack_func_t telemUnpackFns[] = {
-    [TELEM_OBC_TEMP] = unpackObcTemp,
+    [TELEM_LM75BD_TEMP] = unpackLM75BDTemp,
+    [TELEM_CC1120_TEMP] = unpackCC1120Temp,
+    [TELEM_RTC_TEMP] = unpackRTCTemp,
     [TELEM_OBC_STATE] = unpackObcState,
     [TELEM_PONG] = unpackPong,
 };
@@ -49,7 +54,15 @@ obc_gs_error_code_t unpackTelemetry(const uint8_t *buffer, uint32_t *offset, tel
   return OBC_GS_ERR_CODE_SUCCESS;
 }
 
-static void unpackObcTemp(const uint8_t *buffer, uint32_t *offset, telemetry_data_t *data) {
+static void unpackLM75BDTemp(const uint8_t *buffer, uint32_t *offset, telemetry_data_t *data) {
+  data->obcTemp = unpackFloat(buffer, offset);
+}
+
+static void unpackCC1120Temp(const uint8_t *buffer, uint32_t *offset, telemetry_data_t *data) {
+  data->obcTemp = unpackFloat(buffer, offset);
+}
+
+static void unpackRTCTemp(const uint8_t *buffer, uint32_t *offset, telemetry_data_t *data) {
   data->obcTemp = unpackFloat(buffer, offset);
 }
 

@@ -8,14 +8,18 @@
 #include <stdint.h>
 
 /* Declare all pack functions for telemetry data */
-static void packObcTemp(const telemetry_data_t *data, uint8_t *buffer, uint32_t *offset);
+static void packLM75BDTemp(const telemetry_data_t *data, uint8_t *buffer, uint32_t *offset);
+static void packCC1120Temp(const telemetry_data_t *data, uint8_t *buffer, uint32_t *offset);
+static void packRTCTemp(const telemetry_data_t *data, uint8_t *buffer, uint32_t *offset);
 static void packObcState(const telemetry_data_t *data, uint8_t *buffer, uint32_t *offset);
 static void packPong(const telemetry_data_t *data, uint8_t *buffer, uint32_t *offset);
 
 typedef void (*telemetry_pack_func_t)(const telemetry_data_t *, uint8_t *, uint32_t *);
 
 static const telemetry_pack_func_t telemPackFns[] = {
-    [TELEM_OBC_TEMP] = packObcTemp,
+    [TELEM_LM75BD_TEMP] = packLM75BDTemp,
+    [TELEM_CC1120_TEMP] = packCC1120Temp,
+    [TELEM_RTC_TEMP] = packRTCTemp,
     [TELEM_OBC_STATE] = packObcState,
     [TELEM_PONG] = packPong,
 };
@@ -49,7 +53,15 @@ obc_gs_error_code_t packTelemetry(const telemetry_data_t *data, uint8_t *buffer,
   return OBC_GS_ERR_CODE_SUCCESS;
 }
 
-static void packObcTemp(const telemetry_data_t *data, uint8_t *buffer, uint32_t *offset) {
+static void packLM75BDTemp(const telemetry_data_t *data, uint8_t *buffer, uint32_t *offset) {
+  packFloat(data->obcTemp, buffer, offset);
+}
+
+static void packCC1120Temp(const telemetry_data_t *data, uint8_t *buffer, uint32_t *offset) {
+  packFloat(data->obcTemp, buffer, offset);
+}
+
+static void packRTCTemp(const telemetry_data_t *data, uint8_t *buffer, uint32_t *offset) {
   packFloat(data->obcTemp, buffer, offset);
 }
 
