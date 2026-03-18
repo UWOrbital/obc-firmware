@@ -26,7 +26,7 @@ extern "C" {
  * @param packet The image packet to search through
  * @param x The x coordinate of the brightest pixel
  * @param y The y coordinate of the brightest pixel
- * @param brightess The brightness of the brightest pixel
+ * @param brightness The brightness of the brightest pixel
  * @param packetStartY The y coordinate of the top left corner of the packet, the width of the packet is assumed to be
  *                     the width of the image
  */

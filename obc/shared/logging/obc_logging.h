@@ -68,6 +68,16 @@ typedef enum { LOG_TYPE_ERROR_CODE = 0, LOG_TYPE_MSG = 1 } log_type_t;
     }                                      \
   } while (0)
 
+#define RETURN_AND_GIVE_IF_ERROR_CODE(_ret, _sem) \
+  do {                                            \
+    errCode = _ret;                               \
+    if (errCode != OBC_ERR_CODE_SUCCESS) {        \
+      LOG_ERROR_CODE(errCode);                    \
+      xSemaphoreGive(_sem);                       \
+      return errCode;                             \
+    }                                             \
+  } while (0)
+
 #define LOG_IF_ERROR_CODE(_ret)            \
   do {                                     \
     errCode = _ret;                        \

@@ -2,7 +2,7 @@ set(TEST_BINARY obc-firmware-tests)
 
 set(TEST_DEPENDENCIES
     ${CMAKE_SOURCE_DIR}/obc/app/sys/time/obc_time_utils.c
-    ${CMAKE_SOURCE_DIR}/obc/app/drivers/arducam/image_processing.c
+    ${CMAKE_SOURCE_DIR}/obc/app/modules/camera_mgr/image_processing.c
     ${CMAKE_SOURCE_DIR}/obc/app/drivers/vn100/vn100_binary_parsing.c
     ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/common/obc_gs_crc.c
     ${CMAKE_SOURCE_DIR}/interfaces/data_pack_unpack/data_unpack_utils.c
@@ -35,7 +35,7 @@ target_include_directories(${TEST_BINARY}
     ${CMAKE_SOURCE_DIR}/obc/shared/logging
     ${CMAKE_SOURCE_DIR}/obc/app/sys/persistent
     ${CMAKE_SOURCE_DIR}/obc/app/drivers/ds3232
-    ${CMAKE_SOURCE_DIR}/obc/app/drivers/arducam
+    ${CMAKE_SOURCE_DIR}/obc/app/modules/camera_mgr
     ${CMAKE_SOURCE_DIR}/obc/app/drivers/vn100
     ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/common
     ${CMAKE_SOURCE_DIR}/interfaces/data_pack_unpack

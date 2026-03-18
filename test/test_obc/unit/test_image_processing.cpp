@@ -28,39 +28,40 @@ TEST(TestObcImageProcessing, findBrightestPixelInPacket) {
    */
   uint16_t brightestX = 0;
   uint16_t brightestY = 0;
-  uint8_t brightess = 0;
-  ASSERT_EQ(findBrightestPixelInPacket(&topPacket, &brightestX, &brightestY, &brightess, 0), OBC_ERR_CODE_SUCCESS);
+  uint8_t brightness = 0;
+  ASSERT_EQ(findBrightestPixelInPacket(&topPacket, &brightestX, &brightestY, &brightness, 0), OBC_ERR_CODE_SUCCESS);
   EXPECT_EQ(brightestX, 20);
   EXPECT_EQ(brightestY, 40);
-  EXPECT_EQ(brightess, 254);
-  ASSERT_EQ(findBrightestPixelInPacket(&bottomPacket, &brightestX, &brightestY, &brightess, 240), OBC_ERR_CODE_SUCCESS);
+  EXPECT_EQ(brightness, 254);
+  ASSERT_EQ(findBrightestPixelInPacket(&bottomPacket, &brightestX, &brightestY, &brightness, 240),
+            OBC_ERR_CODE_SUCCESS);
   EXPECT_EQ(brightestX, 560);
   EXPECT_EQ(brightestY, 400);
-  EXPECT_EQ(brightess, 255);
+  EXPECT_EQ(brightness, 255);
 
   // all pixels are off, so the brightest pixel should be at (0, 0) with brightness 0
   memset(image.data, 0, image.width * image.height);
   brightestX = 0;
   brightestY = 0;
-  brightess = 0;
-  ASSERT_EQ(findBrightestPixelInPacket(&image, &brightestX, &brightestY, &brightess, 0), OBC_ERR_CODE_SUCCESS);
+  brightness = 0;
+  ASSERT_EQ(findBrightestPixelInPacket(&image, &brightestX, &brightestY, &brightness, 0), OBC_ERR_CODE_SUCCESS);
   EXPECT_EQ(brightestX, 0);
   EXPECT_EQ(brightestY, 0);
-  EXPECT_EQ(brightess, 0);
+  EXPECT_EQ(brightness, 0);
 
   // all pixels are on, so the brightest pixel should be at (0, 0) with brightness 255
   memset(image.data, 255, image.width * image.height);
   brightestX = 0;
   brightestY = 0;
-  brightess = 0;
-  ASSERT_EQ(findBrightestPixelInPacket(&image, &brightestX, &brightestY, &brightess, 0), OBC_ERR_CODE_SUCCESS);
+  brightness = 0;
+  ASSERT_EQ(findBrightestPixelInPacket(&image, &brightestX, &brightestY, &brightness, 0), OBC_ERR_CODE_SUCCESS);
   EXPECT_EQ(brightestX, 0);
   EXPECT_EQ(brightestY, 0);
-  EXPECT_EQ(brightess, 255);
+  EXPECT_EQ(brightness, 255);
 
   // should return with OBC_ERR_CODE_INVALID_ARG if any of the arguments are null
-  EXPECT_EQ(findBrightestPixelInPacket(nullptr, &brightestX, &brightestY, &brightess, 0), OBC_ERR_CODE_INVALID_ARG);
-  EXPECT_EQ(findBrightestPixelInPacket(&image, nullptr, &brightestY, &brightess, 0), OBC_ERR_CODE_INVALID_ARG);
-  EXPECT_EQ(findBrightestPixelInPacket(&image, &brightestX, nullptr, &brightess, 0), OBC_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(findBrightestPixelInPacket(nullptr, &brightestX, &brightestY, &brightness, 0), OBC_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(findBrightestPixelInPacket(&image, nullptr, &brightestY, &brightness, 0), OBC_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(findBrightestPixelInPacket(&image, &brightestX, nullptr, &brightness, 0), OBC_ERR_CODE_INVALID_ARG);
   EXPECT_EQ(findBrightestPixelInPacket(&image, &brightestX, &brightestY, nullptr, 0), OBC_ERR_CODE_INVALID_ARG);
 }

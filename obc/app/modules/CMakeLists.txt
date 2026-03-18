@@ -22,6 +22,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/alarm_mgr/alarm_handler.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/camera_mgr/payload_manager.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/camera_mgr/camera_control.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/command_mgr/command_manager.c
     ${CMAKE_CURRENT_SOURCE_DIR}/command_mgr/command_callbacks.c

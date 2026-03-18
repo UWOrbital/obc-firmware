@@ -5,7 +5,7 @@
  * @param packet The image packet to search through
  * @param x The x coordinate of the brightest pixel
  * @param y The y coordinate of the brightest pixel
- * @param brightess The brightness of the brightest pixel
+ * @param brightness The brightness of the brightest pixel
  * @param packetStartY The y coordinate of the top left corner of the packet, the width of the packet is assumed to be
  *                     the width of the image
  */
@@ -14,6 +14,7 @@ obc_error_code_t findBrightestPixelInPacket(image_t *packet, uint16_t *x, uint16
   if (packet == NULL || x == NULL || y == NULL || brightness == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+  *brightness = 0;
   for (uint16_t i = 0; i < packet->height; i++) {
     for (uint16_t j = 0; j < packet->width; j++) {
       uint8_t pixel = packet->data[(i * packet->width) + j];
