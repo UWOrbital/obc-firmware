@@ -10,12 +10,14 @@ from interfaces import (
 )
 from interfaces.obc_gs_interface.aes128 import AES128
 from interfaces.obc_gs_interface.ax25 import AX25
-from interfaces.obc_gs_interface.commands import (
+from interfaces.obc_gs_interface.commands.python import (
     CmdCallbackId,
-    create_cmd_ping,
-    create_cmd_rtc_sync,
     pack_command,
     unpack_command,
+)
+from interfaces.obc_gs_interface.commands.python.command_factories import (
+    create_cmd_ping,
+    create_cmd_rtc_sync,
 )
 from interfaces.obc_gs_interface.fec import FEC
 

@@ -5,8 +5,8 @@ from sys import argv, exit
 
 from serial import Serial, SerialException
 
-from gs.backend.obc_utils.command_utils import LOG_PATH, arg_parse, poll, send_command, send_conn_request
-from interfaces.obc_gs_interface.commands import CmdCallbackId
+from gs.backend.gs_cli.argument_parser import LOG_PATH, arg_parse, poll, send_command, send_conn_request
+from interfaces.obc_gs_interface.commands.python import CmdCallbackId
 
 
 class GroundStationShell(Cmd):

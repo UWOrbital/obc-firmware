@@ -13,7 +13,7 @@ from interfaces.obc_gs_interface.ax25 import AX25
 from interfaces.obc_gs_interface.fec import FEC
 
 
-class CommsPipeline:
+class CommandPackaging:
     """
     A Class that stores functions to encode/decode data from the Comms Pipeline
     """

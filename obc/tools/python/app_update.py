@@ -8,16 +8,18 @@ from serial import PARITY_NONE, STOPBITS_TWO, Serial, SerialException
 from tqdm import tqdm
 
 from interfaces import OBC_UART_BAUD_RATE, RS_DECODED_DATA_SIZE
-from interfaces.obc_gs_interface.commands import (
+from interfaces.obc_gs_interface.commands.python import (
     CmdCallbackId,
     CmdResponseErrorCode,
     ProgrammingSession,
+    pack_command,
+)
+from interfaces.obc_gs_interface.commands.python.command_factories import (
     create_cmd_download_data,
     create_cmd_erase_app,
     create_cmd_verify_crc,
-    pack_command,
 )
-from interfaces.obc_gs_interface.commands.command_response_callbacks import parse_command_response
+from interfaces.obc_gs_interface.commands.python.command_response_callbacks import parse_command_response
 
 # Refer to the bl_command_callbacks.c for the number
 COMMAND_DATA_SIZE: Final[int] = 208

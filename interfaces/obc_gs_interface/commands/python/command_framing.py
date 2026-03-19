@@ -1,5 +1,5 @@
 from interfaces import RS_DECODED_DATA_SIZE
-from interfaces.obc_gs_interface.commands import (
+from interfaces.obc_gs_interface.commands.python import (
     CmdMsg,
     pack_command,
 )

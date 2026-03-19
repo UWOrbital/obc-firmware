@@ -1,8 +1,8 @@
 from collections import defaultdict
 from collections.abc import Callable
 
-from interfaces.obc_gs_interface.commands import CmdCallbackId, unpack_command_response
-from interfaces.obc_gs_interface.commands.command_response_classes import (
+from interfaces.obc_gs_interface.commands.python import CmdCallbackId, unpack_command_response
+from interfaces.obc_gs_interface.commands.python.command_response_classes import (
     CmdI2CProbeRes,
     CmdRes,
     CmdRtcSyncRes,

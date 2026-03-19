@@ -5,7 +5,7 @@ get_filename_component(DIR_ONE_ABOVE ../ ABSOLUTE)
 
 set(INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/common
-  ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/commands
+  ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/commands/inc
   ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/telemetry
   ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/aes128
   ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/ax25
@@ -18,13 +18,13 @@ set(SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/data_pack_unpack/data_pack_utils.c
   ${CMAKE_CURRENT_SOURCE_DIR}/data_pack_unpack/data_unpack_utils.c
 
-  ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/commands/obc_gs_command_pack.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/commands/obc_gs_command_unpack.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/commands/src/obc_gs_command_pack.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/commands/src/obc_gs_command_unpack.c
   ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/telemetry/obc_gs_telemetry_pack.c
   ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/telemetry/obc_gs_telemetry_unpack.c
 
-  ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/commands/obc_gs_commands_response_pack.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/commands/obc_gs_commands_response_unpack.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/commands/src/obc_gs_commands_response_pack.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/commands/src/obc_gs_commands_response_unpack.c
 
   ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/aes128/obc_gs_aes128.c
   ${CMAKE_CURRENT_SOURCE_DIR}/obc_gs_interface/ax25/obc_gs_ax25.c

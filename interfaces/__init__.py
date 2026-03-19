@@ -12,3 +12,7 @@ AX25_NON_INFO_BYTES: Final[int] = 18
 
 GROUND_STATION_CALLSIGN: Final[str] = "ATLAS"
 CUBE_SAT_CALLSIGN: Final[str] = "AKITO"
+
+# This is a constant value set in the python and OBC side as to what length of I Frame the OBC will be waiting to
+# receive. This must be followed or the obc will not function as expected
+PADDING_REQUIRED: Final[int] = 300

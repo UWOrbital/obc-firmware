@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from interfaces.obc_gs_interface.commands import CmdCallbackId, CmdResponseErrorCode
+from interfaces.obc_gs_interface.commands.python import CmdCallbackId, CmdResponseErrorCode
 
 
 @dataclass

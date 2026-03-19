@@ -1,41 +1,25 @@
 from argparse import ArgumentError, ArgumentParser
 from collections.abc import Callable
 from pathlib import Path
-from typing import Final
 
 from ax25 import Frame
 from serial import PARITY_NONE, STOPBITS_TWO, Serial
 
-from gs.backend.obc_utils.encode_decode import CommsPipeline
+from gs.backend.command_utils.command_packaging import CommandPackaging
 from interfaces import (
     OBC_UART_BAUD_RATE,
+    PADDING_REQUIRED,
     RS_DECODED_DATA_SIZE,
 )
-from interfaces.command_framing import command_multi_pack
-from interfaces.obc_gs_interface.commands import (
+from interfaces.obc_gs_interface.commands.python import (
     CmdCallbackId,
     CmdMsg,
     CmdResponseErrorCode,
-    create_cmd_downlink_logs_next_pass,
-    create_cmd_downlink_telem,
-    create_cmd_download_data,
-    create_cmd_end_of_frame,
-    create_cmd_erase_app,
-    create_cmd_exec_obc_reset,
-    create_cmd_i2c_probe,
-    create_cmd_mirco_sd_format,
-    create_cmd_ping,
-    create_cmd_rtc_sync,
-    create_cmd_set_programming_session,
-    create_cmd_uplink_disc,
-    create_cmd_verify_crc,
 )
-from interfaces.obc_gs_interface.commands.command_response_callbacks import parse_command_response
-from interfaces.obc_gs_interface.commands.command_response_classes import CmdRes
-
-# This is a constant value set in the python and OBC side as to what length of I Frame the OBC will be waiting to
-# receive. This must be followed or the obc will not function as expected
-_PADDING_REQUIRED: Final[int] = 300
+from interfaces.obc_gs_interface.commands.python.command_factories import COMMAND_FACTORIES
+from interfaces.obc_gs_interface.commands.python.command_framing import command_multi_pack
+from interfaces.obc_gs_interface.commands.python.command_response_callbacks import parse_command_response
+from interfaces.obc_gs_interface.commands.python.command_response_classes import CmdRes
 
 LOG_PATH: Path = (Path(__file__).parent / "../logs.log").resolve()
 
@@ -59,11 +43,11 @@ def send_command(args: str, com_port: str, timeout: int = 0) -> CmdRes | type[Cm
     data = [command]
 
     # Initialize a helper class to help with encoding and decoding the message
-    comms = CommsPipeline()
+    comms = CommandPackaging()
 
     # We pad the data to an amount that the OBC expects (See handleUplinkingState function in comms_manager.c)
     # Note also that command_multi_pack returns a list of byte strings with each string stuffed with \x00 to 223 bytes
-    send_bytes = comms.encode_frame(command_multi_pack(data)[0]).ljust(_PADDING_REQUIRED, b"\x00")
+    send_bytes = comms.encode_frame(command_multi_pack(data)[0]).ljust(PADDING_REQUIRED, b"\x00")
     # Initialize pyserial
     with Serial(
         com_port,
@@ -130,7 +114,7 @@ def send_conn_request(com_port: str, timeout: int = 0) -> Frame:
         timeout=timeout,
     ) as ser:
         # Encode using AX25, remember these frames don't have data fields so there's no need for fec or aes128
-        comms = CommsPipeline()
+        comms = CommandPackaging()
         send_bytes = comms.encode_frame(None)
         ser.write(send_bytes.ljust(30, b"\x00"))
 
@@ -149,6 +133,9 @@ def send_conn_request(com_port: str, timeout: int = 0) -> Frame:
         # Decode the frame
         rcv_frame_bytes = rcv_frame_bytes[start_index : end_index + 1]
         rcv_frame = comms.decode_frame(rcv_frame_bytes)
+
+        assert rcv_frame is not None
+
         return rcv_frame
 
 
@@ -243,21 +230,6 @@ def generate_command(args: str) -> tuple[CmdMsg | None, bool]:
     # A list of Command factories for all commands
     # NOTE: Update these when a command is added and make sure to keep them in the order that the commands are described
     # in the CmdCallbackId Enum
-    commmand_factories: list[Callable[..., CmdMsg]] = [
-        create_cmd_end_of_frame,
-        create_cmd_exec_obc_reset,
-        create_cmd_rtc_sync,
-        create_cmd_downlink_logs_next_pass,
-        create_cmd_mirco_sd_format,
-        create_cmd_ping,
-        create_cmd_downlink_telem,
-        create_cmd_uplink_disc,
-        create_cmd_set_programming_session,
-        create_cmd_erase_app,
-        create_cmd_download_data,
-        create_cmd_verify_crc,
-        create_cmd_i2c_probe,
-    ]
 
     # Loop through each of the specific parses and see if we get a valid parse on any of them
     for func in child_parsers:
@@ -282,15 +254,15 @@ def generate_command(args: str) -> tuple[CmdMsg | None, bool]:
             # This line is just accessing a function in the commmand_factories list and passing in arguments
             # via brackets
             # This line also shows why the order is important of the functions in that list
-            command = commmand_factories[command_enum.value](
+            command = COMMAND_FACTORIES[command_enum.value](
                 command_args.arg1, command_args.arg2, command_args.arg3, command_args.timestamp
             )
         elif hasattr(command_args, "arg2"):
-            command = commmand_factories[command_enum.value](
+            command = COMMAND_FACTORIES[command_enum.value](
                 command_args.arg1, command_args.arg2, command_args.timestamp
             )
         elif hasattr(command_args, "arg1"):
-            command = commmand_factories[command_enum.value](command_args.arg1, command_args.timestamp)
+            command = COMMAND_FACTORIES[command_enum.value](command_args.arg1, command_args.timestamp)
 
         if command_args.timestamp is not None and command_args.timestamp > 0:
             is_timetagged = True
@@ -311,7 +283,7 @@ def generate_command(args: str) -> tuple[CmdMsg | None, bool]:
         print("Invalid Command")
         return None, False
 
-    command = commmand_factories[command_enum.value](command_args.timestamp)
+    command = COMMAND_FACTORIES[command_enum.value](command_args.timestamp)
 
     if command_args.timestamp is not None and command_args.timestamp > 0:
         is_timetagged = True
@@ -330,7 +302,7 @@ def poll(
     :param com_port: The port that the board is connected to so it can poll
     """
 
-    comms = CommsPipeline()
+    comms = CommandPackaging()
 
     with (
         Serial(
