@@ -1,8 +1,12 @@
 name: OBC Build
 on: [push, pull_request]
 
+concurrency:
+  group: rm46-hil
+  cancel-in-progress: false
+
 jobs:
-  build:
+  OBC_BUILD:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -10,7 +14,7 @@ jobs:
     - name: Setup
       run: |
         sudo apt-get update
-        sudo apt-get -y install build-essential cmake
+        sudo apt install -y build-essential gcc-multilib g++-multilib cmake curl
 
     - name: Install requirements
       run: |
@@ -28,17 +32,35 @@ jobs:
         cmake .. -DCMAKE_BUILD_TYPE=OBC -G"Unix Makefiles" -DBOARD_TYPE=RM46_LAUNCHPAD -DDEBUG=0
         make
 
+    - name: Upload CRC Binary (Release-Launchpad)
+      uses: actions/upload-artifact@v4
+      with:
+        name: launchpad-bin
+        path: build/OBC-firmware-crc.bin
+
     - name: Build (Release-OBC Rev1)
       run: |
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=OBC -G"Unix Makefiles" -DBOARD_TYPE=OBC_REVISION_1 -DDEBUG=0
         make
 
+    - name: Upload CRC Binary (Release-OBC Rev1)
+      uses: actions/upload-artifact@v4
+      with:
+        name: rev1-bin
+        path: build/OBC-firmware-crc.bin
+
     - name: Build (Release-OBC Rev2)
       run: |
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=OBC -G"Unix Makefiles" -DBOARD_TYPE=OBC_REVISION_2 -DDEBUG=0
         make
+
+    - name: Upload CRC Binary (Release-OBC Rev2)
+      uses: actions/upload-artifact@v4
+      with:
+        name: rev2-bin
+        path: build/OBC-firmware-crc.bin
 
     - name: Build (Debug-Launchpad)
       run: |
@@ -64,8 +86,8 @@ jobs:
         name: bin-file
         path: build/OBC-firmware.bin
 
-  crc:
-    needs: build
+  CRC:
+    needs: OBC_BUILD
     runs-on: ubuntu-latest
     steps:
     - name: Download binary
@@ -78,3 +100,43 @@ jobs:
       run: |
         echo "CRC checksum:"
         cksum OBC-firmware.bin
+
+  HARDWARE-IN-LOOP:
+    needs: OBC_BUILD
+    runs-on: [self-hosted, hil, rm46]
+
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Dependencies
+      run: |
+        sudo apt install -y build-essential gcc-multilib g++-multilib cmake curl
+        python3 -m venv venv/
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+
+    - name: Create Ground Station Binary Directory
+      run: |
+        mkdir build_gs
+        cd build_gs
+        cmake .. -DCMAKE_BUILD_TYPE=GS
+
+    - name: Build
+      run: |
+        cd build_gs
+        cmake --build .
+
+    - name: Download binary with CRC
+      uses: actions/download-artifact@v4
+      with:
+        name: launchpad-bin
+        path: .
+
+    - name: Run HIL
+      run: |
+          source venv/bin/activate
+          python3 hil/hil_main.py /dev/ttyACM0 OBC-firmware-crc.bin
