@@ -16,11 +16,11 @@ set(TEST_MOCKS
 )
 
 set(TEST_SOURCES
-    ${CMAKE_SOURCE_DIR}/test/test_obc/unit/main.cpp
-    ${CMAKE_SOURCE_DIR}/test/test_obc/unit/test_obc_time_utils.cpp
-    ${CMAKE_SOURCE_DIR}/test/test_obc/unit/test_image_processing.cpp
-    ${CMAKE_SOURCE_DIR}/test/test_obc/unit/test_vn100_unpack.cpp
-    ${CMAKE_SOURCE_DIR}/test/test_obc/unit/test_obc_persistent.cpp
+    ${CMAKE_SOURCE_DIR}/test/unit/main.cpp
+    ${CMAKE_SOURCE_DIR}/test/unit/test_obc_time_utils.cpp
+    ${CMAKE_SOURCE_DIR}/test/unit/test_image_processing.cpp
+    ${CMAKE_SOURCE_DIR}/test/unit/test_vn100_unpack.cpp
+    ${CMAKE_SOURCE_DIR}/test/unit/test_obc_persistent.cpp
 )
 
 set(TEST_SOURCES ${TEST_SOURCES} ${TEST_DEPENDENCIES} ${TEST_MOCKS})
@@ -44,7 +44,7 @@ target_include_directories(${TEST_BINARY}
     ${CMAKE_SOURCE_DIR}/obc/app/reliance_edge/include # redconf.h
     ${CMAKE_SOURCE_DIR}/obc/app/modules/alarm_mgr
     ${CMAKE_SOURCE_DIR}/obc/app/modules/command_mgr
-    ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/commands
+    ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/commands/inc
     ${CMAKE_SOURCE_DIR}/obc/shared/commands
 )
 
