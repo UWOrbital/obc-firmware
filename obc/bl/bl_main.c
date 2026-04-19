@@ -1,6 +1,7 @@
 #include "bl_uart.h"
 #include "bl_flash.h"
-#include "gio.h"
+#include "obc_gs_commands_response.h"
+#include "obc_gs_commands_response_pack.h"
 #include "obc_gs_errors.h"
 #include "obc_gs_crc.h"
 #include "obc_errors.h"
@@ -46,6 +47,10 @@ typedef void (*appStartFunc_t)(void);
 // Get this from the bl_command_callbacks for simplicity
 extern programming_session_t programmingSession;
 
+static uint8_t sendBuffer[MAX_PACKET_SIZE] = {0};
+static uint8_t responseBuffer[CMD_RESPONSE_DATA_MAX_SIZE] = {0};
+static uint8_t recvBuffer[MAX_PACKET_SIZE] = {0};
+
 obc_error_code_t blRunCommand(uint8_t recvBuffer[]) {
   if (recvBuffer == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
@@ -62,8 +67,27 @@ obc_error_code_t blRunCommand(uint8_t recvBuffer[]) {
     return OBC_ERR_CODE_CORRUPTED_MSG;
   }
 
-  RETURN_IF_ERROR_CODE(verifyCommand(&unpackedCmdMsg, &currCmdInfo));
-  RETURN_IF_ERROR_CODE(processNonTimeTaggedCommand(&unpackedCmdMsg, &currCmdInfo));
+  uint8_t responseDataLen = 0;
+  memset(responseBuffer, 0, CMD_RESPONSE_DATA_MAX_SIZE);
+  memset(sendBuffer, 0, MAX_PACKET_SIZE);
+  cmd_response_header_t cmdResponse = {0};
+
+  if (verifyCommand(&unpackedCmdMsg, &currCmdInfo) == OBC_ERR_CODE_SUCCESS &&
+      processNonTimeTaggedCommand(&unpackedCmdMsg, &currCmdInfo, responseBuffer, &responseDataLen) ==
+          OBC_ERR_CODE_SUCCESS) {
+    cmdResponse.errCode = CMD_RESPONSE_SUCCESS;
+  } else {
+    cmdResponse.errCode = CMD_RESPONSE_ERROR;
+  }
+
+  cmdResponse.cmdId = unpackedCmdMsg.id;
+  cmdResponse.dataLen = responseDataLen;
+
+  if (packCmdResponse(&cmdResponse, sendBuffer, responseBuffer) != OBC_GS_ERR_CODE_SUCCESS) {
+    LOG_ERROR_CODE(OBC_ERR_CODE_FAILED_PACK);
+  } else {
+    blUartWriteBytes(MAX_PACKET_SIZE, sendBuffer);
+  }
 
   return errCode;
 }
@@ -176,7 +200,6 @@ int main(void) {
   blUartInit();
   blInitTick();
   gioInit();
-  uint8_t recvBuffer[MAX_PACKET_SIZE] = {0U};
 
   // F021 API and the functions that use it must be executed from RAM since they
   // can't execute from the same flash bank being modified
@@ -215,4 +238,5 @@ int main(void) {
       LOG_IF_ERROR_CODE(blJumpToApp());
     }
   }
+  memset(recvBuffer, 0, MAX_PACKET_SIZE);
 }

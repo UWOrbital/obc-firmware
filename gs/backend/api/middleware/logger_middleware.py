@@ -25,16 +25,13 @@ class LoggerMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         """Logs the request and response"""
         request_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        start_time = perf_counter()
-        response = await call_next(request)
-        process_time = perf_counter() - start_time
 
-        if request.url.path in self.excluded_endpoints:
-            return response
+        request_body = await request.body()
+        body_text = request_body.decode()
+        if not body_text:
+            body_text = "None"
 
-        # TODO: This causes a runtime error of `Stream Consumed` when making a request with a body
-        # request_body = await request.body()
-        # request_size = getsizeof(request_body)
+        request_size = getsizeof(request_body)
 
         # TODO: update this based on userID header name
         request_user_id = request.headers.get("user_id", "Anonymous")
@@ -48,12 +45,20 @@ class LoggerMiddleware(BaseHTTPMiddleware):
                     f"Request ID: {request_id}",
                     f"URL: {request.url.path}",
                     f"User id: {request_user_id}",
+                    f"Request Body: {body_text}",
                     f"Params: {request_params}",
                     f"Time: {request_time}",
-                    # f"Bytes: {request_size}.",
+                    f"Bytes: {request_size}.",
                 ]
             )
         )
+
+        start_time = perf_counter()
+        response = await call_next(request)
+        process_time = perf_counter() - start_time
+
+        if request.url.path in self.excluded_endpoints:
+            return response
 
         if response.status_code >= HTTP_500_INTERNAL_SERVER_ERROR:
             logger_severity = logger.critical
@@ -80,7 +85,7 @@ class LoggerMiddleware(BaseHTTPMiddleware):
                     f"Request ID: {request_id}",
                     f"Response: {response_body}",
                     f"Bytes: {response_size}",
-                    f"Seconds Elasped: {process_time:.3f}.",
+                    f"Seconds Elapsed: {process_time:.3f}.",
                 ]
             )
         )

@@ -1,0 +1,19 @@
+1,TLE Data Uplink,"Inclination (float), RAAN (float), Eccentricity (float),
+Argument of Perigee (float), Mean anomaly (float),
+Mean motion (double), Revolution # (32 bit int)","float, float, float, float, float, double, int32",44,45
+2,ARO Data: Passcode + Time + Roll angle,"Time tag UTC, Roll angle off nadir (float),
+ARO Callsign, passcode (24 characters/bytes)","datetime, float, varchar(6), varchar(24)",36,37
+3,Secondary payload activation,,,0,1
+4,,"Year, Month, Date, Day, Hour, Minute, Second in UTC","int16, uint8, uint8, uint8, uint8, uint8, uint8",7,8
+5,RTC Sync,"Time tag (UTC)",datetime,7,8
+6,Call EPS MCU reset,,,0,1
+7,Call CDH MCU reset,,,0,1
+8,"Time delayed image capture & downlink to MCC
+on next pass","Time tag (UTC), Roll angle off nadir (float)","datetime, float",11,12
+9,Direct EPS power rail control,"Power rail ID (given by a table)",int,1,2
+10,Comms echo back,32 bit integer to echo back,int32,4,5
+11,Change value in parameter manager,"Address, new value","int, int",2,3
+12,Echo back parameter manager value,Address,int,1,2
+13,"Manually activate an emergency mode for a
+specified amount of time","Emergency mode state number, time tag (UTC)","int, datetime",8,9
+14,Downlink full system logs on next pass,Log level,enum,1,2

@@ -2,6 +2,7 @@
 #include "cc1120_txrx.h"
 #include "obc_board_config.h"
 #include "obc_gs_ax25.h"
+#include "obc_gs_commands_response.h"
 #include "obc_gs_fec.h"
 
 #include "obc_gs_telemetry_pack.h"
@@ -62,12 +63,12 @@ static obc_error_code_t sendTelemetryFile(uint32_t telemetryBatchId);
 static obc_error_code_t getFileDescriptor(uint32_t telemetryBatchId, int32_t *fd);
 
 /**
- * @brief Sends a telemetry packet, applying FEC and AX.25 framing
+ * @brief Sends a byte array, applying FEC and AX.25 framing
  *
- * @param telemPacket - A complete telemetry packet of size 223B
+ * @param sendBuffer - An array of bytes to send of size 223B
  * @return obc_error_code_t
  */
-static obc_error_code_t sendTelemetryPacket(packed_telem_packet_t *telemPacket);
+static obc_error_code_t sendPacket(uint8_t *sendBuffer);
 
 /**
  * @brief Either sends a single piece of telemetry or packs it into the current
@@ -109,6 +110,8 @@ obc_error_code_t sendToDownlinkEncodeQueue(encode_event_t *queueMsg) {
 
 void obcTaskFunctionCommsDownlinkEncoder(void *pvParameters) {
   obc_error_code_t errCode;
+  uint8_t cmdResBuffer[RS_DECODED_SIZE] = {0};
+  uint8_t cmdResBytesRecieved = 0;
 
   while (1) {
     encode_event_t queueMsg;
@@ -132,6 +135,22 @@ void obcTaskFunctionCommsDownlinkEncoder(void *pvParameters) {
             sendTelemetryBuffer(queueMsg.telemetryDataBuffer.telemData, queueMsg.telemetryDataBuffer.bufferSize));
         transmitEvent.eventID = END_DOWNLINK;
         LOG_IF_ERROR_CODE(sendToCC1120TransmitQueue(&transmitEvent));
+        break;
+      case DOWNLINK_CMD_RESPONSE:
+        if (cmdResBytesRecieved < RS_DECODED_SIZE) {
+          cmdResBuffer[cmdResBytesRecieved] = queueMsg.cmdResponseByte;
+          cmdResBytesRecieved++;
+        }
+
+        if (cmdResBytesRecieved >= RS_DECODED_SIZE) {
+          // Downlink this response if the array gets filled up
+          setCurrentLinkDestCallSign(GROUND_STATION_CALLSIGN, CALLSIGN_LENGTH, DEFAULT_SSID);
+          LOG_IF_ERROR_CODE(sendPacket(cmdResBuffer));
+          transmitEvent.eventID = END_DOWNLINK;
+          LOG_IF_ERROR_CODE(sendToCC1120TransmitQueue(&transmitEvent));
+          cmdResBytesRecieved = 0;
+          memset(cmdResBuffer, 0, RS_DECODED_SIZE);  // Not required, but done to avoid any edge cases
+        }
         break;
       default:
         LOG_ERROR_CODE(OBC_ERR_CODE_INVALID_ARG);
@@ -173,7 +192,7 @@ static obc_error_code_t sendTelemetryBuffer(telemetry_data_t *telemetryDataBuffe
   // Send the last packet if it is not empty
   if (telemPacketOffset == 0) return OBC_ERR_CODE_SUCCESS;
 
-  RETURN_IF_ERROR_CODE(sendTelemetryPacket(&telemPacket));
+  RETURN_IF_ERROR_CODE(sendPacket(telemPacket.data));
 
   return OBC_ERR_CODE_SUCCESS;
 }
@@ -224,7 +243,7 @@ static obc_error_code_t sendTelemetryFile(uint32_t telemetryBatchId) {
   // If there's no data left to send, return
   if (telemPacketOffset == 0) return OBC_ERR_CODE_SUCCESS;
 
-  errCode = sendTelemetryPacket(&telemPacket);
+  errCode = sendPacket(telemPacket.data);
   if (errCode != OBC_ERR_CODE_SUCCESS) {
     LOG_ERROR_CODE(errCode);
     RETURN_IF_ERROR_CODE(closeTelemetryFile(fd));
@@ -304,7 +323,7 @@ static obc_error_code_t sendOrPackNextTelemetry(telemetry_data_t *singleTelem, p
   // If the single telemetry is too large to continue adding to the telemPacket,
   // send the telemPacket
   if ((*telemPacketOffset) + packedSingleTelemSize > PACKED_TELEM_PACKET_SIZE) {
-    RETURN_IF_ERROR_CODE(sendTelemetryPacket(telemPacket));
+    RETURN_IF_ERROR_CODE(sendPacket(telemPacket->data));
     // Reset the packedTelem struct and offset
     *telemPacket = (packed_telem_packet_t){0};
     *telemPacketOffset = 0;
@@ -318,19 +337,19 @@ static obc_error_code_t sendOrPackNextTelemetry(telemetry_data_t *singleTelem, p
 }
 
 /**
- * @brief Sends a telemetry packet, applying FEC and AX.25 framing
+ * @brief Sends a byte array, applying FEC and AX.25 framing
  *
- * @param telemPacket - A complete telemetry packet of size 223B
+ * @param sendBuffer - An array of bytes to send of size 223B
  * @return obc_error_code_t
  */
-static obc_error_code_t sendTelemetryPacket(packed_telem_packet_t *telemPacket) {
+static obc_error_code_t sendPacket(uint8_t *sendBuffer) {
   packed_rs_packet_t fecPkt = {0};  // Holds a 255B RS packet
   unstuffed_ax25_i_frame_t unstuffedAx25Pkt = {0};
   transmit_event_t transmitEvent = {.eventID = DOWNLINK_PACKET};
 
   obc_gs_error_code_t interfaceErr;
   // Apply Reed Solomon FEC
-  interfaceErr = rsEncode(telemPacket->data, &fecPkt);
+  interfaceErr = rsEncode(sendBuffer, &fecPkt);
   if (interfaceErr != OBC_GS_ERR_CODE_SUCCESS) {
     return OBC_ERR_CODE_FEC_ENCODE_FAILURE;
   }

@@ -1,0 +1,27 @@
+name: Frontend Test
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        project: ["aro", "mcc"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "./gs/frontend/${{ matrix.project }}/package-lock.json"
+      - name: Install dependencies for ${{ matrix.project }}
+        run: |
+          cd ./gs/frontend/${{ matrix.project }}
+          npm ci
+      - name: Build and test ${{ matrix.project }}
+        run: |
+          cd ./gs/frontend/${{ matrix.project }}
+          npm run build
+          npm run test

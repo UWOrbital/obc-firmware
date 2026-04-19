@@ -4,7 +4,7 @@ from typing import Final
 from uuid import UUID, uuid4
 
 from sqlalchemy.dialects.postgresql import UUID as DB_UUID
-from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, MetaData
+from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint
 from sqlmodel import Field
 
 from gs.backend.config.data_config import (
@@ -32,7 +32,6 @@ from gs.backend.data.tables.main_tables import (
 
 # Transactional schema related items
 TRANSACTIONAL_SCHEMA_NAME: Final[str] = "transactional"
-TRANSACTIONAL_SCHEMA_METADATA: Final[MetaData] = MetaData(TRANSACTIONAL_SCHEMA_NAME)
 
 # Table names in database
 ARO_REQUEST_TABLE_NAME: Final[str] = "aro_requests"
@@ -60,12 +59,13 @@ class ARORequest(BaseSQLModel, table=True):
     pic_taken_on: datetime | None = Field(default=None)
     pic_transmitted_on: datetime | None = Field(default=None)
     packet_id: UUID | None = Field(
-        default=None, foreign_key=to_foreign_key_value(PACKET_COMMANDS_TABLE_NAME), ondelete="CASCADE"
+        default=None,
+        foreign_key=to_foreign_key_value(TRANSACTIONAL_SCHEMA_NAME, PACKET_COMMANDS_TABLE_NAME),
+        ondelete="CASCADE",
     )
     status: ARORequestStatus = Field(default=ARORequestStatus.PENDING)
 
     # table information
-    metadata = TRANSACTIONAL_SCHEMA_METADATA
     __tablename__ = ARO_REQUEST_TABLE_NAME
     __table_args__ = (
         ForeignKeyConstraint(
@@ -74,6 +74,7 @@ class ARORequest(BaseSQLModel, table=True):
             onupdate="CASCADE",
             ondelete="SET NULL",  # We want to maintain the request
         ),
+        {"schema": TRANSACTIONAL_SCHEMA_NAME},
     )  # Since the table is in a different schema sqlmodel can't find the table normally
 
 
@@ -89,7 +90,6 @@ class Commands(BaseSQLModel, table=True):
     params: str | None = None  # TODO: Make sure this matches the corresponding params in the main command table
 
     # table information
-    metadata = TRANSACTIONAL_SCHEMA_METADATA
     __tablename__ = COMMANDS_TABLE_NAME
     __table_args__ = (
         ForeignKeyConstraint(
@@ -98,6 +98,7 @@ class Commands(BaseSQLModel, table=True):
             onupdate="CASCADE",
             ondelete="CASCADE",
         ),
+        {"schema": TRANSACTIONAL_SCHEMA_NAME},
     )  # Since the table is in a different schema sqlmodel can't find the table normally
 
 
@@ -112,7 +113,6 @@ class Telemetry(BaseSQLModel, table=True):
     value: str | None = None  # TODO: Make sure this matches the corresponding params in the main command table
 
     # table information
-    metadata = TRANSACTIONAL_SCHEMA_METADATA
     __tablename__ = TELEMETRY_TABLE_NAME
     __table_args__ = (
         ForeignKeyConstraint(
@@ -121,6 +121,7 @@ class Telemetry(BaseSQLModel, table=True):
             onupdate="CASCADE",
             ondelete="CASCADE",
         ),
+        {"schema": TRANSACTIONAL_SCHEMA_NAME},
     )  # Since the table is in a different schema sqlmodel can't find the table normally
 
 
@@ -138,8 +139,8 @@ class CommsSession(BaseSQLModel, table=True):
     status: SessionStatus = Field(default=SessionStatus.PENDING)
 
     # table information
-    metadata = TRANSACTIONAL_SCHEMA_METADATA
     __tablename__ = COMMS_SESSION_TABLE_NAME
+    __table_args__ = {"schema": TRANSACTIONAL_SCHEMA_NAME}
 
 
 # Raw packet data
@@ -151,7 +152,9 @@ class Packet(BaseSQLModel, table=True):
     """
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
-    session_id: UUID = Field(foreign_key=to_foreign_key_value(COMMS_SESSION_TABLE_NAME), ondelete="CASCADE")
+    session_id: UUID = Field(
+        foreign_key=to_foreign_key_value(TRANSACTIONAL_SCHEMA_NAME, COMMS_SESSION_TABLE_NAME), ondelete="CASCADE"
+    )
     raw_data: bytes = Field(max_length=PACKET_RAW_LENGTH)
     type_: MainPacketType
     # subtype enum # CSDC requirement. TODO: Figure out what this means
@@ -160,8 +163,8 @@ class Packet(BaseSQLModel, table=True):
     offset: int
 
     # table information
-    metadata = TRANSACTIONAL_SCHEMA_METADATA
     __tablename__ = PACKET_TABLE_NAME
+    __table_args__ = {"schema": TRANSACTIONAL_SCHEMA_NAME}
 
 
 class PacketTelemetry(BaseSQLModel, table=True):
@@ -170,15 +173,21 @@ class PacketTelemetry(BaseSQLModel, table=True):
     """
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
-    packet_id: UUID = Field(foreign_key=to_foreign_key_value(PACKET_TABLE_NAME), ondelete="CASCADE")
-    telemetry_id: UUID = Field(foreign_key=to_foreign_key_value(TELEMETRY_TABLE_NAME), ondelete="CASCADE")
+    packet_id: UUID = Field(
+        foreign_key=to_foreign_key_value(TRANSACTIONAL_SCHEMA_NAME, PACKET_TABLE_NAME), ondelete="CASCADE"
+    )
+    telemetry_id: UUID = Field(
+        foreign_key=to_foreign_key_value(TRANSACTIONAL_SCHEMA_NAME, TELEMETRY_TABLE_NAME), ondelete="CASCADE"
+    )
     previous: UUID | None = Field(
-        default=None, foreign_key=to_foreign_key_value(TELEMETRY_TABLE_NAME), ondelete="CASCADE"
+        default=None,
+        foreign_key=to_foreign_key_value(TRANSACTIONAL_SCHEMA_NAME, TELEMETRY_TABLE_NAME),
+        ondelete="CASCADE",
     )
 
     # table information
-    metadata = TRANSACTIONAL_SCHEMA_METADATA
     __tablename__ = PACKET_TELEMETRY_TABLE_NAME
+    __table_args__ = {"schema": TRANSACTIONAL_SCHEMA_NAME}
 
 
 class PacketCommands(BaseSQLModel, table=True):
@@ -187,12 +196,18 @@ class PacketCommands(BaseSQLModel, table=True):
     """
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
-    packet_id: UUID = Field(foreign_key=to_foreign_key_value(PACKET_TABLE_NAME), ondelete="CASCADE")
-    command_id: UUID = Field(foreign_key=to_foreign_key_value(COMMANDS_TABLE_NAME), ondelete="CASCADE")
+    packet_id: UUID = Field(
+        foreign_key=to_foreign_key_value(TRANSACTIONAL_SCHEMA_NAME, PACKET_TABLE_NAME), ondelete="CASCADE"
+    )
+    command_id: UUID = Field(
+        foreign_key=to_foreign_key_value(TRANSACTIONAL_SCHEMA_NAME, COMMANDS_TABLE_NAME), ondelete="CASCADE"
+    )
     previous: UUID | None = Field(
-        default=None, foreign_key=to_foreign_key_value(COMMANDS_TABLE_NAME), ondelete="CASCADE"
+        default=None,
+        foreign_key=to_foreign_key_value(TRANSACTIONAL_SCHEMA_NAME, COMMANDS_TABLE_NAME),
+        ondelete="CASCADE",
     )
 
     # table information
-    metadata = TRANSACTIONAL_SCHEMA_METADATA
     __tablename__ = PACKET_COMMANDS_TABLE_NAME
+    __table_args__ = {"schema": TRANSACTIONAL_SCHEMA_NAME}

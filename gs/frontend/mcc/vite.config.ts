@@ -1,8 +1,23 @@
-import { defineConfig } from "vite";
+import path from "path";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import deno from "@deno/vite-plugin";
+import { defineConfig, type UserConfig } from "vite";
 
-// https://vitejs.dev/config/
+// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), deno()],
-});
+  plugins: [react(), tailwindcss()],
+  server: {
+    port: 5174,
+    host: "0.0.0.0",
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: "./tests/setup.js",
+  },
+} as UserConfig);

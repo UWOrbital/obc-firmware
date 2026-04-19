@@ -1,11 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./app.tsx";
-import "./index.css";
-import "bootstrap/dist/css/bootstrap.css";
+import App from "./App.tsx";
+import "./index.css"; // default styles are applied here
+import { BrowserRouter } from "react-router-dom";
 
+/**
+ * @brief Main component displaying the main application, which is linked to the index.html file
+ * @return tsx element of Main component
+ */
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+  </React.StrictMode>
 );

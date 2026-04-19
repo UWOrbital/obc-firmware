@@ -1,0 +1,25 @@
+1,Total received CSP packets at last MCC window,int,1,8
+2,Custom transceiver temperature sensor,12-bit,2,12960
+3,Temperature sensor,12-bit,2,12960
+4,Temperature sensor,12-bit,2,12960
+5,Temperature sensor,12-bit,2,12960
+6,Temperature sensor,12-bit,2,12960
+7,Temperature sensor,12-bit,2,12960
+8,Temperature sensor,12-bit,2,12960
+9,Temperature sensor,12-bit,2,12960
+10,Temperature sensor,12-bit,2,12960
+11,Current Sensor,12-bit,2,12960
+12,Current Sensor,12-bit,2,12960
+13,Current Sensor,12-bit,2,12960
+14,Current Sensor,12-bit,2,12960
+15,Current Sensor,12-bit,2,12960
+16,Current Sensor,12-bit,2,12960
+17,Voltage Sensor,12-bit,2,12960
+18,Voltage Sensor,12-bit,2,12960
+19,Voltage Sensor,12-bit,2,12960
+20,Voltage Sensor,12-bit,2,12960
+21,Voltage Sensor,12-bit,2,12960
+22,Voltage Sensor,12-bit,2,12960
+23,CC1120 onboard temperature sensor,12-bit,2,12960
+24,OBC State History: past 15 states,int,1,120
+25,EPS State History: past 15 states,int,1,120

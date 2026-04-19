@@ -1,0 +1,22 @@
+.input-form {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+.submit-button {
+  width: auto;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#map {
+  height: 180px
+}

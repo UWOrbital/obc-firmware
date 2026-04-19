@@ -64,6 +64,7 @@ compile_commands.json
 *.sw?
 
 .env
+.*.env
 *.db
 
 /build*
@@ -102,3 +103,5 @@ lerna-debug.log*
 *dist-ssr
 *.local
 *.vite
+
+.DS_Store

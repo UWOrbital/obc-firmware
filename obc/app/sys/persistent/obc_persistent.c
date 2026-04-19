@@ -12,10 +12,12 @@
 static const obc_persist_config_t obcPersistConfig[] = {
     [OBC_PERSIST_SECTION_ID_OBC_TIME] = {.sectionStartAddr = OBC_PERSIST_ADDR_OF(obcTime),
                                          .sectionSize = sizeof(obc_time_persist_t),
+                                         .sectionVersion = OBC_PERSISTENT_VERSION,
                                          .dataSize = sizeof(obc_time_persist_data_t),
                                          .sectionCount = OBC_PERSISTENT_MIN_SUBINDEX},
     [OBC_PERSIST_SECTION_ID_ALARM_MGR] = {.sectionStartAddr = OBC_PERSIST_ADDR_OF(alarmMgr),
                                           .sectionSize = sizeof(alarm_mgr_persist_t),
+                                          .sectionVersion = OBC_PERSISTENT_VERSION,
                                           .dataSize = sizeof(alarm_mgr_persist_data_t),
                                           .sectionCount = OBC_PERSISTENT_MAX_SUBINDEX_ALARM},
 };
@@ -110,6 +112,7 @@ obc_error_code_t setPersistentDataByIndex(obc_persist_section_id_t sectionId, si
   // Create header
   obc_persist_section_header_t header = {0};
   header.sectionSize = config->sectionSize;
+  header.sectionVersion = config->sectionVersion;
   // Use the dataSize as that's what we're writing
   header.crc32 = computeCrc32(0, buffPtr, config->dataSize);
 

@@ -30,6 +30,26 @@ jobs:
         pip install -r requirements.txt
         pip install -e .
 
+    - name: Set up PostgreSQL database
+      run: |
+        sudo service postgresql start
+        sudo -u postgres psql -c "CREATE USER ci_user WITH PASSWORD 'ci_password' SUPERUSER;"
+        sudo -u postgres psql -c "CREATE DATABASE gs;"
+
+    - name: Create CI .env file
+      run: |
+        cat > .env << EOF
+        GS_DATABASE_USER=ci_user
+        GS_DATABASE_PASSWORD=ci_password
+        GS_DATABASE_LOCATION=localhost
+        GS_DATABASE_PORT=5432
+        GS_DATABASE_NAME=gs
+        EOF
+
+    - name: Run Alembic migrations
+      run: |
+        alembic upgrade head
+
     - name: Create binary directory
       run: |
         mkdir build_gs
@@ -42,5 +62,11 @@ jobs:
         cmake --build .
 
     - name: Run pytest
+      env:
+        GS_DATABASE_USER: ci_user
+        GS_DATABASE_PASSWORD: ci_password
+        GS_DATABASE_LOCATION: localhost
+        GS_DATABASE_PORT: 5432
+        GS_DATABASE_NAME: gs
       run: |
         python -m pytest

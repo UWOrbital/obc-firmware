@@ -67,6 +67,10 @@ Note: You can choose to remove the first to lines of the `.env` that start with 
 
 Now, you can start the backend as by running `fastapi dev gs/backend/main.py` from the top level directory to run in development mode.
 
+To migrate pre-determined datainto your local database, you can run `python3 gs/backend/migrate.py` from the top level directory.
+
+Alternatively, you can include `callsigns`, `commands`, or `telemetries` as command arguments to migrate those respective datasets individually.
+
 **[Back to top](#table-of-contents)**
 
 ## Sources

@@ -1,0 +1,62 @@
+name: Auto Milestone Management
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  add-milestone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add milestone on PR merge
+        if: github.event.pull_request.merged == true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const date = new Date();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            const yy = String(year % 100);
+
+            let term;
+            if (month <= 4) term = "W";
+            else if (month >= 9) term = "F";
+            else term = "S";
+
+            const format = yy + term;
+
+            const { data: milestones } = await github.rest.issues.listMilestones({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open"
+            });
+
+            let milestone = null;
+            for (let i = 0; i < milestones.length; i++) {
+              if (milestones[i].title == format) {
+                milestone = milestones[i];
+                break;
+              }
+            }
+
+            if (!milestone) {
+              const { data: new_milestone } = await github.rest.issues.createMilestone({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: format
+              });
+              milestone = new_milestone;
+            }
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              milestone: milestone.number
+            });

@@ -14,6 +14,13 @@ target_include_directories(gs.out PUBLIC
 
 target_compile_options(gs.out PUBLIC -Wall -g)
 
+if(APPLE)
+    target_link_libraries(gs.out PUBLIC
+        "-framework CoreFoundation"
+        "-framework IOKit"
+    )
+endif()
+
 if(UNIX)
     target_link_libraries(gs.out PUBLIC
         tiny-aes

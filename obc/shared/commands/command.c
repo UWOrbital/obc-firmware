@@ -51,8 +51,9 @@ obc_error_code_t verifyCommand(cmd_msg_t *cmd, cmd_info_t *currCmdInfo) {
   return OBC_ERR_CODE_SUCCESS;
 }
 
-obc_error_code_t processNonTimeTaggedCommand(cmd_msg_t *cmd, cmd_info_t *currCmdInfo) {
-  if (cmd == NULL || currCmdInfo == NULL) {
+obc_error_code_t processNonTimeTaggedCommand(cmd_msg_t *cmd, cmd_info_t *currCmdInfo, uint8_t *responseData,
+                                             uint8_t *responseDataLen) {
+  if (cmd == NULL || currCmdInfo == NULL || responseData == NULL || responseDataLen == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
   // If the command is not time-tagged, execute it immediately
@@ -61,6 +62,6 @@ obc_error_code_t processNonTimeTaggedCommand(cmd_msg_t *cmd, cmd_info_t *currCmd
     return OBC_ERR_CODE_INVALID_ARG;
   }
   // TODO: Handle safety-critical command failures
-  RETURN_IF_ERROR_CODE(currCmdInfo->callback(cmd));
+  RETURN_IF_ERROR_CODE(currCmdInfo->callback(cmd, responseData, responseDataLen));
   return OBC_ERR_CODE_SUCCESS;
 }

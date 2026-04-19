@@ -27,8 +27,10 @@
 #define CAM_SPI_PORT spiPORT3
 #define CAM_SPI_REG spiREG3
 #define CAM_SPI_DATA_FORMAT SPI_FMT_2
-#define CAM_CS_1 2UL
-#define CAM_CS_2 3UL
+// SPI3 CS[2] and CS[3] are used as I2C pins
+// Reuse Some CS pins
+#define CAM_CS_1 1UL
+#define CAM_CS_2 2UL
 
 // State Manager DEBUG LED
 #define STATE_MGR_DEBUG_LED_GIO_PORT gioPORTB

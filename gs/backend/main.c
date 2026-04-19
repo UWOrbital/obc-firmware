@@ -12,7 +12,11 @@
 #include <aes.h>
 #include <cserialport.h>
 
-#include <malloc.h>
+#ifdef __APPLE__
+#ifdef TARGET_OS_MAC
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+#endif
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

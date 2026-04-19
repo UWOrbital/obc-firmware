@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 
+if(APPLE)
+    find_library(COREFOUNDATION CoreFoundation)
+    find_library(IOKIT IOKit)
+endif()
+
 # Set default values for firmware build options
 include(${CMAKE_SOURCE_DIR}/cmake/obc_build_options.cmake)
 
@@ -64,11 +69,13 @@ elseif(${CMAKE_BUILD_TYPE} MATCHES Examples)
 		add_executable(${OUT_FILE_NAME} examples/vn100_demo/test_binary_reading/main.c)
     elseif(${EXAMPLE_TYPE} MATCHES ADC)
 		add_executable(${OUT_FILE_NAME} examples/test_app_adc/main.c)
-  elseif(${EXAMPLE_TYPE} MATCHES CC1120_SPI)
-    add_executable(${OUT_FILE_NAME} examples/test_app_cc1120_spi/main.c examples/test_app_cc1120_spi/cc1120_spi_tests.c)
-    target_include_directories (${OUT_FILE_NAME} PRIVATE examples/test_app_cc1120_spi)
-  elseif(${EXAMPLE_TYPE} MATCHES RS)
-    add_executable(${OUT_FILE_NAME} examples/test_app_rs/main.c)
+    elseif(${EXAMPLE_TYPE} MATCHES CC1120_SPI)
+        add_executable(${OUT_FILE_NAME} examples/test_app_cc1120_spi/main.c examples/test_app_cc1120_spi/cc1120_spi_tests.c)
+        target_include_directories (${OUT_FILE_NAME} PRIVATE examples/test_app_cc1120_spi)
+    elseif(${EXAMPLE_TYPE} MATCHES RS)
+        add_executable(${OUT_FILE_NAME} examples/test_app_rs/main.c)
+    elseif(${EXAMPLE_TYPE} MATCHES ARDUCAM)
+        add_executable(${OUT_FILE_NAME} examples/test_app_arducam/main.c)
 
   # ADD MORE EXAMPLES ABOVE THIS COMMENT
 	else ()

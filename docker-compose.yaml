@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${GS_DATABASE_USER}
+      POSTGRES_PASSWORD: ${GS_DATABASE_PASSWORD}
+      POSTGRES_DB: ${GS_DATABASE_NAME}
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    working_dir: /app
+    volumes:
+      - ./:/app
+    depends_on:
+      - postgres
+  aro-frontend:
+    build: ./gs/frontend/aro
+    ports:
+      - "5173:5173"
+    working_dir: /app
+    volumes:
+      - ./gs/frontend/aro:/app
+      - /app/node_modules
+  mcc-frontend:
+    build: ./gs/frontend/mcc
+    ports:
+      - "5174:5174"
+    working_dir: /app
+    volumes:
+      - ./gs/frontend/mcc:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

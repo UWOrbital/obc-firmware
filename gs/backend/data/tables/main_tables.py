@@ -1,14 +1,14 @@
 from typing import Final, TypeAlias
 
+from pydantic import model_validator
 from sqlalchemy import Integer
-from sqlalchemy.schema import MetaData
 from sqlmodel import Field
 
 from gs.backend.data.tables.base_model import BaseSQLModel
+from gs.backend.exceptions.exceptions import DatabaseError
 
 # Schema information
 MAIN_SCHEMA_NAME: Final[str] = "main"
-MAIN_SCHEMA_METADATA: Final[MetaData] = MetaData(MAIN_SCHEMA_NAME)
 
 # Table names in database
 MAIN_COMMAND_TABLE_NAME: Final[str] = "commands"
@@ -31,12 +31,38 @@ class MainCommand(BaseSQLModel, table=True):
     name: str
     params: str | None = None  # None if no params needed
     format: str | None = None  # None if no format needed
-    data_size: int = Field(gt=0)
+    data_size: int = Field(ge=0)
     total_size: int = Field(gt=0)
 
     # table information
-    metadata = MAIN_SCHEMA_METADATA
     __tablename__ = MAIN_COMMAND_TABLE_NAME
+    __table_args__ = {"schema": MAIN_SCHEMA_NAME}
+
+    @model_validator(mode="after")
+    def validate_params_format(self) -> "MainCommand":
+        """
+        Returns self if params and format are both None or have the same number
+        of comma-separated values. If one of params or format is missing, or the
+        numbers of comma-separated values do not match, raise DatabaseError.
+        """
+        if (
+            self.format is None
+            and self.params is None
+            or (
+                # TODO: Check if the params have valid types
+                self.params is not None and self.format is not None and self.params.count(",") == self.format.count(",")
+            )
+        ):
+            return self
+
+        if self.params is None:
+            raise DatabaseError("Missing params")
+
+        elif self.format is None:
+            raise DatabaseError("Missing format")
+
+        else:
+            raise DatabaseError("Params and format do not have the same number of values")
 
 
 class MainTelemetry(BaseSQLModel, table=True):
@@ -54,5 +80,5 @@ class MainTelemetry(BaseSQLModel, table=True):
     total_size: int = Field(gt=0)
 
     # table information
-    metadata = MAIN_SCHEMA_METADATA
     __tablename__ = MAIN_TELEMETRY_TABLE_NAME
+    __table_args__ = {"schema": MAIN_SCHEMA_NAME}

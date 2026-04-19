@@ -15,7 +15,7 @@ typedef enum {
 // Alarm handler callback definition
 typedef union {
   obc_error_code_t (*defaultCallback)(void);
-  obc_error_code_t (*cmdCallback)(cmd_msg_t *);
+  obc_error_code_t (*cmdCallback)(cmd_msg_t *, uint8_t *, uint8_t *);
 } alarm_handler_callback_def_t;
 
 typedef enum {

@@ -1,28 +1,28 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-    - id: trailing-whitespace
-      exclude: '(libs|hal)/.*'
-    - id: end-of-file-fixer
-      exclude: '((libs|hal)/.*|\.(ts|tsx|css|html|json|md|yaml|yml|ipynb)$)'
-    - id: check-added-large-files
-      exclude: '(libs|hal)/.*'
--   repo: https://github.com/pre-commit/mirrors-clang-format
+      - id: trailing-whitespace
+        exclude: "(libs|hal)/.*"
+      - id: end-of-file-fixer
+        exclude: '((libs|hal)/.*|\.(ts|tsx|css|html|json|md|yaml|yml|ipynb)$)'
+      - id: check-added-large-files
+        exclude: "(libs|hal)/.*|gs/backend/data/resources/callsigns\\.csv$"
+  - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v17.0.6
     hooks:
-    - id: clang-format
-      types_or: [c++, c]
-      exclude: '(libs|hal)/.*'
--   repo: https://github.com/astral-sh/ruff-pre-commit
+      - id: clang-format
+        types_or: [c++, c]
+        exclude: "(libs|hal)/.*"
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.2.2
     hooks:
-    - id: ruff
-      args: ["--fix"]
-    - id: ruff-format
--   repo: https://github.com/nozaq/pre-commit-deno
-    rev: 0.1.0
-    hooks:
-    -   id: deno-fmt
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+# -   repo: https://github.com/nozaq/pre-commit-deno
+#     rev: 0.1.0
+#     hooks:
+#     -   id: deno-fmt

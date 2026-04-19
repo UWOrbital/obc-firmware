@@ -9,19 +9,19 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v3
-      with:
-        python-version: '3.11'
-    - uses: denoland/setup-deno@v2
-      with:
-        deno-version: v2.x
-    - id: file_changes
-      uses: trilom/file-changes-action@v1.2.4
-      with:
-        prNumber: ${{ github.event.number }}
-        output: ' '
-    - uses: pre-commit/action@v3.0.0
-      name: pre-commit
-      with:
-        extra_args: --files ${{ steps.file_changes.outputs.files}}
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+      - id: file_changes
+        uses: trilom/file-changes-action@v1.2.4
+        with:
+          prNumber: ${{ github.event.number }}
+          output: " "
+      - uses: pre-commit/action@v3.0.0
+        name: pre-commit
+        with:
+          extra_args: --files ${{ steps.file_changes.outputs.files}}

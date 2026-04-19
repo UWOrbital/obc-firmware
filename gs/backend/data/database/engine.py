@@ -1,10 +1,10 @@
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine, text
 
-from gs.backend.config.config import DATABASE_CONNECTION_STRING
-from gs.backend.data.tables.aro_user_tables import ARO_USER_SCHEMA_METADATA, ARO_USER_SCHEMA_NAME
-from gs.backend.data.tables.main_tables import MAIN_SCHEMA_METADATA, MAIN_SCHEMA_NAME
-from gs.backend.data.tables.transactional_tables import TRANSACTIONAL_SCHEMA_METADATA, TRANSACTIONAL_SCHEMA_NAME
+from gs.backend.config.config import settings
+from gs.backend.data.tables.aro_user_tables import ARO_USER_SCHEMA_NAME
+from gs.backend.data.tables.main_tables import MAIN_SCHEMA_NAME
+from gs.backend.data.tables.transactional_tables import TRANSACTIONAL_SCHEMA_NAME
 
 
 def get_db_engine() -> Engine:
@@ -13,8 +13,7 @@ def get_db_engine() -> Engine:
 
     :return: engine
     """
-    # TODO: Add loguru to sqlalchemy.engine logger
-    return create_engine(DATABASE_CONNECTION_STRING, echo=True)
+    return create_engine(settings.db.connection_string)
 
 
 def get_db_session() -> Session:
@@ -44,12 +43,11 @@ def _create_schemas(session: Session) -> None:
     connection.commit()
 
 
+'''Deprecated method to create tables, now handled by Alembic migrations
 def _create_tables(session: Session) -> None:
     """
     Creates the tables.
-
     :warning: This assumes the relevant schemas were already created
-
     :param session: The session for which to create the schemas
     """
     metadatas = [MAIN_SCHEMA_METADATA, ARO_USER_SCHEMA_METADATA, TRANSACTIONAL_SCHEMA_METADATA]
@@ -57,13 +55,14 @@ def _create_tables(session: Session) -> None:
     for metadata in metadatas:
         metadata.create_all(connection)
         connection.commit()
+'''
 
 
 def setup_database(session: Session) -> None:
     """
-    Creates the schemas and tables for the session.
+    Creates the schemas for the session.
+    Table creation is now handled by Alembic migrations
 
     :param session: The session for which to create the schemas
     """
     _create_schemas(session)
-    _create_tables(session)

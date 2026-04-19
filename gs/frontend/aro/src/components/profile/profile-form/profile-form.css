@@ -1,0 +1,23 @@
+.form-buttons {
+    width: fit-content;
+    padding-inline: calc(var(--spacing) * 2);
+    padding-block: var(--spacing);
+    border-radius: calc(var(--radius) - 2px);
+}
+
+.field-label-container {
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    max-width: 100%;
+    row-gap: calc(var(--spacing) * 1);
+    color: var(--color-gray-900);
+}
+
+.form-field {
+    width: 100%;
+    padding-inline: calc(var(--spacing) * 2);
+    padding-block: var(--spacing);
+    border-radius: calc(var(--radius) - 2px);
+    outline: 1px solid var(--color-gray-200);
+}

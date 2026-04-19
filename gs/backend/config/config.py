@@ -1,19 +1,19 @@
 # TODO:(335) Improve loading the configuration
-from os import environ
-from typing import Final
 
-from dotenv import load_dotenv
-
-load_dotenv()
+from gs.backend.config.cors_config import CORSConfig
+from gs.backend.config.database_config import DatabaseConfig
+from gs.backend.config.logger_config import LoggerConfig
 
 
-# TODO: Make these throw an exception if they are None
-GS_DATABASE_USER = environ.get("GS_DATABASE_USER")
-GS_DATABASE_PASSWORD = environ.get("GS_DATABASE_PASSWORD")
-GS_DATABASE_LOCATION = environ.get("GS_DATABASE_LOCATION")
-GS_DATABASE_PORT = environ.get("GS_DATABASE_PORT")
-GS_DATABASE_NAME = environ.get("GS_DATABASE_NAME")
+class BackendConfiguration:
+    """
+    Class for storing backend configuration settings
+    """
 
-DATABASE_CONNECTION_STRING: Final[
-    str
-] = f"postgresql+psycopg2://{GS_DATABASE_USER}:{GS_DATABASE_PASSWORD}@{GS_DATABASE_LOCATION}:{GS_DATABASE_PORT}/{GS_DATABASE_NAME}"
+    def __init__(self) -> None:
+        self.cors = CORSConfig()
+        self.logger = LoggerConfig()
+        self.db = DatabaseConfig()
+
+
+settings = BackendConfiguration()

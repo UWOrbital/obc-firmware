@@ -1,4 +1,5 @@
 def to_foreign_key_value(
+    schema_name: str,
     foreign_table_name: str,
     foreign_column_name: str = "id",
 ) -> str:
@@ -17,5 +18,5 @@ def to_foreign_key_value(
 
     :return: The foreign key value
     """
-    foreign_key_value = f"{foreign_table_name}.{foreign_column_name}"
+    foreign_key_value = f"{schema_name}.{foreign_table_name}.{foreign_column_name}"
     return foreign_key_value
