@@ -103,7 +103,6 @@ obc_error_code_t i2cReceiveFrom(uint8_t sAddr, uint16_t size, uint8_t *buf, Tick
 
   if (xSemaphoreTake(i2cTransferComplete, transferTimeoutTicks) != pdTRUE) {
     errCode = OBC_ERR_CODE_I2C_TRANSFER_TIMEOUT;
-    LOG_ERROR_FROM_ISR("Semaphore cannot be given or was already given.");
     i2cSetStop(I2C_REG);
   } else {
     errCode = OBC_ERR_CODE_SUCCESS;
@@ -153,11 +152,7 @@ void i2cNotification(i2cBASE_t *i2c, uint32 flags) {
   BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
   if (flags & I2C_SCD_INT) {
-    xSemaphoreGiveFromISR(i2cTransferComplete, &xHigherPriorityTaskWoken);
-
-    if (xSemaphoreGiveFromISR(i2cTransferComplete, &xHigherPriorityTaskWoken) == pdTRUE) {
-      LOG_INFO_FROM_ISR("Semaphore successfully given.");
-    } else {
+    if (xSemaphoreGiveFromISR(i2cTransferComplete, &xHigherPriorityTaskWoken) != pdTRUE) {
       LOG_ERROR_FROM_ISR("Semaphore cannot be given or was already given.");
     }
   }
