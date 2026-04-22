@@ -12,6 +12,10 @@ jobs:
     - name: Create binary directory
       run: |
         mkdir build
+    - name: Setup submodules
+      run: |
+        git submodule init
+        git submodule update --recursive
     - name: Build
       run: |
         cd build
