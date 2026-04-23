@@ -20,7 +20,7 @@ jobs:
       env:
         BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
       run: |
-        echo "Main repo branch: $BRANCH_NAME"
+        echo "orbital-software repo branch: $BRANCH_NAME"
 
         git submodule update --init interfaces
         cd interfaces
