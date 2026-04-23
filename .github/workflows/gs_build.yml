@@ -12,11 +12,27 @@ jobs:
     - name: Create binary directory
       run: |
         mkdir build
-    - name: Setup submodules
+    - name: Sync submodule to matching branch
+      env:
+        BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
       run: |
-        git submodule init
-        git submodule update --recursive
-    - name: Build
+        echo "orbital-software repo branch: $BRANCH_NAME"
+
+        git submodule update --init interfaces
+        cd interfaces
+
+        git fetch origin
+
+        if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
+        echo "Using matching interfaces branch: $BRANCH_NAME"
+        git checkout "$BRANCH_NAME"
+        git pull origin "$BRANCH_NAME"
+        else
+        echo "No matching branch found, falling back to main"
+        git checkout main
+        git pull origin main
+        fi
+   - name: Build
       run: |
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=GS -G"Unix Makefiles"
@@ -32,10 +48,26 @@ jobs:
     - name: Create binary directory
       run: |
         mkdir build
-    - name: Setup submodules
+    - name: Sync submodule to matching branch
+      env:
+        BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
       run: |
-        git submodule init
-        git submodule update --recursive
+        echo "orbital-software repo branch: $BRANCH_NAME"
+
+        git submodule update --init interfaces
+        cd interfaces
+
+        git fetch origin
+
+        if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
+        echo "Using matching interfaces branch: $BRANCH_NAME"
+        git checkout "$BRANCH_NAME"
+        git pull origin "$BRANCH_NAME"
+        else
+        echo "No matching branch found, falling back to main"
+        git checkout main
+        git pull origin main
+        fi
     - name: Build
       run: |
         cd build
