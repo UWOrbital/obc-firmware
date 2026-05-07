@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import PageNotFound from "./components/PageNotFound";
 import Telemetry from "./pages/Telemetry";
+import Visualization from "./pages/Visualization"
 
 /**
  * @brief App component displaying the main application
@@ -29,6 +30,7 @@ function App() {
           <Route path="/aro-requests" element={<LiveSession />} />
           <Route path="/login" element={<Login />} />
           <Route path="/telemetry" element={<Telemetry/>} />
+          <Route path="/visualization" element={<Visualization />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </div>
