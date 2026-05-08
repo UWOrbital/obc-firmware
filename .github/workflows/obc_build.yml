@@ -23,19 +23,6 @@ jobs:
         echo "orbital-software repo branch: $BRANCH_NAME"
 
         git submodule update --init interfaces
-        cd interfaces
-
-        git fetch origin
-
-        if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
-        echo "Using matching interfaces branch: $BRANCH_NAME"
-        git checkout "$BRANCH_NAME"
-        git pull origin "$BRANCH_NAME"
-        else
-        echo "No matching branch found, falling back to main"
-        git checkout main
-        git pull origin main
-        fi
 
     - name: Create binary directory
       run: |
