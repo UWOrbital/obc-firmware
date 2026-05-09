@@ -29,7 +29,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -e .
-
+    - name: Sync submodule to matching branch
+      env:
+        BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+      run: |
+        echo "orbital-software repo branch: $BRANCH_NAME"
+        git submodule update --init interfaces
     - name: Set up PostgreSQL database
       run: |
         sudo service postgresql start
