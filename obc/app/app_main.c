@@ -18,7 +18,6 @@
 #include <can.h>
 #include <het.h>
 
-#include "ci_cd_test.h"
 // This is the stack canary. It should never be overwritten.
 
 void *__stack_chk_guard = (void *)0xDEADBEEF;
