@@ -25,9 +25,6 @@ jobs:
         echo "orbital-software repo branch: $BRANCH_NAME"
 
         git submodule update --init interfaces
-        cd interfaces
-
-        git fetch origin
     - name: Create binary directory
       run: |
         mkdir build_hil
