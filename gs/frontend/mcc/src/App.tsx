@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import AROAdmin from "./pages/AROAdmin";
 import LiveSession from "./pages/LiveSession";
 import Login from "./pages/Login";
+import Telemetry from "./pages/Telemetry/Telemetry";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import PageNotFound from "./components/PageNotFound";
 
