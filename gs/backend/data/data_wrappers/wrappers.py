@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from gs.backend.data.data_wrappers.abstract_wrapper import AbstractWrapper  # SEE abstract_wrapper.py FOR LOGIC
+from gs.backend.data.enums.aro_requests import ARORequestStatus
 from gs.backend.data.tables.aro_user_tables import AROUserAuthToken, AROUserLogin, AROUsers
 from gs.backend.data.tables.main_tables import MainCommand, MainTelemetry
 from gs.backend.data.tables.transactional_tables import (
@@ -44,6 +45,35 @@ class ARORequestWrapper(AbstractWrapper[ARORequest, UUID]):
     """
 
     model = ARORequest
+
+    def get_requests(
+        self,
+        count: int = 100,
+        offset: int = 0,
+        filters: list[ARORequestStatus] | None = None,
+    ) -> list[ARORequest]:
+        """
+        Get recent ARO requests, optionally filtered by status.
+
+        :param count: Number of most recent requests to return. If count <= 0, returns all.
+        :param offset: Starting index (for paging) in the descending-by-created_on request list.
+        :param filters: Optional list of statuses to include.
+        :return: A list of ARO requests matching criteria.
+        """
+        requests = self.get_all()
+
+        if filters:
+            filter_set = set(filters)
+            requests = [request for request in requests if request.status in filter_set]
+
+        requests.sort(key=lambda request: request.created_on, reverse=True)
+
+        start = max(offset, 0)
+        if count <= 0:
+            return requests[start:]
+
+        end = start + count
+        return requests[start:end]
 
 
 class MainCommandWrapper(AbstractWrapper[MainCommand, int]):
