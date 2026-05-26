@@ -18,9 +18,6 @@ jobs:
     - name: Install the project
       run: uv sync --locked --all-extras --dev
 
-    - name: Activate venv
-      run: source .venv/bin/activate
-
     - name: Sync submodule to matching branch
       env:
         BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
@@ -37,36 +34,42 @@ jobs:
 
     - name: Build (Release-Launchpad)
       run: |
+        source .venv/bin/activate
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=OBC -G"Unix Makefiles" -DBOARD_TYPE=RM46_LAUNCHPAD -DDEBUG=0
         make
 
     - name: Build (Release-OBC Rev1)
       run: |
+        source .venv/bin/activate
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=OBC -G"Unix Makefiles" -DBOARD_TYPE=OBC_REVISION_1 -DDEBUG=0
         make
 
     - name: Build (Release-OBC Rev2)
       run: |
+        source .venv/bin/activate
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=OBC -G"Unix Makefiles" -DBOARD_TYPE=OBC_REVISION_2 -DDEBUG=0
         make
 
     - name: Build (Debug-Launchpad)
       run: |
+        source .venv/bin/activate
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=OBC -G"Unix Makefiles" -DBOARD_TYPE=RM46_LAUNCHPAD -DDEBUG=1
         make
 
     - name: Build (Debug-OBC Rev1)
       run: |
+        source .venv/bin/activate
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=OBC -G"Unix Makefiles" -DBOARD_TYPE=OBC_REVISION_1 -DDEBUG=1
         make
 
     - name: Build (Debug-OBC Rev2)
       run: |
+        source .venv/bin/activate
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=OBC -G"Unix Makefiles" -DBOARD_TYPE=OBC_REVISION_2 -DDEBUG=1
         make
