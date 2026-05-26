@@ -15,6 +15,13 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install gcc-multilib g++-multilib
+    - name: Sync submodule to matching branch
+      env:
+        BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+      run: |
+        echo "orbital-software repo branch: $BRANCH_NAME"
+
+        git submodule update --init interfaces
     - name: Configure CMake
       run: |
         mkdir build
