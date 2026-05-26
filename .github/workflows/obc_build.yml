@@ -5,16 +5,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
 
     - name: Setup
       run: |
         sudo apt-get update
         sudo apt-get -y install build-essential cmake
 
-    - name: Install requirements
-      run: |
-        python3 -m pip install -r requirements.txt
+    - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+
+    - name: Install the project
+        run: uv sync --locked --all-extras --dev
 
     - name: Sync submodule to matching branch
       env:

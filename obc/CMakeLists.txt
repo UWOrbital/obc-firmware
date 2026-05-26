@@ -216,7 +216,7 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 if(${CMAKE_BUILD_TYPE} MATCHES OBC)
 	add_custom_target(firmware_crc ALL
 			COMMAND "${Python3_EXECUTABLE}"
-			"${CMAKE_SOURCE_DIR}/obc/tools/python/append_crc.py"
+			"${CMAKE_SOURCE_DIR}/obc/tools/utils/append_crc.py"
 			"${CMAKE_BINARY_DIR}/${BIN_FILE_NAME}"
 			"${CMAKE_BINARY_DIR}/${CRC_FILE_NAME}"
 			DEPENDS "${CMAKE_BINARY_DIR}/${BIN_FILE_NAME}"
