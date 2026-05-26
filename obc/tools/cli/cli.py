@@ -8,7 +8,12 @@ from typing import cast
 from serial import Serial, SerialException
 from textual import on
 from textual.app import App, ComposeResult
-from textual.containers import HorizontalGroup, HorizontalScroll, ScrollableContainer, VerticalScroll
+from textual.containers import (
+    HorizontalGroup,
+    HorizontalScroll,
+    ScrollableContainer,
+    VerticalScroll,
+)
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Button, DataTable, Input, Label, Static
@@ -84,7 +89,9 @@ class CliPanel(ScrollableContainer):
         self.cli_output = self.buffer.getvalue()
 
     #  Use threads to ensure blocking commands don't block CLI
-    def run_cli_command_in_thread(self, cmd_function: Callable[[str], None], args: str) -> None:
+    def run_cli_command_in_thread(
+        self, cmd_function: Callable[[str], None], args: str
+    ) -> None:
         """
         Run a CLI command in a separate thread to avoid blocking the UI
         """
@@ -104,7 +111,11 @@ class CliPanel(ScrollableContainer):
         try:
             # Obtain function from gs shell instance based on inputted command
             cmd_function = getattr(self.shell, f"do_{command_parts[0]}")
-            args = command_parts[1] if len(command_parts) > 1 and command_parts[1] is not None else ""
+            args = (
+                command_parts[1]
+                if len(command_parts) > 1 and command_parts[1] is not None
+                else ""
+            )
 
             # Make special exception for "exit" command
             if command_parts[0] == "exit":
@@ -113,7 +124,9 @@ class CliPanel(ScrollableContainer):
 
             # Change print_logs cmd button status to STOP if manually typed in
             if command_parts[0] == "print_logs":
-                print("[yellow]Use print_logs button below CMDS to exit polling.[/yellow]")
+                print(
+                    "[yellow]Use print_logs button below CMDS to exit polling.[/yellow]"
+                )
                 # Query_one("#btn-print_logs") returns a widget, so type cast widget to button
                 btn = cast(Button, self.app.query_one("#btn-print_logs"))
                 btn.label = "STOP"
@@ -176,7 +189,9 @@ class CmdButton(HorizontalGroup):
 
         if self.cmdname == "print_logs":
             if event.button.label == "Run":
-                print("[yellow]Use print_logs button below CMDS to exit polling.[/yellow]")
+                print(
+                    "[yellow]Use print_logs button below CMDS to exit polling.[/yellow]"
+                )
                 event.button.label = "STOP"
             else:
                 event.button.label = "Run"
@@ -252,7 +267,9 @@ class LogsPanel(Static):
             with open("gs/backend/logs.log") as logs:
                 self.logs = logs.read()
         except FileNotFoundError:
-            self.update("[red]Logs file not found. Try running interface from root directory (OBC-Firmware)[/red]")
+            self.update(
+                "[red]Logs file not found. Try running interface from root directory (OBC-Firmware)[/red]"
+            )
 
     def watch_logs(self, logs: str) -> None:
         """

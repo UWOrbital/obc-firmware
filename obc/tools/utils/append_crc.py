@@ -34,7 +34,9 @@ if __name__ == "__main__":
     # Checks for valid commands
     if len(argv) != 3:
         print("python append_crc.py")
-        print('Invalid Arguments. Expected Command: "python3 append_crc.py input_path output_path"')
+        print(
+            'Invalid Arguments. Expected Command: "python3 append_crc.py input_path output_path"'
+        )
         exit(1)
 
     # Check if the file provided file exists and has a .bin suffix

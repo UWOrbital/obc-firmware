@@ -5,7 +5,13 @@ from sys import argv, exit
 
 from serial import Serial, SerialException
 
-from interfaces.utils.command_utils import LOG_PATH, arg_parse, poll, send_command, send_conn_request
+from interfaces.utils.command_utils import (
+    LOG_PATH,
+    arg_parse,
+    poll,
+    send_command,
+    send_conn_request,
+)
 from interfaces.obc_gs_interface.commands.python import CmdCallbackId
 
 
@@ -43,7 +49,10 @@ class GroundStationShell(Cmd):
         """
         A function with the appropriate checks to restart the logging process
         """
-        if self.background_logging is not None and not self.background_logging.is_alive():
+        if (
+            self.background_logging is not None
+            and not self.background_logging.is_alive()
+        ):
             self.background_logging = Process(
                 target=poll,
                 args=(
@@ -90,7 +99,10 @@ class GroundStationShell(Cmd):
 
         cmd_response = send_command(line, self._com_port, 1)
         print(cmd_response)
-        if cmd_response is not None and cmd_response.cmd_id == CmdCallbackId.CMD_EXEC_OBC_RESET:
+        if (
+            cmd_response is not None
+            and cmd_response.cmd_id == CmdCallbackId.CMD_EXEC_OBC_RESET
+        ):
             self._conn_request_sent = False
 
         self._restart_logging()

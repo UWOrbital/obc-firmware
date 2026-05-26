@@ -25,7 +25,9 @@ class BootloaderHeader:
 
     def serialize(self) -> bytes:
         """Returns the serialized version of the object with extra padding to reach specified APP_HEADER_SIZE"""
-        header_data = pack(BootloaderHeader.HEADER_FMT, self.version, self.bin_size, self.board_type)
+        header_data = pack(
+            BootloaderHeader.HEADER_FMT, self.version, self.bin_size, self.board_type
+        )
         unused_bytes = self.get_unused_size()
         # Add padding for the unused bytes
         padding = bytes(unused_bytes)
@@ -73,7 +75,11 @@ def create_bin(input_path: str, input_version: int) -> str:
     metadata_file_path = input_path.replace("OBC-firmware.bin", "OBC-metadata.bin")
     cmake_data = read_metadata_file(metadata_file_path)
 
-    header = BootloaderHeader(version=input_version, bin_size=program_size_bytes, board_type=cmake_data.board_type)
+    header = BootloaderHeader(
+        version=input_version,
+        bin_size=program_size_bytes,
+        board_type=cmake_data.board_type,
+    )
     header_bytes = header.serialize()
 
     print(header)  # TODO: Replace with logging
@@ -153,7 +159,13 @@ def send_bin(file_path: str, com_port: str) -> None:
             chunk_size = 128
 
             if total_bytes_to_write - num_bytes_written >= chunk_size:
-                ser.write(data[APP_HEADER_SIZE + num_bytes_written : APP_HEADER_SIZE + num_bytes_written + chunk_size])
+                ser.write(
+                    data[
+                        APP_HEADER_SIZE + num_bytes_written : APP_HEADER_SIZE
+                        + num_bytes_written
+                        + chunk_size
+                    ]
+                )
                 num_bytes_written += chunk_size
                 sleep(0.1)
             else:
@@ -181,7 +193,9 @@ def arg_parse() -> ArgumentParser:
         type=str,
         help="Path to the input .bin file.",
     )
-    parser.add_argument("-p", required=True, dest="port", type=str, help="Serial port number")
+    parser.add_argument(
+        "-p", required=True, dest="port", type=str, help="Serial port number"
+    )
     parser.add_argument(
         "-v",
         dest="version",
