@@ -10,6 +10,7 @@ execute_process(
 # Set the SOURCE_PATH using the detected REPO_ROOT
 add_compile_definitions(SOURCE_PATH="${REPO_ROOT}/")
 
+add_subdirectory(interfaces)
 add_subdirectory(unit)
 
 # TODO: uncomment once there's at least 1 test

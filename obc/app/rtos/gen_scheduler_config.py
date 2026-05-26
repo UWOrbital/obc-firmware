@@ -84,7 +84,12 @@ H_FILENAME: Final[str] = "obc_scheduler_config.h"
 
 def main() -> None:
     """Entry point to script"""
-    env = Environment(loader=FileSystemLoader(""), trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True)
+    env = Environment(
+        loader=FileSystemLoader(""),
+        trim_blocks=True,
+        lstrip_blocks=True,
+        keep_trailing_newline=True,
+    )
 
     c_template = env.get_template(C_TEMPLATE_FILENAME)
     h_template = env.get_template(H_TEMPLATE_FILENAME)

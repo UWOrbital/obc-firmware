@@ -39,8 +39,6 @@ endif()
 if(${CMAKE_BUILD_TYPE} MATCHES GS)
     set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
     enable_language(C CXX)
-    add_subdirectory(gs/backend)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/cserialport)
 endif()
 
 if(${CMAKE_BUILD_TYPE} MATCHES HIL)
