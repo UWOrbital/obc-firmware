@@ -54,7 +54,10 @@ jobs:
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
 
       - name: Install the project
-        run: uv sync --locked --all-extras --dev --system
+        run: uv sync --locked --all-extras --dev
+
+      - name: Activate venv
+        run: source .venv/bin/activate
 
       - name: Create binary directory
         run: |
