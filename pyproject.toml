@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "firmware"
+version = "1.0.0"
+description = "All python code used by UW Orbital's Firmware subteam"
+requires-python = ">=3.12"
+
+dependencies = [
+    "pyham-ax25>=1.0.3",
+    "pyserial>=3.5",
+    "pystuffing>=0.0.4",
+    "textual>=8.2.6",
+    "tinyaes>=1.1.2",
+]
+
+[tool.setuptools]
+packages = ["obc", "interfaces"]
