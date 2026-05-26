@@ -1,27 +1,19 @@
-name: pre-commit
-on:
-  pull_request:
-  push:
-    branches:
-      - main
+name: pre-commit-ci-lite
+on: [push, pull_request]
 
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
-      - uses: actions/setup-node@v4
+          python-version: "3.12"
+      - uses: actions/setup-node@v6
         with:
           node-version: "20.x"
-      - id: file_changes
-        uses: trilom/file-changes-action@v1.2.4
+      - uses: pre-commit/action@v3.0.1
+      - uses: pre-commit-ci/lite-action@v1.1.0
+        if: always()
         with:
-          prNumber: ${{ github.event.number }}
-          output: " "
-      - uses: pre-commit/action@v3.0.0
-        name: pre-commit
-        with:
-          extra_args: --files ${{ steps.file_changes.outputs.files}}
+          msg: apply code formatting
