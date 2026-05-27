@@ -371,17 +371,28 @@ obc_error_code_t cc1120SendByteReceiveStatus(uint8_t data) {
   obc_error_code_t errCode;
   uint8_t ccStatus;
 
-  // TODO: This is a hacky way to do this. We should implement a mutex + timeout.
   for (uint8_t i = 1; i <= 5; i++) {
     RETURN_IF_ERROR_CODE(mcuCC1120SpiTransfer(data, &ccStatus));
     if ((ccStatus & CHIP_READY_MASK) == CHIP_READY) {
       return OBC_ERR_CODE_SUCCESS;
     }
+    vTaskDelay(pdMS_TO_TICKS(1));
   }
-
-  return OBC_ERR_CODE_CC1120_INVALID_STATUS_BYTE;
+  switch ((ccStatus & CHIP_STATE) >> 4) {
+    case 0b100:
+      return OBC_ERR_CODE_CC1120_CHIP_CALIBRATING;
+    case 0b101:
+      return OBC_ERR_CODE_CC1120_CHIP_SETTLING;
+    case 0b110:
+      RETURN_IF_ERROR_CODE(cc1120StrobeSpi(CC1120_STROBE_SFRX));
+      return OBC_ERR_CODE_CC1120_RX_FIFO_ERROR;
+    case 0b111:
+      RETURN_IF_ERROR_CODE(cc1120StrobeSpi(CC1120_STROBE_SFTX));
+      return OBC_ERR_CODE_CC1120_TX_FIFO_ERROR;
+    default:
+      return OBC_ERR_CODE_CC1120_INVALID_STATUS_BYTE;
+  }
 }
-
 /**
  * @brief Gets the number of bytes queued in the TX FIFO
  *
