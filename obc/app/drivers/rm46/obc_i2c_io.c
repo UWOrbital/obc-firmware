@@ -152,7 +152,9 @@ void i2cNotification(i2cBASE_t *i2c, uint32 flags) {
   BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
   if (flags & I2C_SCD_INT) {
-    xSemaphoreGiveFromISR(i2cTransferComplete, &xHigherPriorityTaskWoken);
+    if (xSemaphoreGiveFromISR(i2cTransferComplete, &xHigherPriorityTaskWoken) != pdTRUE) {
+      LOG_ERROR_FROM_ISR("Semaphore cannot be given or was already given.");
+    }
   }
 
   if (flags & I2C_NACK_INT) {
