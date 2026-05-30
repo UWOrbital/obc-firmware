@@ -137,7 +137,11 @@ obc_error_code_t cc1120WriteFifoDirect(uint8_t addr, uint8_t data[], uint8_t len
  *
  * @param data - The data to send to the status register.
  * @return OBC_ERR_CODE_SUCCESS - If the status byte is valid.
- * @return OBC_ERR_CODE_CC1120_INVALID_STATUS_BYTE - If the status byte is invalid.
+ * @return OBC_ERR_CODE_CC1120_INVALID_STATUS_BYTE - If the status byte is invalid.(Base case)
+ * @return OBC_ERR_CODE_CC1120_CHIP_CALIBRATING - Chip not ready, calibrating
+ * @return OBC_ERR_CODE_CC1120_CHIP_SETTLING - Chip not ready, settling
+ * @return OBC_ERR_CODE_CC1120_RX_FIFO_ERROR - Chip not ready, flush the SFRX
+ * @return OBC_ERR_CODE_CC1120_TX_FIFO_ERROR - Chip not ready, flush the SFTX
  */
 obc_error_code_t cc1120SendByteReceiveStatus(uint8_t data);
 
