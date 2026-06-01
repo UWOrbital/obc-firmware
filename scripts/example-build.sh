@@ -4,4 +4,4 @@ if [ $# -ne 1 ]; then
 fi
 mkdir -p build_examples && cd build_examples
 cmake .. -DCMAKE_BUILD_TYPE=Examples -DEXAMPLE_TYPE=$1
-cmake --build .
+cmake --build . -j16

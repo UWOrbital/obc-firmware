@@ -117,6 +117,9 @@ typedef enum {
   /* values are mapped as (DIGITAL_WATCHDOG_ERROR_CODE_OFFSET + enum value of task in obc_scheduler_config_id_t)*/
   OBC_ERR_CODE_STATE_MGR_NOT_CHECKED_IN = 900,
 
+  /* EPS errors 950 - 999 */
+  OBC_ERR_CODE_EPS_OVERCURRENT = 950,
+
   /* Reliance edge errors */
   // Values are mapped as (ORIGINAL_RED_ERRCODE + RELIANCE_EDGE_ERROR_CODES_OFFSET)
   /** Operation not permitted. */
