@@ -275,8 +275,7 @@ REDSTATUS RedVolMount(uint32_t ulFlags) {
 #if REDCONF_CHECKER == 0
 static
 #endif
-    REDSTATUS
-    RedVolMountMaster(uint32_t ulFlags) {
+    REDSTATUS RedVolMountMaster(uint32_t ulFlags) {
   REDSTATUS ret;
   MASTERBLOCK *pMB;
 
@@ -377,8 +376,7 @@ static
 #if REDCONF_CHECKER == 0
 static
 #endif
-    REDSTATUS
-    RedVolMountMetaroot(uint32_t ulFlags) {
+    REDSTATUS RedVolMountMetaroot(uint32_t ulFlags) {
   REDSTATUS retMR0;
   REDSTATUS retMR1;
   REDSTATUS ret;

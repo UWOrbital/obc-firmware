@@ -195,6 +195,5 @@ void task(void *pvParameters) {
     sciPrintText((unsigned char *)str, 5, UART_MUTEX_BLOCK_TIME);
   }
   sciPrintText(spaceStr, 20, UART_MUTEX_BLOCK_TIME);
-  while (1)
-    ;
+  while (1);
 }

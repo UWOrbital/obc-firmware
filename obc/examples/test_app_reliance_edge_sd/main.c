@@ -24,22 +24,19 @@ void vTask1(void *pvParameters) {
   ret = red_init();
   if (ret != 0) {
     sciPrintf("red_init() returned %d\r\n", ret);
-    while (1)
-      ;
+    while (1);
   }
 
   ret = red_format("");
   if (ret != 0) {
     sciPrintf("red_format() returned %d\r\n", ret);
-    while (1)
-      ;
+    while (1);
   }
 
   ret = red_mount("");
   if (ret != 0) {
     sciPrintf("red_mount() returned %d\r\n", ret);
-    while (1)
-      ;
+    while (1);
   }
 
   sciPrintf("Reliance Edge initialized and mounted\r\n");
@@ -51,24 +48,21 @@ void vTask1(void *pvParameters) {
   int32_t file = red_open(fname, RED_O_WRONLY | RED_O_CREAT);
   if (file < 0) {
     sciPrintf("red_open() returned %d\r\n", file);
-    while (1)
-      ;
+    while (1);
   }
   sciPrintf("Successfully opened %s\r\n", fname);
 
   ret = red_write(file, "TESTING 1...2...3\r\n", strlen("TESTING 1...2...3\r\n"));
   if (ret < 0) {
     sciPrintf("red_write() returned %d\r\n", ret);
-    while (1)
-      ;
+    while (1);
   }
   sciPrintf("Successfully wrote to %s\r\n", fname);
 
   ret = red_close(file);
   if (ret < 0) {
     sciPrintf("red_close() returned %d\r\n", ret);
-    while (1)
-      ;
+    while (1);
   }
   sciPrintf("Successfully closed %s\r\n", fname);
 
@@ -76,8 +70,7 @@ void vTask1(void *pvParameters) {
   file = red_open(fname, RED_O_RDWR | RED_O_APPEND);
   if (file < 0) {
     sciPrintf("red_open() returned %d\r\n", file);
-    while (1)
-      ;
+    while (1);
   }
   sciPrintf("Successfully opened %s\r\n", fname);
 
@@ -85,8 +78,7 @@ void vTask1(void *pvParameters) {
   ret = red_write(file, "TESTING 3...2...1\r\n", strlen("TESTING 3...2...1\r\n"));
   if (ret < 0) {
     sciPrintf("red_write() returned %d\r\n", ret);
-    while (1)
-      ;
+    while (1);
   }
   sciPrintf("Successfully wrote to %s\r\n", fname);
 
@@ -95,8 +87,7 @@ void vTask1(void *pvParameters) {
   ret = red_lseek(file, 0, RED_SEEK_SET);
   if (ret < 0) {
     sciPrintf("red_lseek() returned %d\r\n", ret);
-    while (1)
-      ;
+    while (1);
   }
   sciPrintf("Successfully seeked to beginning of %s\r\n", fname);
 
@@ -104,8 +95,7 @@ void vTask1(void *pvParameters) {
   ret = red_read(file, readBuf, 100);
   if (ret < 0) {
     sciPrintf("red_read() returned %d\r\n", ret);
-    while (1)
-      ;
+    while (1);
   }
   sciPrintf("Successfully read from %s\r\n", fname);
 
@@ -115,8 +105,7 @@ void vTask1(void *pvParameters) {
   ret = red_close(file);
   if (ret < 0) {
     sciPrintf("red_close() returned %d\r\n", ret);
-    while (1)
-      ;
+    while (1);
   }
   sciPrintf("Successfully closed %s\r\n", fname);
 
@@ -127,8 +116,7 @@ void vTask1(void *pvParameters) {
     sciPrintf("Successfully deleted %s\r\n", fname);
   }
 
-  while (1)
-    ;
+  while (1);
 }
 
 int main(void) {
@@ -144,6 +132,5 @@ int main(void) {
 
   vTaskStartScheduler();
 
-  while (1)
-    ;
+  while (1);
 }

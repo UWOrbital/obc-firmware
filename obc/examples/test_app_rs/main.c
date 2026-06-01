@@ -36,8 +36,7 @@ int vTask1(void *pvParameters) {
   sciPrintf("Decoded data: %s\r\n", decodedData);
 
   destroyRs();
-  while (1)
-    ;
+  while (1);
 }
 
 int main(void) {
@@ -56,8 +55,7 @@ int main(void) {
 
   vTaskStartScheduler();
 
-  while (1)
-    ;
+  while (1);
 
   return 0;
 }

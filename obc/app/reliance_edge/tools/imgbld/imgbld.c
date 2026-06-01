@@ -186,19 +186,17 @@ int ImgbldStart(IMGBLDPARAM *pParam) {
 */
 void ImgbldParseParams(int argc, char *argv[], IMGBLDPARAM *pParam) {
   int32_t c;
-  const REDOPTION aLongopts[] = {
-    {"dir", red_required_argument, NULL, 'i'},
+  const REDOPTION aLongopts[] = {{"dir", red_required_argument, NULL, 'i'},
 #if REDCONF_API_FSE == 1
-    {"map", red_required_argument, NULL, 'm'},
-    {"defines", red_required_argument, NULL, 'd'},
-    {"no-warn", red_no_argument, NULL, 'W'},
+                                 {"map", red_required_argument, NULL, 'm'},
+                                 {"defines", red_required_argument, NULL, 'd'},
+                                 {"no-warn", red_no_argument, NULL, 'W'},
 #endif
-    {"version", red_required_argument, NULL, 'V'},
-    {"inodes", red_required_argument, NULL, 'N'},
-    {"dev", red_required_argument, NULL, 'D'},
-    {"help", red_no_argument, NULL, 'H'},
-    {NULL}
-  };
+                                 {"version", red_required_argument, NULL, 'V'},
+                                 {"inodes", red_required_argument, NULL, 'N'},
+                                 {"dev", red_required_argument, NULL, 'D'},
+                                 {"help", red_no_argument, NULL, 'H'},
+                                 {NULL}};
 #if REDCONF_API_FSE == 1
   const char *pszOptions = "i:m:d:WV:N:D:H";
 #else

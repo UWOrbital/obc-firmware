@@ -90,8 +90,7 @@ void vTask1(void *pvParameters) {
   snprintf(msg, 50, "Read %s from %lX after wakeup\r\n", hello_world, addr);
   sciPrintText((unsigned char *)msg, strlen(msg), UART_MUTEX_BLOCK_TIME);
 
-  while (1)
-    ;
+  while (1);
 }
 int main(void) {
   // Initialize hardware.
@@ -109,8 +108,7 @@ int main(void) {
 
   vTaskStartScheduler();
 
-  while (1)
-    ;
+  while (1);
 
   return 0;
 }

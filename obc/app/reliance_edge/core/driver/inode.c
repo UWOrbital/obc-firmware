@@ -796,8 +796,7 @@ static REDSTATUS InodeFindFree(uint32_t *pulInode) {
 #if REDCONF_CHECKER == 0
 static
 #endif
-    REDSTATUS
-    RedInodeIsFree(uint32_t ulInode, bool *pfFree) {
+    REDSTATUS RedInodeIsFree(uint32_t ulInode, bool *pfFree) {
   REDSTATUS ret;
 
   if (pfFree == NULL) {
@@ -948,8 +947,7 @@ static REDSTATUS InodeGetCurrentCopy(uint32_t ulInode, uint8_t *pbWhich) {
 #if REDCONF_CHECKER == 0
 static
 #endif
-    REDSTATUS
-    RedInodeBitGet(uint8_t bMR, uint32_t ulInode, uint8_t bWhich, bool *pfAllocated) {
+    REDSTATUS RedInodeBitGet(uint8_t bMR, uint32_t ulInode, uint8_t bWhich, bool *pfAllocated) {
   REDSTATUS ret;
 
   if (!INODE_IS_VALID(ulInode) || (bWhich > 1U)) {

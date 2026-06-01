@@ -57,8 +57,7 @@ void vTask1(void *pvParameters) {
     LOG_IF_ERROR_CODE(startImageCapture(selectedCamera));
     sciPrintf("Image Capture Started\r\n");
 
-    while (isCaptureDone(selectedCamera) == OBC_ERR_CODE_CAMERA_CAPTURE_INCOMPLETE)
-      ;
+    while (isCaptureDone(selectedCamera) == OBC_ERR_CODE_CAMERA_CAPTURE_INCOMPLETE);
     sciPrintf("Image Capture Done ^_^\r\n");
 
     // Read image size
@@ -101,8 +100,7 @@ void vTask1(void *pvParameters) {
 
   // Put Camera on standby (gets pretty hot if left powered on for too long)
   LOG_IF_ERROR_CODE(standbyCamera(selectedCamera));
-  while (1)
-    ;
+  while (1);
 }
 int main(void) {
   // Initialize hardware.
@@ -122,8 +120,7 @@ int main(void) {
 
   vTaskStartScheduler();
 
-  while (1)
-    ;
+  while (1);
 
   return 0;
 }
