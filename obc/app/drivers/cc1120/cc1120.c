@@ -376,10 +376,10 @@ obc_error_code_t cc1120SendByteReceiveStatus(uint8_t data) {
     if ((ccStatus & CHIP_READY_MASK) == CHIP_READY) {
       return OBC_ERR_CODE_SUCCESS;
     }
-    /*
-    Might be better to wait until the MISO pin goes low and then check 
-    instead of always implementing a delay, severity depends on how many times this is called
-    */
+    
+    //Might be better to wait until the MISO pin goes low and then check 
+    //instead of always implementing a delay, severity depends on how many times this is called
+    
     vTaskDelay(pdMS_TO_TICKS(1));
   }
   switch ((ccStatus & CHIP_STATE) >> 4) {
