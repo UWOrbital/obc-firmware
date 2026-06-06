@@ -138,8 +138,7 @@ void turnOnRTC(void) { gioSetBit(RTC_RST_GIO_PORT, RTC_RST_GIO_PIN, RTC_ON); }
 void resetRTC(void) {
   gioSetBit(RTC_RST_GIO_PORT, RTC_RST_GIO_PIN, RTC_OFF);
 
-  while (gioGetBit(RTC_RST_GIO_PORT, RTC_RST_GIO_PIN) != RTC_OFF)
-    ;
+  while (gioGetBit(RTC_RST_GIO_PORT, RTC_RST_GIO_PIN) != RTC_OFF);
 
   gioSetBit(RTC_RST_GIO_PORT, RTC_RST_GIO_PIN, RTC_ON);
 }

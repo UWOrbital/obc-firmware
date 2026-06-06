@@ -56,8 +56,7 @@ void vTask1(void *pvParameters) {
     sciPrintf("Time data: %x\r\n", readTimeData.unixTime);
   }
 
-  while (1)
-    ;
+  while (1);
 }
 
 void vTask2(void *pvParameters) {
@@ -112,8 +111,7 @@ void vTask2(void *pvParameters) {
     }
   }
 
-  while (1)
-    ;
+  while (1);
 }
 
 int main(void) {
@@ -129,6 +127,5 @@ int main(void) {
 
   vTaskStartScheduler();
 
-  while (1)
-    ;
+  while (1);
 }

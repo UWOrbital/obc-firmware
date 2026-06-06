@@ -117,7 +117,7 @@
 
     The specified alignment is assumed to be a power-of-two.
 */
-#define IS_ALIGNED_PTR(ptr, alignment) (((uintptr_t)(ptr) & ((alignment)-1U)) == 0U)
+#define IS_ALIGNED_PTR(ptr, alignment) (((uintptr_t)(ptr) & ((alignment) - 1U)) == 0U)
 
 /** @brief Increment a uint8_t pointer so that it has the given alignment.
 
@@ -127,10 +127,10 @@
     @return Returns @p u8ptr plus however many bytes are necessary for the
             pointer to be aligned by @p alignment bytes.
 */
-#define UINT8_PTR_ALIGN(u8ptr, alignment)          \
-  ((((uintptr_t)(u8ptr) & ((alignment)-1U)) == 0U) \
-       ? (u8ptr)                                   \
-       : (&(u8ptr)[(alignment) - ((uintptr_t)(u8ptr) & ((alignment)-1U))]))
+#define UINT8_PTR_ALIGN(u8ptr, alignment)            \
+  ((((uintptr_t)(u8ptr) & ((alignment) - 1U)) == 0U) \
+       ? (u8ptr)                                     \
+       : (&(u8ptr)[(alignment) - ((uintptr_t)(u8ptr) & ((alignment) - 1U))]))
 
 #define REDMIN(a, b) (((a) < (b)) ? (a) : (b))
 #define REDMAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -159,9 +159,9 @@
 
     @return Whether @p ptr is an aligned element of the @p array array.
 */
-#define PTR_IS_ARRAY_ELEMENT(ptr, array, nelem, elemalign)                                                 \
-  (((uintptr_t)(ptr) >= (uintptr_t) & (array)[0U]) && ((uintptr_t)(ptr) < (uintptr_t) & (array)[nelem]) && \
-   (((uint32_t)((uintptr_t)(ptr) - (uintptr_t) & (array)[0U]) % (uint32_t)(elemalign)) == 0U))
+#define PTR_IS_ARRAY_ELEMENT(ptr, array, nelem, elemalign)                                             \
+  (((uintptr_t)(ptr) >= (uintptr_t)&(array)[0U]) && ((uintptr_t)(ptr) < (uintptr_t)&(array)[nelem]) && \
+   (((uint32_t)((uintptr_t)(ptr) - (uintptr_t)&(array)[0U]) % (uint32_t)(elemalign)) == 0U))
 
 #define BITMAP_SIZE(bitcnt) (((bitcnt) + 7U) / 8U)
 

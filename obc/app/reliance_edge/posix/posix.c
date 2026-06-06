@@ -2578,7 +2578,9 @@ int32_t red_mkdirat(int32_t iDirFildes, const char *pszPath, uint16_t uMode) {
           ret = -RED_EINVAL;
         } else
 #endif
-        { ret = RedCoreCreate(ulPInode, pszName, RED_S_IFDIR | uMkdirMode, &ulInode); }
+        {
+          ret = RedCoreCreate(ulPInode, pszName, RED_S_IFDIR | uMkdirMode, &ulInode);
+        }
       }
     }
 
