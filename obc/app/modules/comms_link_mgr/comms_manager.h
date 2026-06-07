@@ -13,6 +13,8 @@
 #define U_FRAME_COMMS_RECV_SIZE 30
 #define I_FRAME_COMMS_RECV_SIZE 300
 
+extern QueueHandle_t cc1120TempQueueHandle;
+
 /**
  * @enum	comms_event_id_t
  * @brief	comms event ID enum.
@@ -77,6 +79,13 @@ typedef enum {
 obc_error_code_t sendToCommsManagerQueue(comms_event_t *event);
 
 /**
+ * @brief Get the temperature from the mailbox temperature queue of the CC1120
+ * @param temp The memory address that stores the temperature in the mailbox queue
+ * @return The error code
+ */
+// obc_error_code_t readCC1120Temp(float* temp);
+
+/**
  * @brief Send an event to the front of the Comms Manager queue
  *
  * @param event Event to send
@@ -92,3 +101,11 @@ obc_error_code_t sendToFrontCommsManagerQueue(comms_event_t *event);
  * @return obc_error_code_t OBC_ERR_CODE_SUCCESS if the packet was sent to the queue
  */
 obc_error_code_t sendToCC1120TransmitQueue(transmit_event_t *event);
+
+/**
+ * @brief Reads temperature from the CC1120 temperature queue.
+ *
+ * @param temp - Pointer to the variable that will store the temperature.
+ * @return obc_error_code_t OBC_ERR_CODE_SUCCESS if data was retrieved from queue successfully.
+ */
+obc_error_code_t readCC1120Temp(float *temp);
