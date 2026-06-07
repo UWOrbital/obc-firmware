@@ -67,7 +67,7 @@ void obcTaskFunctionAlarmMgr(void *pvParameters) {
           break;
         }
 
-        if (insertedAlarmIndex != 0) {
+        if (insertedAlarmIndex != numActiveAlarms - 1) {
           break;
         }
 
@@ -174,9 +174,9 @@ static obc_error_code_t enqueueAlarm(alarm_handler_alarm_info_t alarm, size_t *i
     return OBC_ERR_CODE_QUEUE_FULL;
   }
 
-  // Insert the alarm into the queue in order of increasing time
+  // Insert the alarm into the queue in order of decreasing time
   size_t i = 0;
-  while (i < numActiveAlarms && alarmQueue[i].unixTime < alarm.unixTime) {
+  while (i < numActiveAlarms && alarmQueue[i].unixTime > alarm.unixTime) {
     i++;
   }
 
@@ -199,16 +199,7 @@ static obc_error_code_t dequeueAlarm(alarm_handler_alarm_info_t *alarm) {
     return OBC_ERR_CODE_QUEUE_EMPTY;
   }
 
-  *alarm = alarmQueue[0];
-
-  // Shift all alarms after the new alarm back by one
-  for (size_t j = 0; j < numActiveAlarms - 1; j++) {
-    if (j >= ALARM_QUEUE_SIZE - 1) {
-      break;
-    }
-
-    alarmQueue[j] = alarmQueue[j + 1];
-  }
+  *alarm = alarmQueue[numActiveAlarms - 1];
 
   numActiveAlarms--;
 
@@ -220,7 +211,7 @@ static obc_error_code_t peekEarliestAlarm(alarm_handler_alarm_info_t *alarm) {
     return OBC_ERR_CODE_QUEUE_EMPTY;
   }
 
-  *alarm = alarmQueue[0];
+  *alarm = alarmQueue[numActiveAlarms - 1];
 
   return OBC_ERR_CODE_SUCCESS;
 }
