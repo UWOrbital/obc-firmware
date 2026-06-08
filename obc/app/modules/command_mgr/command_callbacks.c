@@ -1,3 +1,6 @@
+#include "arducam.h"
+#include "camera_control.h"
+#include "hal_stdtypes.h"
 #include "obc_gs_command_data.h"
 #include "obc_gs_command_id.h"
 #include "obc_i2c_io.h"
@@ -116,6 +119,43 @@ static obc_error_code_t I2CProbeCmdCallback(cmd_msg_t *cmd, uint8_t *responseDat
   return OBC_ERR_CODE_SUCCESS;
 }
 
+static obc_error_code_t captureImageCmdCallback(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  obc_error_code_t errCode;
+
+  if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+  // setup and configure camera
+  LOG_DEBUG("Starting Arducam\r\n");
+  camera_id_t selectedCamera = PRIMARY;
+  LOG_IF_ERROR_CODE(initCamera(selectedCamera));
+  LOG_DEBUG("Configuring Camera\r\n");
+  LOG_IF_ERROR_CODE(camConfigureSensor());
+
+  // capture one image
+  LOG_IF_ERROR_CODE(startImageCapture(selectedCamera));
+  while (isCaptureDone(selectedCamera) == OBC_ERR_CODE_CAMERA_CAPTURE_INCOMPLETE)
+    ;
+
+  // read and downlink image in 64-byte chunks
+  uint8_t imgBuffer[64U];
+  size_t bytesRead = 0;
+  obc_error_code_t ret;
+  do {
+    ret = readImage(selectedCamera, imgBuffer, 64U, &bytesRead);
+    for (size_t i = 0; i < bytesRead; i++) {
+      encode_event_t event = {.eventID = DOWNLINK_CMD_RESPONSE, .cmdResponseByte = imgBuffer[i]};
+      RETURN_IF_ERROR_CODE(sendToDownlinkEncodeQueue(&event));
+    }
+  } while (ret == OBC_ERR_CODE_CAMERA_IMAGE_READ_INCOMPLETE);
+
+  // finished, put camera on standby
+  LOG_IF_ERROR_CODE(standbyCamera(selectedCamera));
+  *responseDataLen = 0;
+
+  return OBC_ERR_CODE_SUCCESS;
+}
+
 const cmd_info_t cmdsConfig[] = {
     [CMD_END_OF_FRAME] = {NULL, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     // TODO: Change this to critial once critical commands are implemented
@@ -126,6 +166,7 @@ const cmd_info_t cmdsConfig[] = {
     [CMD_PING] = {pingCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_DOWNLINK_TELEM] = {downlinkTelemCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_I2C_PROBE] = {I2CProbeCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_CAPTURE_IMAGE] = {captureImageCmdCallback, CMD_POLICY_RND, CMD_TYPE_NORMAL},
 };
 
 // This function is purely to trick the compiler into thinking we are using the cmdsConfig variable so we avoid the
