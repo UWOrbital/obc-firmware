@@ -12,6 +12,8 @@
 #include "telemetry_manager.h"
 #include "command.h"
 #include "obc_general_util.h"
+#include "cc1120.h"
+#include "cc1120_defs.h"
 
 #include <redposix.h>
 #include <stddef.h>
@@ -120,6 +122,23 @@ static obc_error_code_t CC1120RegisterReadCmdCallback(cmd_msg_t *cmd, uint8_t *r
   if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+
+  obc_error_code_t errCode;
+
+  uint8_t offset = 0;
+  responseData[offset++] = CC1120_REGS_STD_SPACE_SIZE;
+
+  // Read all standard registers using exposed function
+  RETURN_IF_ERROR_CODE(cc1120ReadSpi(0x00, &responseData[offset], CC1120_REGS_STD_SPACE_SIZE));
+
+  offset += CC1120_REGS_STD_SPACE_SIZE;
+  responseData[offset++] = CC1120_REGS_EXT_RESERVE_SPACE_1_START;
+
+  // Read all extended address space registers using exposed function
+  RETURN_IF_ERROR_CODE(cc1120ReadExtAddrSpi(0x00U, &responseData[offset], CC1120_REGS_EXT_RESERVE_SPACE_1_START));
+
+  offset += CC1120_REGS_EXT_RESERVE_SPACE_1_START;
+  *responseDataLen = offset;
 
   return OBC_ERR_CODE_SUCCESS;
 }
