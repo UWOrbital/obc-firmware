@@ -7,6 +7,8 @@ set(TEST_DEPENDENCIES
     ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/common/obc_gs_crc.c
     ${CMAKE_SOURCE_DIR}/interfaces/data_pack_unpack/data_unpack_utils.c
     ${CMAKE_SOURCE_DIR}/obc/app/sys/persistent/obc_persistent.c
+    ${CMAKE_SOURCE_DIR}/obc/shared/logging/obc_logging_codec.c
+    ${CMAKE_SOURCE_DIR}/obc/shared/logging/obc_log_file_ids.c
 )
 
 set(TEST_MOCKS
@@ -21,6 +23,7 @@ set(TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/test/unit/test_image_processing.cpp
     ${CMAKE_SOURCE_DIR}/test/unit/test_vn100_unpack.cpp
     ${CMAKE_SOURCE_DIR}/test/unit/test_obc_persistent.cpp
+    ${CMAKE_SOURCE_DIR}/test/unit/test_log_codec.cpp
 )
 
 set(TEST_SOURCES ${TEST_SOURCES} ${TEST_DEPENDENCIES} ${TEST_MOCKS})

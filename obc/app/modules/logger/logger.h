@@ -33,3 +33,10 @@ typedef struct {
  * @param newOutputLocation The new output location
  */
 void logSetOutputLocation(log_output_location_t newOutputLocation);
+
+/**
+ * @brief Set the output format (text or compact binary)
+ *
+ * @param newOutputFormat The new output format
+ */
+void logSetOutputFormat(log_output_format_t newOutputFormat);
