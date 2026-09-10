@@ -49,6 +49,15 @@ obc_error_code_t ov5642GetChipID(uint16_t* buffer);
 obc_error_code_t ov5642Reset(void);
 
 /**
+ * @brief Reads a single 8-bit value from a 16-bit sensor register.
+ *
+ * @param reg Register address to read.
+ * @param val Buffer to store the value read.
+ * @return Error code. OBC_ERR_CODE_SUCCESS if successful.
+ */
+obc_error_code_t ov5642ReadReg(uint16_t reg, uint8_t* val);
+
+/**
  * @brief Sets the OV5642 Mirror registry settings.
  *
  * @param enabled Whether or not to mirror camera output

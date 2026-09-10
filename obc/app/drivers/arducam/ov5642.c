@@ -145,6 +145,22 @@ obc_error_code_t ov5642Reset(void) {
   return OBC_ERR_CODE_SUCCESS;
 }
 
+obc_error_code_t ov5642ReadReg(uint16_t reg, uint8_t* val) {
+  if (val == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
+    return OBC_ERR_CODE_MUTEX_TIMEOUT;
+  }
+
+  obc_error_code_t errCode;
+  RETURN_AND_GIVE_IF_ERROR_CODE(camReadSensorReg16_8(reg, val), ov5642RegMutex);
+
+  xSemaphoreGive(ov5642RegMutex);
+  return OBC_ERR_CODE_SUCCESS;
+}
+
 obc_error_code_t ov5642SetMirror(bool enabled) {
   if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
     return OBC_ERR_CODE_MUTEX_TIMEOUT;
@@ -241,8 +257,8 @@ obc_error_code_t ov5642SetLencBrvScale(uint16_t lencBrvScale) {
   }
 
   obc_error_code_t errCode;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(TIMING_HS_HIGH_REG, lencBrvScale >> 8), ov5642RegMutex);
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(TIMING_HS_LOW_REG, lencBrvScale), ov5642RegMutex);
+  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(LENC_BRV_SCALE_HIGH_REG, lencBrvScale >> 8), ov5642RegMutex);
+  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(LENC_BRV_SCALE_LOW_REG, lencBrvScale), ov5642RegMutex);
 
   xSemaphoreGive(ov5642RegMutex);
   return OBC_ERR_CODE_SUCCESS;
