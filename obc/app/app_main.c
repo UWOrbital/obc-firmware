@@ -1,249 +1,145 @@
-#include "ov5642.h"
-
-#include "ov5642_config.h"
 #include "obc_logging.h"
+#include "obc_errors.h"
+#include "obc_sci_io.h"
+#include "obc_spi_io.h"
 #include "obc_i2c_io.h"
+#include "obc_print.h"
 
-#include <os_semphr.h>
+#include "arducam.h"
+#include "camera_control.h"
 
-// Camera Img Sensor (I2C) defines
-#define CAM_I2C_ADDR 0x3C
-#define I2C_MUTEX_TIMEOUT portMAX_DELAY
-#define I2C_TRANSFER_TIMEOUT pdMS_TO_TICKS(100)
-#define OV5642_REG_MUTEX_TIMEOUT portMAX_DELAY
+#include <gio.h>
+#include <sci.h>
+#include <spi.h>
+#include <i2c.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-#define CHIP_ID_HIGH_BYTE_REG 0x300A
-#define CHIP_ID_LOW_BYTE_REG 0x300B
-#define SYSTEM_CONTROL00_REG 0x3008
-#define TIMING_CONTROL_18_REG 0x3818
-#define TIMING_HS_HIGH_REG 0x3800
-#define TIMING_HS_LOW_REG 0x3801
-#define COMPRESSION_CTRL07_REG 0x4407
-#define ISP_CONTROL_00_REG 0x5000
-#define LENC_BRV_SCALE_HIGH_REG 0x5888
-#define LENC_BRV_SCALE_LOW_REG 0x5889
+#define UART_MUTEX_BLOCK_TIME portMAX_DELAY
+// BUFFER_SIZE must be a multiple of 3 for base64 conversion
+#define BUFFER_SIZE 4095U
 
-#define SOFTWARE_RESET_MODE 0x80
+#define TASK_STACK_SIZE 2048U
+static StaticTask_t taskBuffer;
+static StackType_t taskStack[TASK_STACK_SIZE];
 
-// Need a mutex because some registers are multipurpose and require reading and writing to be atomic
-static SemaphoreHandle_t ov5642RegMutex = NULL;
+const char b64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-obc_error_code_t initOV5642(void) {
-  ov5642RegMutex = xSemaphoreCreateMutex();
-
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-/**
- * @brief Read 8 bits from a 16 bit register over I2C
- * @param regID Register address to write to
- * @param regDat Data to send
- * @return Error code indicating if the write was successful
- */
-static obc_error_code_t camWriteSensorReg16_8(uint32_t regID, uint8_t regDat);
-
-/**
- * @brief Write 8 bits to a 16 bit register over I2C
- * @param regID Register address to read from
- * @param regDat Buffer to store received data
- * @return Error code indicating if the read was successful
- */
-static obc_error_code_t camReadSensorReg16_8(uint32_t regID, uint8_t* regDat);
-
-/**
- * @brief Write to a list of registers over I2C
- * @param reglist List of registers and data to write
- * @return Error code indicating if the writes were successful
- */
-static obc_error_code_t camWriteSensorRegList16_8(const sensor_config_t reglist[], size_t reglistLen);
-
-static obc_error_code_t camWriteSensorReg16_8(uint32_t regID, uint8_t regDat) {
-  uint8_t reg_tx_data[3] = {(regID >> 8), (regID & 0x00FF), regDat};
-  return i2cSendTo(CAM_I2C_ADDR, 3, reg_tx_data, I2C_MUTEX_TIMEOUT, I2C_TRANSFER_TIMEOUT);
-}
-
-static obc_error_code_t camReadSensorReg16_8(uint32_t regID, uint8_t* regDat) {
+void vTask1(void *pvParameters) {
   obc_error_code_t errCode;
-  uint8_t reg_id_tx_data[2] = {(regID >> 8), (regID & 0x00FF)};
-  RETURN_IF_ERROR_CODE(i2cSendTo(CAM_I2C_ADDR, 2, reg_id_tx_data, I2C_MUTEX_TIMEOUT, I2C_TRANSFER_TIMEOUT));
-  RETURN_IF_ERROR_CODE(i2cReceiveFrom(CAM_I2C_ADDR, 1, regDat, I2C_MUTEX_TIMEOUT, I2C_TRANSFER_TIMEOUT));
-  return errCode;
+  sciPrintf("Starting Arducam Demo\r\n");
+  camera_id_t selectedCamera = PRIMARY;
+  LOG_IF_ERROR_CODE(initCamera(selectedCamera));
+  uint8_t temp;
+  LOG_IF_ERROR_CODE(arducamReadSensorPowerControlReg(selectedCamera, &temp));
+  sciPrintf("Power Control Reg:0x%X\r\n", temp);
+
+  // Read Camera Sensor ID
+  uint16_t cam_id;
+  LOG_IF_ERROR_CODE(ov5642GetChipID(&cam_id));
+  sciPrintf("Sensor ID: %X\r\n", cam_id);
+
+  // Test Reg operations
+  uint8_t byte = 0x55;
+  sciPrintf("Writing %d to test reg\r\n", byte);
+  LOG_IF_ERROR_CODE(arducamWriteTestReg(selectedCamera, byte));
+  byte = 0;
+  LOG_IF_ERROR_CODE(arducamReadTestReg(selectedCamera, &byte));
+  sciPrintf("Read %d from test reg\r\n", byte);
+
+  // Camera Configuration
+  sciPrintf("Configuring Camera\r\n");
+  LOG_IF_ERROR_CODE(camConfigureSensor());
+  for (int i = 0; i < 20; i++) {
+    // Capture
+    sciPrintf("Starting Image Capture\r\n");
+    LOG_IF_ERROR_CODE(startImageCapture(selectedCamera));
+    sciPrintf("Image Capture Started\r\n");
+
+    while (isCaptureDone(selectedCamera) == OBC_ERR_CODE_CAMERA_CAPTURE_INCOMPLETE);
+    sciPrintf("Image Capture Done ^_^\r\n");
+
+    // Read image size
+    uint32_t img_len = 0;
+    LOG_IF_ERROR_CODE(arducamReadFIFOSize(selectedCamera, &img_len));
+    sciPrintf("image len: %d \r\n", img_len);
+
+    // Read image from FIFO
+    uint8_t imgBuffer[BUFFER_SIZE];
+    size_t bytesRead = 0;
+    // Only print last image
+    if (i == 19) {
+      // Dump the sensor state that the frame below was actually captured with. 0x3500-0x350b are
+      // the converged AEC exposure/gain; with AWB in auto (0x3406 = 0) the sensor writes its
+      // converged R/G/B gains back into 0x3400-0x3405, so those show what white balance the
+      // sensor settled on. Reads only, no sensor state is modified.
+      static const uint16_t dumpRegs[] = {0x3406, 0x3400, 0x3401, 0x3402, 0x3403, 0x3404, 0x3405,
+                                          0x3503, 0x3500, 0x3501, 0x3502, 0x350a, 0x350b, 0x350c,
+                                          0x350d, 0x3621, 0x3818, 0x3a00, 0x5000, 0x5001, 0x4300};
+      sciPrintf("---REGDUMP---\r\n");
+      for (size_t r = 0; r < sizeof(dumpRegs) / sizeof(dumpRegs[0]); r++) {
+        uint8_t regVal = 0;
+        if (ov5642ReadReg(dumpRegs[r], &regVal) == OBC_ERR_CODE_SUCCESS) {
+          sciPrintf("REG %X = %X\r\n", dumpRegs[r], regVal);
+        } else {
+          sciPrintf("REG %X = READ_FAIL\r\n", dumpRegs[r]);
+        }
+      }
+      sciPrintf("---ENDREGDUMP---\r\n");
+    }
+    sciPrintf("FIFO Burst Read:\r\n");
+    if (i == 19) {
+      obc_error_code_t ret;
+      do {
+        ret = readImage(selectedCamera, imgBuffer, BUFFER_SIZE, &bytesRead);
+        for (size_t i = 0; i < bytesRead; i += 3) {
+          // modified from https://nachtimwald.com/2017/11/18/base64-encode-and-decode-in-c/
+          uint32_t v = imgBuffer[i];
+          v = i + 1 < bytesRead ? v << 8 | imgBuffer[i + 1] : v << 8;
+          v = i + 2 < bytesRead ? v << 8 | imgBuffer[i + 2] : v << 8;
+
+          sciPrintf("%c", b64chars[(v >> 18) & 0x3F]);
+          sciPrintf("%c", b64chars[(v >> 12) & 0x3F]);
+          if (i + 1 < bytesRead) {
+            sciPrintf("%c", b64chars[(v >> 6) & 0x3F]);
+          } else {
+            sciPrintf("=");
+          }
+          if (i + 2 < bytesRead) {
+            sciPrintf("%c", b64chars[v & 0x3F]);
+          } else {
+            sciPrintf("=");
+          }
+        }
+      } while (ret == OBC_ERR_CODE_CAMERA_IMAGE_READ_INCOMPLETE);
+    }
+    sciPrintf("\r\n");
+  }
+
+  // Put Camera on standby (gets pretty hot if left powered on for too long)
+  LOG_IF_ERROR_CODE(standbyCamera(selectedCamera));
+  while (1);
 }
+int main(void) {
+  // Initialize hardware.
+  gioInit();
+  sciInit();
+  spiInit();
+  i2cInit();
 
-static obc_error_code_t camWriteSensorRegList16_8(const sensor_config_t reglist[], size_t reglistLen) {
-  obc_error_code_t errCode;
+  // Initialize the bus mutex.
+  initSciPrint();
+  initSpiMutex();
+  initI2CMutex();
 
-  for (size_t i = 0; i < reglistLen; i++) {
-    RETURN_IF_ERROR_CODE(camWriteSensorReg16_8(reglist[i].reg, reglist[i].val));
-  }
+  initOV5642();
 
-  return OBC_ERR_CODE_SUCCESS;
-}
+  xTaskCreateStatic(vTask1, "Arducam", TASK_STACK_SIZE, NULL, 1, taskStack, &taskBuffer);
 
-obc_error_code_t applyCamPreviewConfig(void) {
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
+  vTaskStartScheduler();
 
-  obc_error_code_t errCode;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorRegList16_8(getCamPreviewConfig(), PREVIEW_CONFIG_LEN), ov5642RegMutex);
+  while (1);
 
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-obc_error_code_t applyCamCaptureConfig(void) {
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
-
-  obc_error_code_t errCode;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorRegList16_8(getCamCaptureConfig(), JPEG_CONFIG_LEN), ov5642RegMutex);
-
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-obc_error_code_t applyCamResolutionConfig(void) {
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
-
-  obc_error_code_t errCode;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorRegList16_8(getCamResolutionConfig(), RES_320_240_CONFIG_LEN),
-                                ov5642RegMutex);
-
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-obc_error_code_t ov5642GetChipID(uint16_t* buffer) {
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
-
-  obc_error_code_t errCode;
-  uint8_t cam_id[2] = {0};
-  RETURN_AND_GIVE_IF_ERROR_CODE(camReadSensorReg16_8(CHIP_ID_HIGH_BYTE_REG, &cam_id[0]), ov5642RegMutex);
-  RETURN_AND_GIVE_IF_ERROR_CODE(camReadSensorReg16_8(CHIP_ID_LOW_BYTE_REG, &cam_id[1]), ov5642RegMutex);
-
-  *buffer = ((uint16_t)cam_id[0] << 8) | cam_id[1];
-
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-obc_error_code_t ov5642Reset(void) {
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
-
-  obc_error_code_t errCode;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(SYSTEM_CONTROL00_REG, SOFTWARE_RESET_MODE), ov5642RegMutex);
-
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-obc_error_code_t ov5642SetMirror(bool enabled) {
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
-
-  obc_error_code_t errCode;
-  uint8_t timingControl18;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camReadSensorReg16_8(TIMING_CONTROL_18_REG, &timingControl18), ov5642RegMutex);
-  timingControl18 &= 0xBF;  // clear mirror bit
-  timingControl18 |= (enabled << 6);
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(TIMING_CONTROL_18_REG, timingControl18), ov5642RegMutex);
-
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-obc_error_code_t ov5642SetVerticalFlip(bool enabled) {
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
-
-  obc_error_code_t errCode;
-
-  uint8_t timingControl18;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camReadSensorReg16_8(TIMING_CONTROL_18_REG, &timingControl18), ov5642RegMutex);
-  timingControl18 &= 0xDF;  // clear vertical flip bit
-  timingControl18 |= (enabled << 5);
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(TIMING_CONTROL_18_REG, timingControl18), ov5642RegMutex);
-
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-obc_error_code_t ov5642SetHorizontalStart(uint16_t horizontalStart) {
-  if (horizontalStart > 0xFFF) {
-    return OBC_ERR_CODE_INVALID_ARG;
-  }
-
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
-
-  obc_error_code_t errCode;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(TIMING_HS_HIGH_REG, horizontalStart >> 8), ov5642RegMutex);
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(TIMING_HS_LOW_REG, horizontalStart), ov5642RegMutex);
-
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-obc_error_code_t ov5642SetQuantizationScale(uint8_t quantizationScale) {
-  if (quantizationScale > 0x3F) {
-    return OBC_ERR_CODE_INVALID_ARG;
-  }
-
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
-
-  obc_error_code_t errCode;
-  uint8_t compressionControl7;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camReadSensorReg16_8(COMPRESSION_CTRL07_REG, &compressionControl7), ov5642RegMutex);
-  compressionControl7 &= 0xC0;  // clear quantization scale bits
-  compressionControl7 |= quantizationScale;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(COMPRESSION_CTRL07_REG, compressionControl7), ov5642RegMutex);
-
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-obc_error_code_t ov5642SetLencCorrection(bool enabled) {
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
-
-  obc_error_code_t errCode;
-  uint8_t ispControl00;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camReadSensorReg16_8(ISP_CONTROL_00_REG, &ispControl00), ov5642RegMutex);
-  ispControl00 &= 0x7F;  // clear lenc correction bit
-  ispControl00 |= enabled << 7;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(ISP_CONTROL_00_REG, ispControl00), ov5642RegMutex);
-
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-obc_error_code_t ov5642SetLencBrvScale(uint16_t lencBrvScale) {
-  if (lencBrvScale > 0x1FF) {
-    return OBC_ERR_CODE_INVALID_ARG;
-  }
-
-  if (xSemaphoreTake(ov5642RegMutex, OV5642_REG_MUTEX_TIMEOUT) != pdTRUE) {
-    return OBC_ERR_CODE_MUTEX_TIMEOUT;
-  }
-
-  obc_error_code_t errCode;
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(TIMING_HS_HIGH_REG, lencBrvScale >> 8), ov5642RegMutex);
-  RETURN_AND_GIVE_IF_ERROR_CODE(camWriteSensorReg16_8(TIMING_HS_LOW_REG, lencBrvScale), ov5642RegMutex);
-
-  xSemaphoreGive(ov5642RegMutex);
-  return OBC_ERR_CODE_SUCCESS;
+  return 0;
 }
