@@ -3,6 +3,12 @@
 #include <stdlib.h>
 
 // Configuration for the host preview
+//
+// 0x3406 = 0x00 selects auto white balance. Do not set it to 0x01 without also writing correct
+// manual gains to 0x3400-0x3405; manual mode with R gain at 1.00x causes a cyan cast.
+//
+// Keep comments OUT of the initializer below: a comment inside a braced init list disables
+// clang-format bin-packing and reflows all 583 entries to one per line.
 static sensor_config_t OV5642_QVGA_Preview[PREVIEW_CONFIG_LEN] = {
     {0x3103, 0x93}, {0x3008, 0x82}, {0x3017, 0x7f}, {0x3018, 0xfc}, {0x3810, 0xc2}, {0x3615, 0xf0}, {0x3000, 0x00},
     {0x3001, 0x00}, {0x3002, 0x5c}, {0x3003, 0x00}, {0x3004, 0xff}, {0x3005, 0xff}, {0x3006, 0x43}, {0x3007, 0x37},
@@ -101,64 +107,80 @@ static sensor_config_t OV5642_QVGA_Preview[PREVIEW_CONFIG_LEN] = {
 };
 
 // Switch to JPEG
+//
+// 0x3818 bit[6] (horizontal mirror) and 0x3621[5:4] (mirror CFA-phase compensation) are a MATCHED
+// PAIR and must be changed together. OV5642 datasheet v1.11 table 4-1 note a: "for the mirror
+// function, it is also necessary to set registers 0x3621[5:4] and 0x3801". Section 4.1: vertical
+// flip IS auto-compensated by the ISP, horizontal mirror is NOT.
+//
+// If the two disagree the demosaicer starts on the wrong corner of the Bayer tile. Wrong on both
+// axes at once exchanges R and B while leaving both greens in place - a clean red/blue swap with
+// correct luma, sharpness and geometry. Stock ArduCAM ships 0x3818=0xc8 with 0x3621=0x27, which is
+// exactly that mismatch, so every frame came out with red and blue swapped.
+//
+// Changing either register alone destroys the readout (measured: up to 2600x sensitivity loss with
+// AEC saturated). See docs/datasheets/README.md.
 static sensor_config_t OV5642_JPEG_Capture_QSXGA[JPEG_CONFIG_LEN] = {
     // OV5642_ QSXGA _YUV7.5 fps
     // 24 MHz input clock, 24Mhz pclk
     // jpeg mode 7.5fps
 
-    {0x3503, 0x07},                                  // AEC Manual Mode Control
-    {0x3000, 0x00},                                  // SYSTEM RESET00
-    {0x3001, 0x00},                                  // Reset for Individual Block
-    {0x3002, 0x00},                                  // Reset for Individual Block
-    {0x3003, 0x00},                                  // Reset for Individual Block
-    {0x3005, 0xff},                                  // Clock Enable Control
-    {0x3006, 0xff},                                  // Clock Enable Control
-    {0x3007, 0x3f},                                  // Clock Enable Control
-    {0x350c, 0x07},                                  // AEC VTS Output high bits
-    {0x350d, 0xd0},                                  // AEC VTS Output low bits
-    {0x3602, 0xe4},                                  // Analog Control Registers
-    {0x3612, 0xac},                                  // Analog Control Registers
-    {0x3613, 0x44},                                  // Analog Control Registers
-    {0x3621, 0x27},                                  // Array Control 01
-    {0x3622, 0x08},                                  // Analog Control Registers
-    {0x3623, 0x22},                                  // Analog Control Registers
-    {0x3604, 0x60},                                  // Analog Control Registers
-    {0x3705, 0xda},                                  // Analog Control Registers
-    {0x370a, 0x80},                                  // Analog Control Registers
-    {0x3801, 0x8a},                                  // HS
-    {0x3803, 0x0a},                                  // VS
-    {0x3804, 0x0a},                                  // HW
-    {0x3805, 0x20},                                  // HW
-    {0x3806, 0x07},                                  // VH
-    {0x3807, 0x98},                                  // VH
-    {0x3808, 0x0a},                                  // DVPHO
-    {0x3809, 0x20},                                  // DVPHO
-    {0x380a, 0x07},                                  // DVPVO
-    {0x380b, 0x98},                                  // DVPVO
-    {0x380c, 0x0c},                                  // HTS
-    {0x380d, 0x80},                                  // HTS
-    {0x380e, 0x07},                                  // VTS
-    {0x380f, 0xd0},                                  // VTS
-    {0x3810, 0xc2}, {0x3815, 0x44}, {0x3818, 0xc8},  // Mirror NO, Compression enable
-    {0x3824, 0x01},                                  // RSV
-    {0x3827, 0x0a},                                  // RSV
-    {0x3a00, 0x78},                                  // AEC System Control 0
-    {0x3a0d, 0x10},                                  // 60 Hz Max Bands in One Frame
-    {0x3a0e, 0x0d},                                  // 50 Hz Max Bands in One Frame
-    {0x3a10, 0x32},                                  // Stable Range Low Limit (enter)
-    {0x3a1b, 0x3c},                                  // Stable Range High Limit (go out)
-    {0x3a1e, 0x32},                                  // Stable Range Low Limit (go out)
-    {0x3a11, 0x80},                                  // Step Manual Mode, Fast Zone High Limit
-    {0x3a1f, 0x20},                                  // Step Manual Mode, Fast Zone Low Limit
-    {0x3a00, 0x78},                                  // AEC System Control 0
-    {0x460b, 0x35},                                  // RSV VFIFO Control 0B
-    {0x471d, 0x00},                                  // DVP CONTROL 1D
-    {0x4713, 0x03},                                  // COMPRESSION MODE SELECT mode3
-    {0x471c, 0x50},                                  // RSV
-    {0x5682, 0x0a},                                  // AVG X END
-    {0x5683, 0x20},                                  // AVG X END
-    {0x5686, 0x07},                                  // AVG Y END
-    {0x5687, 0x98},                                  // AVG Y END
+    {0x3503, 0x07},  // AEC Manual Mode Control
+    {0x3000, 0x00},  // SYSTEM RESET00
+    {0x3001, 0x00},  // Reset for Individual Block
+    {0x3002, 0x00},  // Reset for Individual Block
+    {0x3003, 0x00},  // Reset for Individual Block
+    {0x3005, 0xff},  // Clock Enable Control
+    {0x3006, 0xff},  // Clock Enable Control
+    {0x3007, 0x3f},  // Clock Enable Control
+    {0x350c, 0x07},  // AEC VTS Output high bits
+    {0x350d, 0xd0},  // AEC VTS Output low bits
+    {0x3602, 0xe4},  // Analog Control Registers
+    {0x3612, 0xac},  // Analog Control Registers
+    {0x3613, 0x44},  // Analog Control Registers
+    {0x3621, 0x17},  // Array Control 01
+    {0x3622, 0x08},  // Analog Control Registers
+    {0x3623, 0x22},  // Analog Control Registers
+    {0x3604, 0x60},  // Analog Control Registers
+    {0x3705, 0xda},  // Analog Control Registers
+    {0x370a, 0x80},  // Analog Control Registers
+    {0x3801, 0x8a},  // HS
+    {0x3803, 0x0a},  // VS
+    {0x3804, 0x0a},  // HW
+    {0x3805, 0x20},  // HW
+    {0x3806, 0x07},  // VH
+    {0x3807, 0x98},  // VH
+    {0x3808, 0x0a},  // DVPHO
+    {0x3809, 0x20},  // DVPHO
+    {0x380a, 0x07},  // DVPVO
+    {0x380b, 0x98},  // DVPVO
+    {0x380c, 0x0c},  // HTS
+    {0x380d, 0x80},  // HTS
+    {0x380e, 0x07},  // VTS
+    {0x380f, 0xd0},  // VTS
+    {0x3810, 0xc2},
+    {0x3815, 0x44},
+    {0x3818, 0x88},  // mirror OFF + vflip OFF + compression ON; see note above this
+                     // array
+    {0x3824, 0x01},  // RSV
+    {0x3827, 0x0a},  // RSV
+    {0x3a00, 0x78},  // AEC System Control 0
+    {0x3a0d, 0x10},  // 60 Hz Max Bands in One Frame
+    {0x3a0e, 0x0d},  // 50 Hz Max Bands in One Frame
+    {0x3a10, 0x32},  // Stable Range Low Limit (enter)
+    {0x3a1b, 0x3c},  // Stable Range High Limit (go out)
+    {0x3a1e, 0x32},  // Stable Range Low Limit (go out)
+    {0x3a11, 0x80},  // Step Manual Mode, Fast Zone High Limit
+    {0x3a1f, 0x20},  // Step Manual Mode, Fast Zone Low Limit
+    {0x3a00, 0x78},  // AEC System Control 0
+    {0x460b, 0x35},  // RSV VFIFO Control 0B
+    {0x471d, 0x00},  // DVP CONTROL 1D
+    {0x4713, 0x03},  // COMPRESSION MODE SELECT mode3
+    {0x471c, 0x50},  // RSV
+    {0x5682, 0x0a},  // AVG X END
+    {0x5683, 0x20},  // AVG X END
+    {0x5686, 0x07},  // AVG Y END
+    {0x5687, 0x98},  // AVG Y END
     {0x5001, 0x4f},  // ISP CONTROL 01, UV adjust/Line stretch/UV average/Color matrix/AWB enable
     {0x589b, 0x00},  // RSV
     {0x589a, 0xc0},  // RSV
@@ -168,14 +190,41 @@ static sensor_config_t OV5642_JPEG_Capture_QSXGA[JPEG_CONFIG_LEN] = {
     {0x3002, 0x0c},  // Reset for Individual Block, Reset SFIFO/compression
     {0x3002, 0x00},  // Reset for Individual Block
     {0x3503, 0x00},  // AEC Manual Mode Control, Auto enable
-    {0x5025, 0x80}, {0x3a0f, 0x48}, {0x3a10, 0x40}, {0x3a1b, 0x4a},
-    {0x3a1e, 0x3e}, {0x3a11, 0x70}, {0x3a1f, 0x20}, {0xffff, 0xff},
+    {0x5025, 0x80},
+    {0x3a0f, 0x48},
+    {0x3a10, 0x40},
+    {0x3a1b, 0x4a},
+    {0x3a1e, 0x3e},
+    {0x3a11, 0x70},
+    {0x3a1f, 0x20},
+    {0xffff, 0xff},
 };
 
-// Switch to lowest resolution
+// Resolution / ISP scaler output size.
+//
+// Applied AFTER the JPEG capture table on every capture, so this table has the final say on
+// 0x3808/09 (output width) and 0x380a/0b (output height). The sensor always reads the full
+// 2592x1944 array and demosaics it; the ISP scaler (0x5001 bits[5:4]) then resizes to the
+// output size below before the JPEG engine. Raising resolution means only those four bytes.
+//
+//   640x480    0x3808=0x02 0x3809=0x80   0x380a=0x01 0x380b=0xe0
+//   800x600    0x3808=0x03 0x3809=0x20   0x380a=0x02 0x380b=0x58
+//   1024x768   0x3808=0x04 0x3809=0x00   0x380a=0x03 0x380b=0x00
+//   1280x960   0x3808=0x05 0x3809=0x00   0x380a=0x03 0x380b=0xc0
+//   1600x1200  0x3808=0x06 0x3809=0x40   0x380a=0x04 0x380b=0xb0
+//   2048x1536  0x3808=0x08 0x3809=0x00   0x380a=0x06 0x380b=0x00
+//   2592x1944  0x3808=0x0a 0x3809=0x20   0x380a=0x07 0x380b=0x98   (native, no downscale)
+//
+// Currently 320x240.
+//
+// DO NOT touch the trailing {0x3801, 0xb0}: it is the third element of the mirror/CFA-phase
+// trio with 0x3818 and 0x3621 in the JPEG table. Changing it re-breaks the red/blue swap.
+//
+// The array and RES_320_240_CONFIG_LEN names are now stale; renaming the macro would require
+// editing ov5642.c, which is deliberately left untouched.
 static sensor_config_t OV5642_320x240[RES_320_240_CONFIG_LEN] = {
     {0x3800, 0x1},  {0x3801, 0xa8}, {0x3802, 0x0},  {0x3803, 0xA},  {0x3804, 0xA},  {0x3805, 0x20}, {0x3806, 0x7},
-    {0x3807, 0x98}, {0x3808, 0x1},  {0x3809, 0x40}, {0x380a, 0x0},  {0x380b, 0xF0}, {0x380c, 0xc},  {0x380d, 0x80},
+    {0x3807, 0x98}, {0x3808, 0x03}, {0x3809, 0x20}, {0x380a, 0x02}, {0x380b, 0x58}, {0x380c, 0xc},  {0x380d, 0x80},
     {0x380e, 0x7},  {0x380f, 0xd0}, {0x5001, 0x7f}, {0x5680, 0x0},  {0x5681, 0x0},  {0x5682, 0xA},  {0x5683, 0x20},
     {0x5684, 0x0},  {0x5685, 0x0},  {0x5686, 0x7},  {0x5687, 0x98}, {0x3801, 0xb0}, {0xffff, 0xff},
 };
