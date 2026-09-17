@@ -22,6 +22,20 @@ typedef enum { LOG_TO_SDCARD, LOG_TO_UART } log_output_location_t;
 #endif
 
 /**
+ * @enum log_output_format_t
+ * @brief Log output format enum.
+ *
+ * LOG_FORMAT_TEXT outputs human-readable text lines.
+ * LOG_FORMAT_BINARY outputs compact binary records (see obc_logging_codec.h)
+ * that are decoded back to text on the ground station.
+ */
+typedef enum { LOG_FORMAT_TEXT, LOG_FORMAT_BINARY } log_output_format_t;
+
+#ifndef LOG_DEFAULT_OUTPUT_FORMAT
+#define LOG_DEFAULT_OUTPUT_FORMAT LOG_FORMAT_TEXT
+#endif
+
+/**
  * @enum log_level_t
  * @brief Log levels enum.
  *

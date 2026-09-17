@@ -29,6 +29,7 @@ void obcTaskFunctionStatsCollector(void *pvParameters) {
     LOG_IF_ERROR_CODE(
         sciPrintText((unsigned char *)taskTableHeaderStr, strlen(taskTableHeaderStr), UART_MUTEX_BLOCK_TIME));
     LOG_IF_ERROR_CODE(sciPrintText((unsigned char *)taskStatsString, TASK_STATS_BUFFER_SIZE, UART_MUTEX_BLOCK_TIME));
+    LOG_ERROR("Binary log test: task stats cycle");
   }
 }
 #endif
