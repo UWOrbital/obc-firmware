@@ -12,7 +12,7 @@
 // The flash image of the bootloader must not be larger than this value.
 //*****************************************************************************
 #define APP_METADATA_OFFSET 0x00000020
-#define APP_START_ADDRESS 0x00040000
+#define APP_START_ADDRESS CUSTOM_START_ADDRESS + APP_ADDRESS_OFFSET
 
 // The start address of metadata, and the size (used in bl_flash.c and bl_main.c)
 
