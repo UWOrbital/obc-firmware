@@ -27,7 +27,7 @@ endif()
 option(ENABLE_BL_BYPASS "Write directly to 0x0 and overwrite the bootloader" ON)
 
 # Define the app size parameter
-set(APP_SIZE_INPUT "400_KB" CACHE STRING "The size of each app bank")
+set(APP_SIZE_INPUT "384_KB" CACHE STRING "The size of each app bank")
 
 # Define the app slot option
 set(APP_SLOT "B" CACHE STRING "Which bank to build app to")
@@ -43,16 +43,14 @@ else()
 endif()
 
 #Set the size of the app basd on the parameter
-if(APP_SIZE_INPUT STREQUAL "300_KB")
-    set(APP_SIZE 0x0004B000)
-elseif(APP_SIZE_INPUT STREQUAL "350_KB")
-    set(APP_SIZE 0x00057800)
-elseif(APP_SIZE_INPUT STREQUAL "400_KB")
-    set(APP_SIZE 0x00064000)
-elseif(APP_SIZE_INPUT STREQUAL "450_KB")
-    set(APP_SIZE 0x00070800)
+if(APP_SIZE_INPUT STREQUAL "256_KB")
+    set(APP_SIZE 0x00040000)
+elseif(APP_SIZE_INPUT STREQUAL "384_KB")
+    set(APP_SIZE 0x00060000)
+elseif(APP_SIZE_INPUT STREQUAL "512_KB")
+    set(APP_SIZE 0x00080000)
 else()
-    message(FATAL_ERROR "APP_SIZE must be either 300_KB, 350_KB, 400_KB, or 450_KB. Got '${APP_SIZE_INPUT}'")
+    message(FATAL_ERROR "APP_SIZE must be either 256_KB, 384_KB, or 512_KB. Got '${APP_SIZE_INPUT}'")
 endif()
 
 #Set the start address of the app based on its slot:
