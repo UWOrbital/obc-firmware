@@ -88,7 +88,7 @@ set(OBC_REV2_HAL_SOURCES
 )
 
 set(OBC_REV2_NO_OPTIMIZE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/obc_rev2/source/sys_selftest.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/obc_rev3/source/sys_selftest.c
     ${CMAKE_CURRENT_SOURCE_DIR}/obc_rev2/source/sys_startup.c
 )
 

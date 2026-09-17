@@ -26,6 +26,15 @@ endif()
 # Define the bootloader bypass option
 option(ENABLE_BL_BYPASS "Write directly to 0x0 and overwrite the bootloader" ON)
 
+# Define the app size parameter
+set(APP_SIZE_INPUT "400_KB" CACHE STRING "The size of each app bank")
+
+# Define the app slot option
+set(APP_SLOT "B" CACHE STRING "Which bank to build app to")
+
+# Define the bootloader zero bypass option
+option(ENABLE_BL_ZERO_BYPASS "Write bootloader directly to 0x0 and overwrite the bootloader zero" ON)
+
 # Set the custom address based on the option
 if(ENABLE_BL_BYPASS)
     set(CUSTOM_START_ADDRESS 0)
@@ -33,8 +42,45 @@ else()
     set(CUSTOM_START_ADDRESS 0x00040000)
 endif()
 
+#Set the size of the app basd on the parameter
+if(APP_SIZE_INPUT STREQUAL "300_KB")
+    set(APP_SIZE 0x0004B000)
+elseif(APP_SIZE_INPUT STREQUAL "350_KB")
+    set(APP_SIZE 0x00057800)
+elseif(APP_SIZE_INPUT STREQUAL "400_KB")
+    set(APP_SIZE 0x00064000)
+elseif(APP_SIZE_INPUT STREQUAL "450_KB")
+    set(APP_SIZE 0x00070800)
+else()
+    message(FATAL_ERROR "APP_SIZE must be either 300_KB, 350_KB, 400_KB, or 450_KB. Got '${APP_SIZE_INPUT}'")
+endif()
+
+#Set the start address of the app based on its slot:
+if(APP_SLOT STREQUAL "A")
+    set(APP_ADDRESS_OFFSET 0x00000000)
+elseif(APP_SLOT STREQUAL "B")
+    set(APP_ADDRESS_OFFSET ${APP_SIZE})
+else()
+    message(FATAL_ERROR "APP_SLOT must be either 'A' or 'B'")
+endif()
+
+# Set a bootloader zero bypass so bootloader can work without BL zero
+if (ENABLE_BL_ZERO_BYPASS)
+  set(BOOTLOADER_ADDRESS 0)
+else()
+  set(BOOTLOADER_ADDRESS 0x00020000)
+endif()
+
 # Pass the address to the linker
 add_link_options(-Wl,--defsym,CUSTOM_START_ADDRESS=${CUSTOM_START_ADDRESS})
+add_link_options(-Wl,--defsym,BOOTLOADER_ADDRESS=${BOOTLOADER_ADDRESS})
+
+# Pass the app size to the linker
+add_link_options(-Wl,--defsym,APP_SIZE=${APP_SIZE})
+
+# Pass the app offset to the linker
+add_link_options(-Wl,--defsym,APP_ADDRESS_OFFSET=${APP_ADDRESS_OFFSET})
+
 
 # Select main for build
 if(${CMAKE_BUILD_TYPE} MATCHES OBC)
