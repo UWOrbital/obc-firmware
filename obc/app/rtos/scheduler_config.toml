@@ -83,11 +83,11 @@ function_stem = "AlarmMgr"
 config_id_stem = "ALARM_MGR"
 
 [[tasks]]
-task_name = "health_collector"
+task_name = "thermal_mgr"
 stack_size = 256
 priority = "1U"
-function_stem = "HealthCollector"
-config_id_stem = "HEALTH_COLLECTOR"
+function_stem = "ThermalMgr"
+config_id_stem = "THERMAL_MGR"
 
 [[tasks]]
 task_name = "stats_collector"

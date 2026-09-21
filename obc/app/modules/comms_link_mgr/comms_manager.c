@@ -42,7 +42,7 @@
 /* Comms Manager event queue config */
 #define COMMS_MANAGER_QUEUE_LENGTH 10U
 #define COMMS_MANAGER_QUEUE_ITEM_SIZE sizeof(comms_event_t)
-#define COMMS_MANAGER_QUEUE_RX_WAIT_PERIOD pdMS_TO_TICKS(10)
+#define COMMS_MANAGER_QUEUE_RX_WAIT_PERIOD pdMS_TO_TICKS(1000)
 #define COMMS_MANAGER_QUEUE_TX_WAIT_PERIOD pdMS_TO_TICKS(10)
 
 static QueueHandle_t commsQueueHandle = NULL;
@@ -60,6 +60,13 @@ static uint8_t cc1120TransmitQueueStack[CC1120_TRANSMIT_QUEUE_LENGTH * CC1120_TR
 
 static const uint8_t TEMP_STATIC_KEY[AES_KEY_SIZE] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                                                       0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
+
+#define CC1120_TEMP_QUEUE_LENGTH 1
+#define CC1120_TEMP_QUEUE_ITEM_SIZE sizeof(uint32_t)
+
+QueueHandle_t cc1120TempQueueHandle = NULL;
+static StaticQueue_t cc1120TempQueue;
+static uint8_t cc1120TempQueueStack[COMMS_MANAGER_QUEUE_LENGTH * CC1120_TEMP_QUEUE_ITEM_SIZE];
 
 /**
  * @brief determines what the next Comms Manager state should be and sets it to
@@ -96,6 +103,13 @@ static obc_error_code_t handleEnterEmergencyState(void);
 static obc_error_code_t handleEmergUplinkState(void);
 /* COMMS STATE HANDLER FUNCTIONS END */
 
+/**
+ * @brief Reading the temperature using driver functions and adding that temperature to
+ * the mailbox temperature queue
+ * @return error code
+ */
+static obc_error_code_t postCommsManagerTempQueue();
+
 typedef obc_error_code_t (*comms_state_func_t)(void);
 
 static const comms_state_func_t commsStateFns[] = {
@@ -124,6 +138,12 @@ void obcTaskInitCommsMgr(void) {
   if (cc1120TransmitQueueHandle == NULL) {
     cc1120TransmitQueueHandle = xQueueCreateStatic(CC1120_TRANSMIT_QUEUE_LENGTH, CC1120_TRANSMIT_QUEUE_ITEM_SIZE,
                                                    cc1120TransmitQueueStack, &cc1120TransmitQueue);
+  }
+
+  ASSERT((cc1120TempQueueStack != NULL) && (&cc1120TempQueue != NULL));
+  if (cc1120TempQueueHandle == NULL) {
+    cc1120TempQueueHandle = xQueueCreateStatic(CC1120_TEMP_QUEUE_LENGTH, CC1120_TEMP_QUEUE_ITEM_SIZE,
+                                               cc1120TempQueueStack, &cc1120TempQueue);
   }
 
   // TODO: Implement a key exchange algorithm instead of using Pre-Shared/static
@@ -299,6 +319,21 @@ obc_error_code_t sendToFrontCommsManagerQueue(comms_event_t *event) {
   return OBC_ERR_CODE_QUEUE_FULL;
 }
 
+static obc_error_code_t postCommsManagerTempQueue() {
+  float value = 0.0f;  // dummy value, replace with actual temp reading function
+  if (xQueueOverwrite(cc1120TempQueueHandle, &value) != pdPASS) {
+    return OBC_ERR_CODE_UNKNOWN;
+  }
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+obc_error_code_t readCC1120Temp(float *temp) {
+  if (xQueuePeek(cc1120TempQueueHandle, temp, pdMS_TO_TICKS(1000)) != pdPASS) {
+    return OBC_ERR_CODE_QUEUE_EMPTY;
+  }
+  return OBC_ERR_CODE_SUCCESS;
+}
+
 // NOTE: This is created on startup
 void obcTaskFunctionCommsMgr(void *pvParameters) {
   obc_error_code_t errCode;
@@ -311,6 +346,7 @@ void obcTaskFunctionCommsMgr(void *pvParameters) {
     comms_event_t queueMsg;
 
     if (xQueueReceive(commsQueueHandle, &queueMsg, COMMS_MANAGER_QUEUE_RX_WAIT_PERIOD) != pdPASS) {
+      postCommsManagerTempQueue();
       continue;
     }
 

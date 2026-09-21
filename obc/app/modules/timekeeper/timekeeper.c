@@ -11,10 +11,48 @@
 #include <os_task.h>
 #include <os_timer.h>
 #include <sys_common.h>
+#include <stdint.h>
 
 #define LOCAL_TIME_SYNC_PERIOD_S 60UL
 
-void obcTaskInitTimekeeper(void) {}
+#define RTC_TEMP_QUEUE_LENGTH 1
+#define RTC_TEMP_QUEUE_ITEM_SIZE sizeof(uint32_t)
+
+QueueHandle_t rtcTempQueueHandle = NULL;
+static StaticQueue_t rtcTempQueue;
+static uint8_t rtcTempQueueStack[RTC_TEMP_QUEUE_LENGTH * RTC_TEMP_QUEUE_ITEM_SIZE];
+
+/**
+ * @brief Reading the temperature using driver functions and adding that temperature to
+ * the mailbox temperature queue
+ * @return error code
+ */
+static obc_error_code_t postRtcTempQueue();
+
+void obcTaskInitTimekeeper(void) {
+  ASSERT((rtcTempQueueStack != NULL) && (&rtcTempQueue != NULL));
+  if (rtcTempQueueHandle == NULL) {
+    rtcTempQueueHandle =
+        xQueueCreateStatic(RTC_TEMP_QUEUE_LENGTH, RTC_TEMP_QUEUE_ITEM_SIZE, rtcTempQueueStack, &rtcTempQueue);
+  }
+}
+
+static obc_error_code_t postRtcTempQueue() {
+  obc_error_code_t errCode;
+  float temp;
+  RETURN_IF_ERROR_CODE(getTemperatureRTC(&temp));
+  if (xQueueOverwrite(rtcTempQueueHandle, &temp) != pdPASS) {
+    return OBC_ERR_CODE_UNKNOWN;
+  }
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+obc_error_code_t readRTCTemp(float *data) {
+  if (xQueuePeek(rtcTempQueueHandle, data, 0) != pdPASS) {
+    return OBC_ERR_CODE_QUEUE_EMPTY;
+  }
+  return OBC_ERR_CODE_SUCCESS;
+}
 
 void obcTaskFunctionTimekeeper(void *pvParameters) {
   /*
@@ -46,7 +84,11 @@ void obcTaskFunctionTimekeeper(void *pvParameters) {
       vPortExitCritical();
     }
 
-    // Send Unix time to fram
+    // Post temperature into mailbox queue
+
+    postRtcTempQueue();
+
+    // Send Unix time to frame
     unixTime.unixTime = getCurrentUnixTime();
     LOG_IF_ERROR_CODE(
         setPersistentData(OBC_PERSIST_SECTION_ID_OBC_TIME, (uint8_t *)&unixTime, sizeof(obc_time_persist_data_t)));

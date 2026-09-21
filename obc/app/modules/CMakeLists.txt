@@ -10,7 +10,7 @@ set(INCLUDES
     ${CMAKE_CURRENT_SOURCE_DIR}/digital_watchdog_mgr
     ${CMAKE_CURRENT_SOURCE_DIR}/eps_mgr
     ${CMAKE_CURRENT_SOURCE_DIR}/gnc_mgr
-    ${CMAKE_CURRENT_SOURCE_DIR}/health_collector
+    ${CMAKE_CURRENT_SOURCE_DIR}/thermal_mgr
     ${CMAKE_CURRENT_SOURCE_DIR}/state_mgr
     ${CMAKE_CURRENT_SOURCE_DIR}/telemetry_mgr
     ${CMAKE_CURRENT_SOURCE_DIR}/timekeeper
@@ -36,7 +36,7 @@ set(SOURCES
 
     ${CMAKE_CURRENT_SOURCE_DIR}/gnc_mgr/gnc_manager.c
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/health_collector/health_collector.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/thermal_mgr/thermal_mgr.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/state_mgr/state_mgr.c
 
