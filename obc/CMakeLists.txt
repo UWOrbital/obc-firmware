@@ -32,9 +32,6 @@ set(APP_SIZE_INPUT "384_KB" CACHE STRING "The size of each app bank")
 # Define the app slot option
 set(APP_SLOT "B" CACHE STRING "Which bank to build app to")
 
-# Define the bootloader zero bypass option
-option(ENABLE_BL_ZERO_BYPASS "Write bootloader directly to 0x0 and overwrite the bootloader zero" ON)
-
 # Set the custom address based on the option
 if(ENABLE_BL_BYPASS)
     set(CUSTOM_START_ADDRESS 0)
@@ -60,13 +57,6 @@ elseif(APP_SLOT STREQUAL "B")
     set(APP_ADDRESS_OFFSET ${APP_SIZE})
 else()
     message(FATAL_ERROR "APP_SLOT must be either 'A' or 'B'")
-endif()
-
-# Set a bootloader zero bypass so bootloader can work without BL zero
-if (ENABLE_BL_ZERO_BYPASS)
-  set(BOOTLOADER_ADDRESS 0)
-else()
-  set(BOOTLOADER_ADDRESS 0x00020000)
 endif()
 
 # Pass the address to the linker
