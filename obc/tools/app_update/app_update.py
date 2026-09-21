@@ -221,6 +221,7 @@ def main() -> None:
     """
     A function that initializes the com port and path to update the app
     """
+
     if len(argv) != 5:
         print(
             "Five arguments needed: Com Port, Application File Path, app write slot(A/B), and active app slot (A/B)"
@@ -237,24 +238,6 @@ def main() -> None:
             print("Invalid file path")
             return
 
-        # TODO Make the starting address correlate to the cmake variable
-        if argv[3] == "A":
-            app_starting_address = 0x00040000
-            enable_write_app_b_flag = 0
-        elif argv[3] == "B":
-            app_starting_address = 0x000A0000
-            enable_write_app_b_flag = 1
-        else:
-            print("Invalid app write slot (Expected A/B, recieved " + argv[3] + ")")
-
-        if argv[4] == "A":
-            enable_boot_app_b_flag = 0
-        elif argv[4] == "B":
-            enable_boot_app_b_flag = 1
-        else:
-            print("Invalid active app slot (Expected A/B, recieved " + argv[4] + ")")
-            return
-
         with Serial(
             com_port,
             baudrate=OBC_UART_BAUD_RATE,
@@ -262,27 +245,47 @@ def main() -> None:
             stopbits=STOPBITS_TWO,
             timeout=15,
         ) as ser:
-            if not enable_boot_app_b_flag:
+            if argv[3] == "A":
                 if not write_command(ser, CmdCallbackId.CMD_ENABLE_BOOT_APP_A):
                     print("Failed to activate App A for boot")
                     return
-            else:
+                print("Successfully set active slot to A")
+            elif argv[3] == "B":
                 if not write_command(ser, CmdCallbackId.CMD_ENABLE_BOOT_APP_B):
                     print("Failed to activate App B for boot")
                     return
+                print("Successfully set active slot to B")
+            elif argv[3] != "NC":
+                print(
+                    "Invalid active app slot (Expected A/B/NC, recieved "
+                    + argv[3]
+                    + ")"
+                )
 
-            if not enable_write_app_b_flag:
+            if argv[4] == "A":
                 if not write_command(ser, CmdCallbackId.CMD_ENABLE_WRITE_APP_A):
                     print("Failed to select App A for write")
                     return
-            else:
+                app_starting_address = 0x00040000
+                print(
+                    "Successfully set write slot to A, starting Flashing Procedure..."
+                )
+                send_bin(str(path), com_port, app_starting_address)
+            elif argv[4] == "B":
                 if not write_command(ser, CmdCallbackId.CMD_ENABLE_WRITE_APP_B):
                     print("Failed to select App B for write")
                     return
+                app_starting_address = 0x000A0000
+                print(
+                    "Successfully set write slot to B, starting Flashing Procedure..."
+                )
+                send_bin(str(path), com_port, app_starting_address)
+            elif argv[4] != "NC":
+                print(
+                    "Invalid app write slot (Expected A/B/NC, recieved " + argv[4] + ")"
+                )
 
-        print("Starting Flashing Procedure...")
-        send_bin(str(path), com_port, app_starting_address)
-        sleep(5)
+            sleep(5)
 
     except SerialException:
         print("Invalid port entered")
