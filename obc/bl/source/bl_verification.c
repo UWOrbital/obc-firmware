@@ -19,13 +19,13 @@ obc_error_code_t verifyBoardType(uint8_t boardType) {
   }
 }
 
-obc_error_code_t verifyCrc(uint32_t crcAddr) {
+obc_error_code_t verifyCrc(uint32_t crcAddr, uint32_t appStartAddress) {
   if (blFlashFapiBlankCheck(crcAddr, 1)) {
     blUartWriteBytes(strlen("ERROR: CRC blank check failed\r\n"), (uint8_t *)"ERROR: CRC blank check failed\r\n");
     return OBC_ERR_CODE_CORRUPTED_APP;
   }
   // Calculate crc via the crc32 algorithm (same one used in python's binascii and zlib libraries)
-  uint32_t calculatedCrc = crc32(0, (uint8_t *)APP_START_ADDRESS, crcAddr - APP_START_ADDRESS);
+  uint32_t calculatedCrc = crc32(0, (uint8_t *)appStartAddress, crcAddr - appStartAddress);
 
   if (calculatedCrc == *((uint32_t *)crcAddr)) {
     return OBC_ERR_CODE_SUCCESS;
@@ -45,28 +45,28 @@ obc_error_code_t verifyMagicNum(uint32_t magicNum) {
   }
 }
 
-obc_error_code_t verifyMetadata(metadata_t *app_metadata) {
+obc_error_code_t verifyMetadata(metadata_t *app_metadata, uint32_t appStartAddress) {
   obc_error_code_t errCode;
   RETURN_IF_ERROR_CODE(verifyMagicNum(app_metadata->magic_num));
   RETURN_IF_ERROR_CODE(verifyBoardType(app_metadata->board_id));
-  RETURN_IF_ERROR_CODE(verifyCrc(app_metadata->crc_addr));
+  RETURN_IF_ERROR_CODE(verifyCrc(app_metadata->crc_addr, appStartAddress));
   return OBC_ERR_CODE_SUCCESS;
 }
 
 // NOTE: This function does not check if the crc is written
-obc_error_code_t blAppBlankCheck(metadata_t *app_metadata) {
-  uint16_t writeSections = (app_metadata->crc_addr - APP_START_ADDRESS) / MEMORY_BLANK_CHECK_SIZE;
+obc_error_code_t blAppBlankCheck(metadata_t *app_metadata, uint32_t appStartAddress) {
+  uint16_t writeSections = (app_metadata->crc_addr - appStartAddress) / MEMORY_BLANK_CHECK_SIZE;
 
   for (uint16_t i = 0; i < writeSections; i++) {
-    if (blFlashFapiBlankCheck(APP_START_ADDRESS + i * MEMORY_BLANK_CHECK_SIZE, MEMORY_BLANK_CHECK_SIZE / 4)) {
+    if (blFlashFapiBlankCheck(appStartAddress + i * MEMORY_BLANK_CHECK_SIZE, MEMORY_BLANK_CHECK_SIZE / 4)) {
       blUartWriteBytes(strlen("ERROR: Blank check failed \r\n"), (uint8_t *)"ERROR: Blank check failed \r\n");
       return OBC_ERR_CODE_CORRUPTED_APP;
     }
   }
 
   // Any left over memory that needs to be checked
-  if (blFlashFapiBlankCheck(APP_START_ADDRESS + writeSections * MEMORY_BLANK_CHECK_SIZE,
-                            (app_metadata->crc_addr - APP_START_ADDRESS - writeSections * MEMORY_BLANK_CHECK_SIZE))) {
+  if (blFlashFapiBlankCheck(appStartAddress + writeSections * MEMORY_BLANK_CHECK_SIZE,
+                            (app_metadata->crc_addr - appStartAddress - writeSections * MEMORY_BLANK_CHECK_SIZE))) {
     blUartWriteBytes(strlen("ERROR: Blank check failed \r\n"), (uint8_t *)"ERROR: Blank check failed \r\n");
     return OBC_ERR_CODE_CORRUPTED_APP;
   }
