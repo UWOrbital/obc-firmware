@@ -61,7 +61,6 @@ endif()
 
 # Pass the address to the linker
 add_link_options(-Wl,--defsym,CUSTOM_START_ADDRESS=${CUSTOM_START_ADDRESS})
-add_link_options(-Wl,--defsym,BOOTLOADER_ADDRESS=${BOOTLOADER_ADDRESS})
 
 # Pass the app size to the linker
 add_link_options(-Wl,--defsym,APP_SIZE=${APP_SIZE})
