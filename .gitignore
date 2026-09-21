@@ -105,3 +105,14 @@ lerna-debug.log*
 *.vite
 
 .DS_Store
+
+# Release package
+release/
+
+# Firmware artifacts
+*.bin
+*.elf
+*.hex
+*.map
+*.sha256
+actions-runner/
