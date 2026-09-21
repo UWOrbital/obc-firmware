@@ -11,13 +11,13 @@ repos:
       - id: check-added-large-files
         exclude: "(libs|hal)/.*|gs/backend/data/resources/callsigns\\.csv$"
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v22.1.5
+    rev: v23.1.1
     hooks:
       - id: clang-format
         types_or: [c++, c]
         exclude: "(libs|hal)/.*"
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.15
+    rev: v0.16.8
     hooks:
       - id: ruff
         args: ["--fix"]
