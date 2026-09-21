@@ -19,6 +19,10 @@ from interfaces.obc_gs_interface.commands.python.command_factories import (
     create_cmd_download_data,
     create_cmd_erase_app,
     create_cmd_verify_crc,
+    create_cmd_enable_boot_app_a,
+    create_cmd_enable_boot_app_b,
+    create_cmd_enable_write_app_a,
+    create_cmd_enable_write_app_b,
 )
 
 from interfaces.obc_gs_interface.commands.python.command_response_callbacks import (
@@ -31,8 +35,12 @@ COMMAND_DATA_SIZE: Final[int] = 208
 # Refer to bl_config.h for the start address
 DEFAULT_APP_STARTING_ADDRESS: Final[int] = 0x00040000
 
+
 def create_app_packet(
-    packet_number: int, app_bin: bytes, app_starting_address: int, is_last_packet: bool = False
+    packet_number: int,
+    app_bin: bytes,
+    app_starting_address: int,
+    is_last_packet: bool = False,
 ) -> bytes:
     """
     A helper function that creates an app packet to send to the bootloader
@@ -101,7 +109,9 @@ def write_command(
                 and iteration is not None
                 and is_last_packet is not None
             ):
-                packed_command = create_app_packet(iteration, app_data, app_starting_address, is_last_packet)
+                packed_command = create_app_packet(
+                    iteration, app_data, app_starting_address, is_last_packet
+                )
                 bytes_to_read = RS_DECODED_DATA_SIZE + 1
                 cmd_res_cutoff = 1
             else:
@@ -113,6 +123,22 @@ def write_command(
                 RS_DECODED_DATA_SIZE, b"\x00"
             )
             cmd_print_response = True
+        case CmdCallbackId.CMD_ENABLE_BOOT_APP_A:
+            packed_command = pack_command(create_cmd_enable_boot_app_a()).ljust(
+                RS_DECODED_DATA_SIZE, b"\x00"
+            )
+        case CmdCallbackId.CMD_ENABLE_BOOT_APP_B:
+            packed_command = pack_command(create_cmd_enable_boot_app_b()).ljust(
+                RS_DECODED_DATA_SIZE, b"\x00"
+            )
+        case CmdCallbackId.CMD_ENABLE_WRITE_APP_A:
+            packed_command = pack_command(create_cmd_enable_write_app_a()).ljust(
+                RS_DECODED_DATA_SIZE, b"\x00"
+            )
+        case CmdCallbackId.CMD_ENABLE_WRITE_APP_B:
+            packed_command = pack_command(create_cmd_enable_write_app_b()).ljust(
+                RS_DECODED_DATA_SIZE, b"\x00"
+            )
         case _:
             raise ValueError("Command not supported")
 
@@ -160,7 +186,14 @@ def send_bin(file_path: str, com_port: str, app_starting_address: int) -> None:
             desc="Packets Written: ", total=commands_needed, dynamic_ncols=True
         )
         for i in range(commands_needed - 1):
-            if write_command(ser, CmdCallbackId.CMD_DOWNLOAD_DATA, app_bin, app_starting_address, i, False):
+            if write_command(
+                ser,
+                CmdCallbackId.CMD_DOWNLOAD_DATA,
+                app_bin,
+                app_starting_address,
+                i,
+                False,
+            ):
                 progress_bar.update(1)
                 ser.reset_output_buffer()
                 ser.reset_input_buffer()
@@ -168,7 +201,12 @@ def send_bin(file_path: str, com_port: str, app_starting_address: int) -> None:
                 return
 
         if write_command(
-            ser, CmdCallbackId.CMD_DOWNLOAD_DATA, app_bin, app_starting_address, commands_needed - 1, True
+            ser,
+            CmdCallbackId.CMD_DOWNLOAD_DATA,
+            app_bin,
+            app_starting_address,
+            commands_needed - 1,
+            True,
         ):
             progress_bar.update(1)
             progress_bar.close()
@@ -183,8 +221,10 @@ def main() -> None:
     """
     A function that initializes the com port and path to update the app
     """
-    if len(argv) != 4:
-        print("Three arguments needed: Com Port, Application File Path, and partition label (A/B)")
+    if len(argv) != 5:
+        print(
+            "Five arguments needed: Com Port, Application File Path, app write slot(A/B), and active app slot (A/B)"
+        )
         return
 
     try:
@@ -197,12 +237,48 @@ def main() -> None:
             print("Invalid file path")
             return
 
+        # TODO Make the starting address correlate to the cmake variable
         if argv[3] == "A":
             app_starting_address = 0x00040000
-        else if argv[3] == "B":
+            enable_write_app_b_flag = 0
+        elif argv[3] == "B":
             app_starting_address = 0x000A0000
+            enable_write_app_b_flag = 1
         else:
-            print("Invalid partition label (A/B, recieved " + argv[3] + ")")
+            print("Invalid app write slot (Expected A/B, recieved " + argv[3] + ")")
+
+        if argv[4] == "A":
+            enable_boot_app_b_flag = 0
+        elif argv[4] == "B":
+            enable_boot_app_b_flag = 1
+        else:
+            print("Invalid active app slot (Expected A/B, recieved " + argv[4] + ")")
+            return
+
+        with Serial(
+            com_port,
+            baudrate=OBC_UART_BAUD_RATE,
+            parity=PARITY_NONE,
+            stopbits=STOPBITS_TWO,
+            timeout=15,
+        ) as ser:
+            if not enable_boot_app_b_flag:
+                if not write_command(ser, CmdCallbackId.CMD_ENABLE_BOOT_APP_A):
+                    print("Failed to activate App A for boot")
+                    return
+            else:
+                if not write_command(ser, CmdCallbackId.CMD_ENABLE_BOOT_APP_B):
+                    print("Failed to activate App B for boot")
+                    return
+
+            if not enable_write_app_b_flag:
+                if not write_command(ser, CmdCallbackId.CMD_ENABLE_WRITE_APP_A):
+                    print("Failed to select App A for write")
+                    return
+            else:
+                if not write_command(ser, CmdCallbackId.CMD_ENABLE_WRITE_APP_B):
+                    print("Failed to select App B for write")
+                    return
 
         print("Starting Flashing Procedure...")
         send_bin(str(path), com_port, app_starting_address)
@@ -210,6 +286,7 @@ def main() -> None:
 
     except SerialException:
         print("Invalid port entered")
+        return
 
 
 if __name__ == "__main__":

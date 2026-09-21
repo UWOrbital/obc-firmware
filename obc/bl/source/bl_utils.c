@@ -21,6 +21,9 @@ typedef void (*appStartFunc_t)(void);
 static uint8_t sendBuffer[MAX_PACKET_SIZE] = {0};
 static uint8_t responseBuffer[CMD_RESPONSE_DATA_MAX_SIZE] = {0};
 
+uint8_t appBootBFlag = 0;
+uint8_t appWriteBFlag = 0;
+
 obc_error_code_t blRunCommand(uint8_t recvBuffer[]) {
   if (recvBuffer == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
@@ -62,23 +65,55 @@ obc_error_code_t blRunCommand(uint8_t recvBuffer[]) {
   return errCode;
 }
 
+// TODO: Improve this so that it checks that the flag has actually been set.
+obc_error_code_t blEnableBootApp(uint8_t enableAppB) {
+  if (enableAppB != 0 && enableAppB != 1) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  appBootBFlag = enableAppB;
+
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+// TODO: Improve this so that it checks that the flag has actually been set.
+obc_error_code_t blEnableWriteApp(uint8_t enableAppB) {
+  if (enableAppB != 0 && enableAppB != 1) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  appWriteBFlag = enableAppB;
+
+  return OBC_ERR_CODE_SUCCESS;
+}
+
 obc_error_code_t blJumpToApp() {
   obc_error_code_t errCode;
 
+  uint32_t appStartAddress = CUSTOM_START_ADDRESS;
+
+  if (appBootBFlag == 0) {
+    // Do nothing
+  } else if (appBootBFlag == 1) {
+    appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
+  } else {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
   // If a success error code is sent, it means that the memory is occupied
-  if (blFlashFapiBlankCheck(APP_START_ADDRESS, 2)) {
+  if (blFlashFapiBlankCheck(appStartAddress, 2)) {
     blUartWriteBytes(strlen("ERROR: Metadata blank check failed\r\n"),
                      (uint8_t *)"ERROR: Metadata blank check failed\r\n");
     return OBC_ERR_CODE_CORRUPTED_APP;
   }
 
   // Cast the metadata of the flash into a usable pointer
-  metadata_t *app_metadata = (metadata_t *)(APP_START_ADDRESS + APP_METADATA_OFFSET);
+  metadata_t *app_metadata = (metadata_t *)(appStartAddress + APP_METADATA_OFFSET);
 
-  RETURN_IF_ERROR_CODE(blAppBlankCheck(app_metadata));
+  RETURN_IF_ERROR_CODE(blAppBlankCheck(app_metadata, appStartAddress));
 
   // Check magic number, board id and verify the crc
-  RETURN_IF_ERROR_CODE(verifyMetadata(app_metadata));
+  RETURN_IF_ERROR_CODE(verifyMetadata(app_metadata, appStartAddress));
 
   blUartWriteBytes(strlen("ATTEMPTING: Running application...\r\n"),
                    (uint8_t *)"ATTEMPTING: Running application..\r\n");
@@ -90,8 +125,8 @@ obc_error_code_t blJumpToApp() {
   };
 
   // Go to the application's entry point
-  uint32_t appStartAddress = (uint32_t)app_metadata->app_entry_func_addr;
-  ((appStartFunc_t)appStartAddress)();
+  uint32_t appEntryAddress = (uint32_t)app_metadata->app_entry_func_addr;
+  ((appStartFunc_t)appEntryAddress)();
 
   // If it was not possible to jump to the app, we log that error here
   blUartWriteBytes(strlen("ERROR: Failed to run application\r\n"), (uint8_t *)"ERROR: Failed to run application\r\n");
