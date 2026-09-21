@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "obc_errors.h"
+#include "obc_reset_reason.h"
 
 /*---------------------------------------------------------------------------*/
 /* GUIDE FOR ADDING A NEW PERSISTENT SECTION:
@@ -140,6 +141,15 @@ typedef struct {
   alarm_mgr_persist_data_t data;
 } alarm_mgr_persist_t;
 
+typedef struct {
+  obc_reset_reason_t reason;
+} obc_reset_reason_persist_data_t;
+
+typedef struct {
+  obc_persist_section_header_t header;
+  obc_reset_reason_persist_data_t data;
+} obc_reset_reason_persist_t;
+
 /*---------------------------------------------------------------------------*/
 
 /**
@@ -149,6 +159,7 @@ typedef struct {
 typedef struct {
   obc_time_persist_t obcTime;
   alarm_mgr_persist_t alarmMgr[OBC_PERSISTENT_MAX_SUBINDEX_ALARM];
+  obc_reset_reason_persist_t resetReason;
 } obc_persist_t;
 
 #define OBC_PERSIST_ADDR_OF(data) (0x0 + offsetof(obc_persist_t, data))
@@ -159,6 +170,7 @@ typedef struct {
 typedef enum {
   OBC_PERSIST_SECTION_ID_OBC_TIME = 0,
   OBC_PERSIST_SECTION_ID_ALARM_MGR,
+  OBC_PERSIST_SECTION_ID_RESET_REASON,
 
   OBC_PERSIST_SECTION_ID_COUNT  // Must always be last
 } obc_persist_section_id_t;
