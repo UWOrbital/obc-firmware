@@ -26,6 +26,12 @@ endif()
 # Define the bootloader bypass option
 option(ENABLE_BL_BYPASS "Write directly to 0x0 and overwrite the bootloader" ON)
 
+# Define the app size parameter
+set(APP_SIZE_INPUT "384_KB" CACHE STRING "The size of each app bank")
+
+# Define the app slot option
+set(APP_SLOT "B" CACHE STRING "Which bank to build app to")
+
 # Set the custom address based on the option
 if(ENABLE_BL_BYPASS)
     set(CUSTOM_START_ADDRESS 0)
@@ -33,8 +39,35 @@ else()
     set(CUSTOM_START_ADDRESS 0x00040000)
 endif()
 
+#Set the size of the app basd on the parameter
+if(APP_SIZE_INPUT STREQUAL "256_KB")
+    set(APP_SIZE 0x00040000)
+elseif(APP_SIZE_INPUT STREQUAL "384_KB")
+    set(APP_SIZE 0x00060000)
+elseif(APP_SIZE_INPUT STREQUAL "512_KB")
+    set(APP_SIZE 0x00080000)
+else()
+    message(FATAL_ERROR "APP_SIZE must be either 256_KB, 384_KB, or 512_KB. Got '${APP_SIZE_INPUT}'")
+endif()
+
+#Set the start address of the app based on its slot:
+if(APP_SLOT STREQUAL "A")
+    set(APP_ADDRESS_OFFSET 0x00000000)
+elseif(APP_SLOT STREQUAL "B")
+    set(APP_ADDRESS_OFFSET ${APP_SIZE})
+else()
+    message(FATAL_ERROR "APP_SLOT must be either 'A' or 'B'")
+endif()
+
 # Pass the address to the linker
 add_link_options(-Wl,--defsym,CUSTOM_START_ADDRESS=${CUSTOM_START_ADDRESS})
+
+# Pass the app size to the linker
+add_link_options(-Wl,--defsym,APP_SIZE=${APP_SIZE})
+
+# Pass the app offset to the linker
+add_link_options(-Wl,--defsym,APP_ADDRESS_OFFSET=${APP_ADDRESS_OFFSET})
+
 
 # Select main for build
 if(${CMAKE_BUILD_TYPE} MATCHES OBC)
@@ -122,6 +155,9 @@ target_compile_options(${OUT_FILE_NAME} PRIVATE ${TARGET_OPTIMIZATION_FLAGS})
 
 target_compile_definitions(${OUT_FILE_NAME} PRIVATE
     ${BOARD_TYPE}
+    APP_SIZE=${APP_SIZE}
+    APP_ADDRESS_OFFSET=${APP_ADDRESS_OFFSET}
+    CUSTOM_START_ADDRESS=${CUSTOM_START_ADDRESS}
     BOARD_ID=${BOARD_TYPE_TO_INT_MAP}
     LOG_DEFAULT_OUTPUT_LOCATION=${LOG_DEFAULT_OUTPUT_LOCATION}
     LOG_DEFAULT_LEVEL=${LOG_DEFAULT_LEVEL}
@@ -243,6 +279,9 @@ target_compile_options(OBC-bl.out PRIVATE ${TARGET_OPTIMIZATION_FLAGS})
 
 target_compile_definitions(OBC-bl.out PRIVATE
     ${BOARD_TYPE}
+    APP_SIZE=${APP_SIZE}
+    APP_ADDRESS_OFFSET=${APP_ADDRESS_OFFSET}
+    CUSTOM_START_ADDRESS=${CUSTOM_START_ADDRESS}
     BOARD_ID=${BOARD_TYPE_TO_INT_MAP}
     LOG_DEFAULT_OUTPUT_LOCATION=${LOG_DEFAULT_OUTPUT_LOCATION}
     LOG_DEFAULT_LEVEL=${LOG_DEFAULT_LEVEL}

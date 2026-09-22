@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include "bl_uart.h"
 #include "bl_flash.h"
+#include "bl_utils.h"
 #include "obc_metadata.h"
 #include <stdio.h>
 
@@ -47,8 +48,19 @@ static obc_error_code_t eraseAppCmdCallback(cmd_msg_t *cmd, uint8_t *responseDat
   if (cmd == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+
+  uint32_t appStartAddress = CUSTOM_START_ADDRESS;
+
+  if (appWriteBFlag == 0) {
+    // Do nothing
+  } else if (appWriteBFlag == 1) {
+    appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
+  } else {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
   bl_error_code_t errCode =
-      blFlashFapiBlockErase((uint32_t)APP_START_ADDRESS, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1);
+      blFlashFapiBlockErase((uint32_t)appStartAddress, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1);
 
   if (errCode != BL_ERR_CODE_SUCCESS) {
     char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
@@ -72,6 +84,17 @@ static obc_error_code_t downloadDataCmdCallback(cmd_msg_t *cmd, uint8_t *respons
   if (cmd == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+
+  uint32_t appStartAddress = CUSTOM_START_ADDRESS;
+
+  if (appWriteBFlag == 0) {
+    // Do nothing
+  } else if (appWriteBFlag == 1) {
+    appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
+  } else {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
   // TODO: Replace magic number
   if (!blFlashIsStartAddrValid(cmd->downloadData.address, APP_WRITE_PACKET_SIZE)) {
     uint8_t msgSize = sizeof("Invalid start address\r\n");
@@ -80,7 +103,7 @@ static obc_error_code_t downloadDataCmdCallback(cmd_msg_t *cmd, uint8_t *respons
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
-  if ((cmd->downloadData.address - APP_START_ADDRESS) % APP_WRITE_PACKET_SIZE != 0) {
+  if ((cmd->downloadData.address - appStartAddress) % APP_WRITE_PACKET_SIZE != 0) {
     uint8_t msgSize = sizeof("Start address not 208 byte aligned\r\n");
     memcpy(responseData, "Start address not 208 byte aligned\r\n", msgSize);
     *responseDataLen = msgSize;
@@ -117,19 +140,29 @@ static obc_error_code_t verifyCrcCmdCallback(cmd_msg_t *cmd, uint8_t *responseDa
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
+  uint32_t appStartAddress = CUSTOM_START_ADDRESS;
+
+  if (appWriteBFlag == 0) {
+    // Do nothing
+  } else if (appWriteBFlag == 1) {
+    appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
+  } else {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
   // If a success error code is sent, it means that the memory is occupied
-  if (blFlashFapiBlankCheck(APP_START_ADDRESS, 2)) {
+  if (blFlashFapiBlankCheck(appStartAddress, 2)) {
     blUartWriteBytes(strlen("ERROR: Metadata blank check failed\r\n"),
                      (uint8_t *)"ERROR: Metadata blank check failed\r\n");
     return OBC_ERR_CODE_CORRUPTED_APP;
   }
 
   // Cast the metadata of the flash into a usable pointer
-  metadata_t *app_metadata = (metadata_t *)(APP_START_ADDRESS + APP_METADATA_OFFSET);
+  metadata_t *app_metadata = (metadata_t *)(appStartAddress + APP_METADATA_OFFSET);
 
   // TODO: Refactor blank check functions and check if the app is blank here
 
-  uint32_t calculatedCrc = crc32(0, (uint8_t *)APP_START_ADDRESS, app_metadata->crc_addr - APP_START_ADDRESS);
+  uint32_t calculatedCrc = crc32(0, (uint8_t *)appStartAddress, app_metadata->crc_addr - appStartAddress);
 
   memcpy(responseData, &calculatedCrc, sizeof(calculatedCrc));
   *responseDataLen = sizeof(calculatedCrc);
@@ -151,6 +184,38 @@ static obc_error_code_t execObcResetCmdCallback(cmd_msg_t *cmd, uint8_t *respons
   return OBC_ERR_CODE_SUCCESS;
 }
 
+static obc_error_code_t enableBootAppA(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  return blEnableBootApp(0);
+}
+
+static obc_error_code_t enableBootAppB(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  return blEnableBootApp(1);
+}
+
+static obc_error_code_t enableWriteAppA(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  return blEnableWriteApp(0);
+}
+
+static obc_error_code_t enableWriteAppB(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  return blEnableWriteApp(1);
+}
+
 const cmd_info_t cmdsConfig[] = {
     [CMD_EXEC_OBC_RESET] = {execObcResetCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_PING] = {pingCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
@@ -158,6 +223,10 @@ const cmd_info_t cmdsConfig[] = {
     [CMD_ERASE_APP] = {eraseAppCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_DOWNLOAD_DATA] = {downloadDataCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_VERIFY_CRC] = {verifyCrcCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_ENABLE_BOOT_APP_A] = {enableBootAppA, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_ENABLE_BOOT_APP_B] = {enableBootAppB, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_ENABLE_WRITE_APP_A] = {enableWriteAppA, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_ENABLE_WRITE_APP_B] = {enableWriteAppB, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
 };
 
 // This function is purely to trick the compiler into thinking we are using the cmdsConfig variable so we avoid the
