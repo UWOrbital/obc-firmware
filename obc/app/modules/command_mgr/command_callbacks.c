@@ -12,6 +12,7 @@
 #include "telemetry_manager.h"
 #include "command.h"
 #include "obc_general_util.h"
+#include "flash.h"
 
 #include <redposix.h>
 #include <stddef.h>
@@ -116,6 +117,107 @@ static obc_error_code_t I2CProbeCmdCallback(cmd_msg_t *cmd, uint8_t *responseDat
   return OBC_ERR_CODE_SUCCESS;
 }
 
+static obc_error_code_t eraseAdjacentApp(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  if (cmd == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  uint32_t appStartAddress = 0;
+
+  if (app_metadata.occupied_slot == 0) {
+    appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
+  } else if (appWriteBFlag == 0) {
+    appStartAddress = CUSTOM_START_ADDRESS;
+  } else {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  flash_error_code_t errCode =
+      flashFapiBlockErase((uint32_t)appStartAddress, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1);
+
+  if (errCode != FLASH_ERR_CODE_SUCCESS) {
+    char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
+    int32_t blUartWriteBufferLen =
+        snprintf(blUartWriteBuffer, BL_MAX_MSG_SIZE, "Failed to erase, BL error code: %d\r\n", errCode);
+    if (blUartWriteBufferLen < 0) {
+      uint8_t msgSize = sizeof("Error with processing message buffer length\r\n");
+      memcpy(responseData, "Error with processing message buffer length\r\n", msgSize);
+      *responseDataLen = msgSize;
+    } else {
+      memcpy(responseData, blUartWriteBuffer, blUartWriteBufferLen);
+      *responseDataLen = blUartWriteBufferLen;
+    }
+    return OBC_ERR_CODE_FAILED_FILE_WRITE;
+  }
+
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+static obc_error_code_t downloadAdjacentData(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  if (cmd == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  uint32_t appStartAddress = 0;
+  uint32_t flashLowLim = 0;
+  uint32_t flashHighLim = 0;
+
+  if (app_metadata.occupied_slot == 0) {
+    appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
+    flashLowLim = CUSTOM_START_ADDRESS + APP_SIZE;
+    flashHighLim = 0x08000000;
+  } else if (appWriteBFlag == 1) {
+    appStartAddress = CUSTOM_START_ADDRESS;
+    flashLowLim = 0x00400000;
+    flashHighLim = CUSTOM_START_ADDRESS + APP_SIZE - 0x00000001;
+  } else {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  if (cmd->downloadData.address < flashLowLim || cmd->downloadData.address + cmd->downloadData.length > flashHighLim) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  // TODO: Replace magic number
+  if (!flashIsStartAddrValid(cmd->downloadData.address, APP_WRITE_PACKET_SIZE)) {
+    uint8_t msgSize = sizeof("Invalid start address\r\n");
+    memcpy(responseData, "Invalid start address\r\n", msgSize);
+    *responseDataLen = msgSize;
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  if ((cmd->downloadData.address - appStartAddress) % APP_WRITE_PACKET_SIZE != 0) {
+    uint8_t msgSize = sizeof("Start address not 208 byte aligned\r\n");
+    memcpy(responseData, "Start address not 208 byte aligned\r\n", msgSize);
+    *responseDataLen = msgSize;
+
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  // TODO: Figure out why you need to write a byte here before writing
+  blUartWriteBytes(1, (uint8_t *)"W");
+
+  flash_error_code_t errCode =
+      flashFapiBlockWrite(cmd->downloadData.address, (uint32_t)cmd->downloadData.data, cmd->downloadData.length);
+
+  if (errCode != FLASH_ERR_CODE_SUCCESS) {
+    char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
+    int32_t blUartWriteBufferLen =
+        snprintf(blUartWriteBuffer, BL_MAX_MSG_SIZE, "Failed to write, BL error code: %d\r\n", errCode);
+    if (blUartWriteBufferLen < 0) {
+      uint8_t msgSize = sizeof("Error with processing message buffer length\r\n");
+      memcpy(responseData, "Error with processing message buffer length\r\n", msgSize);
+      *responseDataLen = msgSize;
+    } else {
+      memcpy(responseData, blUartWriteBuffer, blUartWriteBufferLen);
+      *responseDataLen = blUartWriteBufferLen;
+    }
+    return OBC_ERR_CODE_FAILED_FILE_WRITE;
+  }
+
+  return OBC_ERR_CODE_SUCCESS;
+}
+
 const cmd_info_t cmdsConfig[] = {
     [CMD_END_OF_FRAME] = {NULL, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     // TODO: Change this to critial once critical commands are implemented
@@ -126,6 +228,8 @@ const cmd_info_t cmdsConfig[] = {
     [CMD_PING] = {pingCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_DOWNLINK_TELEM] = {downlinkTelemCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_I2C_PROBE] = {I2CProbeCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_ERASE_ADJACENT_APP] = {eraseAdjacentApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_DOWNLOAD_ADJACENT_DATA] = {downloadAdjacentData, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
 };
 
 // This function is purely to trick the compiler into thinking we are using the cmdsConfig variable so we avoid the

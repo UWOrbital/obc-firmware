@@ -1,6 +1,5 @@
 #include "bl_utils.h"
 #include "bl_uart.h"
-#include "bl_flash.h"
 #include "obc_errors.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -9,6 +8,8 @@
 #include "bl_config.h"
 #include "bl_errors.h"
 #include "bl_time.h"
+#include "flash.h"
+#include "flash_errors.h"
 #if defined(DEBUG) && !defined(OBC_REVISION_2)
 #include <gio.h>
 #endif
@@ -45,9 +46,9 @@ int main(void) {
   // can't execute from the same flash bank being modified
   memcpy(&__ramFuncsRunStart__, &__ramFuncsLoadStart__, (uint32_t)&__ramFuncsSize__);
 
-  bl_error_code_t interfaceErr = blFlashFapiInitBank(RM46_FLASH_BANK);
+  flash_error_code_t interfaceErr = flashFapiInitBank(RM46_FLASH_BANK);
 
-  if (interfaceErr != BL_ERR_CODE_SUCCESS) {
+  if (interfaceErr != FLASH_ERR_CODE_SUCCESS) {
     char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
     int32_t blUartWriteBufferLen =
         snprintf(blUartWriteBuffer, BL_MAX_MSG_SIZE, "Failed to init flash, BL error code: %d\r\n", errCode);

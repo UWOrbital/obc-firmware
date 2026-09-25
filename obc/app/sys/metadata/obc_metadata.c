@@ -12,6 +12,7 @@ const metadata_t app_metadata __attribute__((section(".metadata"), used)) = {
     .release_ver_major = 0,
     .release_ver_minor = 1,
     .board_id = BOARD_ID,
+    .occupied_slot = APP_SLOT,
     .reserved = {0},
     .crc_addr = (uint32_t)&__crc_addr,
 };

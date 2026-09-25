@@ -11,7 +11,7 @@
 #include "obc_gs_crc.h"
 #include <stdint.h>
 #include "bl_uart.h"
-#include "bl_flash.h"
+#include "flash.h"
 #include "bl_utils.h"
 #include "obc_metadata.h"
 #include <stdio.h>
@@ -59,10 +59,10 @@ static obc_error_code_t eraseAppCmdCallback(cmd_msg_t *cmd, uint8_t *responseDat
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
-  bl_error_code_t errCode =
-      blFlashFapiBlockErase((uint32_t)appStartAddress, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1);
+  flash_error_code_t errCode =
+      flashFapiBlockErase((uint32_t)appStartAddress, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1);
 
-  if (errCode != BL_ERR_CODE_SUCCESS) {
+  if (errCode != FLASH_ERR_CODE_SUCCESS) {
     char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
     int32_t blUartWriteBufferLen =
         snprintf(blUartWriteBuffer, BL_MAX_MSG_SIZE, "Failed to erase, BL error code: %d\r\n", errCode);
@@ -96,7 +96,7 @@ static obc_error_code_t downloadDataCmdCallback(cmd_msg_t *cmd, uint8_t *respons
   }
 
   // TODO: Replace magic number
-  if (!blFlashIsStartAddrValid(cmd->downloadData.address, APP_WRITE_PACKET_SIZE)) {
+  if (!flashIsStartAddrValid(cmd->downloadData.address, APP_WRITE_PACKET_SIZE)) {
     uint8_t msgSize = sizeof("Invalid start address\r\n");
     memcpy(responseData, "Invalid start address\r\n", msgSize);
     *responseDataLen = msgSize;
@@ -114,10 +114,10 @@ static obc_error_code_t downloadDataCmdCallback(cmd_msg_t *cmd, uint8_t *respons
   // TODO: Figure out why you need to write a byte here before writing
   blUartWriteBytes(1, (uint8_t *)"W");
 
-  bl_error_code_t errCode =
-      blFlashFapiBlockWrite(cmd->downloadData.address, (uint32_t)cmd->downloadData.data, cmd->downloadData.length);
+  flash_error_code_t errCode =
+      flashFapiBlockWrite(cmd->downloadData.address, (uint32_t)cmd->downloadData.data, cmd->downloadData.length);
 
-  if (errCode != BL_ERR_CODE_SUCCESS) {
+  if (errCode != FLASH_ERR_CODE_SUCCESS) {
     char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
     int32_t blUartWriteBufferLen =
         snprintf(blUartWriteBuffer, BL_MAX_MSG_SIZE, "Failed to write, BL error code: %d\r\n", errCode);
@@ -151,7 +151,7 @@ static obc_error_code_t verifyCrcCmdCallback(cmd_msg_t *cmd, uint8_t *responseDa
   }
 
   // If a success error code is sent, it means that the memory is occupied
-  if (blFlashFapiBlankCheck(appStartAddress, 2)) {
+  if (flashFapiBlankCheck(appStartAddress, 2)) {
     blUartWriteBytes(strlen("ERROR: Metadata blank check failed\r\n"),
                      (uint8_t *)"ERROR: Metadata blank check failed\r\n");
     return OBC_ERR_CODE_CORRUPTED_APP;

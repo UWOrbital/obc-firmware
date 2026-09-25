@@ -1,7 +1,7 @@
 #include "bl_utils.h"
 #include "bl_verification.h"
 #include "bl_uart.h"
-#include "bl_flash.h"
+#include "flash.h"
 #include "obc_gs_commands_response.h"
 #include "obc_gs_commands_response_pack.h"
 #include "obc_gs_errors.h"
@@ -101,7 +101,7 @@ obc_error_code_t blJumpToApp() {
   }
 
   // If a success error code is sent, it means that the memory is occupied
-  if (blFlashFapiBlankCheck(appStartAddress, 2)) {
+  if (flashFapiBlankCheck(appStartAddress, 2)) {
     blUartWriteBytes(strlen("ERROR: Metadata blank check failed\r\n"),
                      (uint8_t *)"ERROR: Metadata blank check failed\r\n");
     return OBC_ERR_CODE_CORRUPTED_APP;

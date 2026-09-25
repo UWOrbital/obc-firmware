@@ -1,6 +1,6 @@
 #include "bl_verification.h"
 #include "bl_uart.h"
-#include "bl_flash.h"
+#include "flash.h"
 #include "obc_gs_crc.h"
 #include <string.h>
 #include "obc_logging.h"
@@ -20,7 +20,7 @@ obc_error_code_t verifyBoardType(uint8_t boardType) {
 }
 
 obc_error_code_t verifyCrc(uint32_t crcAddr, uint32_t appStartAddress) {
-  if (blFlashFapiBlankCheck(crcAddr, 1)) {
+  if (flashFapiBlankCheck(crcAddr, 1)) {
     blUartWriteBytes(strlen("ERROR: CRC blank check failed\r\n"), (uint8_t *)"ERROR: CRC blank check failed\r\n");
     return OBC_ERR_CODE_CORRUPTED_APP;
   }
@@ -58,15 +58,15 @@ obc_error_code_t blAppBlankCheck(metadata_t *app_metadata, uint32_t appStartAddr
   uint16_t writeSections = (app_metadata->crc_addr - appStartAddress) / MEMORY_BLANK_CHECK_SIZE;
 
   for (uint16_t i = 0; i < writeSections; i++) {
-    if (blFlashFapiBlankCheck(appStartAddress + i * MEMORY_BLANK_CHECK_SIZE, MEMORY_BLANK_CHECK_SIZE / 4)) {
+    if (flashFapiBlankCheck(appStartAddress + i * MEMORY_BLANK_CHECK_SIZE, MEMORY_BLANK_CHECK_SIZE / 4)) {
       blUartWriteBytes(strlen("ERROR: Blank check failed \r\n"), (uint8_t *)"ERROR: Blank check failed \r\n");
       return OBC_ERR_CODE_CORRUPTED_APP;
     }
   }
 
   // Any left over memory that needs to be checked
-  if (blFlashFapiBlankCheck(appStartAddress + writeSections * MEMORY_BLANK_CHECK_SIZE,
-                            (app_metadata->crc_addr - appStartAddress - writeSections * MEMORY_BLANK_CHECK_SIZE))) {
+  if (flashFapiBlankCheck(appStartAddress + writeSections * MEMORY_BLANK_CHECK_SIZE,
+                          (app_metadata->crc_addr - appStartAddress - writeSections * MEMORY_BLANK_CHECK_SIZE))) {
     blUartWriteBytes(strlen("ERROR: Blank check failed \r\n"), (uint8_t *)"ERROR: Blank check failed \r\n");
     return OBC_ERR_CODE_CORRUPTED_APP;
   }

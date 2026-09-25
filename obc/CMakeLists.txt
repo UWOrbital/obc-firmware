@@ -53,8 +53,10 @@ endif()
 #Set the start address of the app based on its slot:
 if(APP_SLOT STREQUAL "A")
     set(APP_ADDRESS_OFFSET 0x00000000)
+    set(APP_SLOT_TO_INT_MAP 0)
 elseif(APP_SLOT STREQUAL "B")
     set(APP_ADDRESS_OFFSET ${APP_SIZE})
+    set(APP_SLOT_TO_INT_MAP 1)
 else()
     message(FATAL_ERROR "APP_SLOT must be either 'A' or 'B'")
 endif()
@@ -68,6 +70,8 @@ add_link_options(-Wl,--defsym,APP_SIZE=${APP_SIZE})
 # Pass the app offset to the linker
 add_link_options(-Wl,--defsym,APP_ADDRESS_OFFSET=${APP_ADDRESS_OFFSET})
 
+# Pass the app slot to int map to the linker
+add_link_options(-Wl,--defsym,APP_SLOT=${APP_SLOT_TO_INT_MAP})
 
 # Select main for build
 if(${CMAKE_BUILD_TYPE} MATCHES OBC)
@@ -142,6 +146,7 @@ add_subdirectory(shared/metadata)
 add_subdirectory(shared/obc_errors)
 add_subdirectory(shared/commands)
 add_subdirectory(shared/logging)
+add_subdirectory(shared/flash)
 
 # Application
 target_link_options(${OUT_FILE_NAME} PRIVATE
@@ -158,6 +163,7 @@ target_compile_definitions(${OUT_FILE_NAME} PRIVATE
     APP_SIZE=${APP_SIZE}
     APP_ADDRESS_OFFSET=${APP_ADDRESS_OFFSET}
     CUSTOM_START_ADDRESS=${CUSTOM_START_ADDRESS}
+    APP_SLOT=${APP_SLOT_TO_INT_MAP}
     BOARD_ID=${BOARD_TYPE_TO_INT_MAP}
     LOG_DEFAULT_OUTPUT_LOCATION=${LOG_DEFAULT_OUTPUT_LOCATION}
     LOG_DEFAULT_LEVEL=${LOG_DEFAULT_LEVEL}
@@ -193,6 +199,7 @@ add_subdirectory(app/sys)
 add_subdirectory(app/drivers)
 add_subdirectory(app/reliance_edge)
 target_link_libraries(${OUT_FILE_NAME} PRIVATE
+    f021_api_archive
     tiny-aes
     lib-correct
     obc-gs-interface
@@ -282,6 +289,7 @@ target_compile_definitions(OBC-bl.out PRIVATE
     APP_SIZE=${APP_SIZE}
     APP_ADDRESS_OFFSET=${APP_ADDRESS_OFFSET}
     CUSTOM_START_ADDRESS=${CUSTOM_START_ADDRESS}
+    APP_SLOT=${APP_SLOT_TO_INT_MAP}
     BOARD_ID=${BOARD_TYPE_TO_INT_MAP}
     LOG_DEFAULT_OUTPUT_LOCATION=${LOG_DEFAULT_OUTPUT_LOCATION}
     LOG_DEFAULT_LEVEL=${LOG_DEFAULT_LEVEL}
@@ -331,6 +339,7 @@ target_compile_definitions(debug-tool.out PRIVATE
 add_subdirectory(app/tools/interface_debug_tool)
 
 target_link_libraries(debug-tool.out PRIVATE
+    f021_api_archive
     tiny-aes
     lib-correct
     obc-gs-interface
