@@ -325,7 +325,7 @@ static opdesc_t ops[] =
 #if REDCONF_CHECKER == 1
         {OP_CHECK, "check", check_f, 1, 1},
 #endif
-},
+    },
                 *ops_end;
 
 static flist_t flist[FT_nft] = {
