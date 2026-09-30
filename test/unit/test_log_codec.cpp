@@ -126,6 +126,17 @@ TEST(TestLogCodec, EncodeInvalidArgs) {
   EXPECT_EQ(binaryLogEncode(&entry, buf, sizeof(buf), &encodedLen), OBC_ERR_CODE_INVALID_ARG);
 }
 
+TEST(TestLogCodec, DecodeInvalidArgs) {
+  uint8_t buf[BINARY_LOG_MAX_ENTRY_SIZE] = {BINARY_LOG_SYNC_BYTE};
+  binary_log_entry_t decoded = {};
+  size_t consumedLen = 123;
+
+  EXPECT_EQ(binaryLogDecode(nullptr, sizeof(buf), &decoded, &consumedLen), OBC_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(binaryLogDecode(buf, sizeof(buf), nullptr, &consumedLen), OBC_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(binaryLogDecode(buf, sizeof(buf), &decoded, nullptr), OBC_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(consumedLen, 123U);
+}
+
 TEST(TestLogCodec, DecodeRejectsBadSyncByte) {
   uint8_t buf[BINARY_LOG_MAX_ENTRY_SIZE] = {0};
   buf[0] = 0x55;
@@ -157,15 +168,26 @@ TEST(TestLogCodec, FileIdLookupRoundTrip) {
   for (uint16_t id = 0; id < LOG_FILE_ID_COUNT; id++) {
     const char *path = logFilePathFromId(id);
     ASSERT_NE(path, nullptr);
-    EXPECT_EQ(logFileIdFromPath(path), id);
+    uint16_t fileId = BINARY_LOG_FILE_ID_UNKNOWN;
+    ASSERT_EQ(logFileIdFromPath(path, &fileId), OBC_ERR_CODE_SUCCESS);
+    EXPECT_EQ(fileId, id);
   }
 }
 
 TEST(TestLogCodec, FileIdLookupUnknown) {
-  EXPECT_EQ(logFileIdFromPath("not/a/real/file.c"), BINARY_LOG_FILE_ID_UNKNOWN);
-  EXPECT_EQ(logFileIdFromPath(nullptr), BINARY_LOG_FILE_ID_UNKNOWN);
+  uint16_t fileId = 0;
+  EXPECT_EQ(logFileIdFromPath("not/a/real/file.c", &fileId), OBC_ERR_CODE_SUCCESS);
+  EXPECT_EQ(fileId, BINARY_LOG_FILE_ID_UNKNOWN);
   EXPECT_EQ(logFilePathFromId(BINARY_LOG_FILE_ID_UNKNOWN), nullptr);
   EXPECT_EQ(logFilePathFromId(LOG_FILE_ID_COUNT), nullptr);
+}
+
+TEST(TestLogCodec, FileIdLookupInvalidArgs) {
+  uint16_t fileId = 123;
+  EXPECT_EQ(logFileIdFromPath(nullptr, &fileId), OBC_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(fileId, 123U);
+  EXPECT_EQ(logFileIdFromPath("not/a/real/file.c", nullptr), OBC_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(logFileIdFromPath(nullptr, nullptr), OBC_ERR_CODE_INVALID_ARG);
 }
 
 TEST(TestLogCodec, MsgIsTruncatedToMaxLen) {

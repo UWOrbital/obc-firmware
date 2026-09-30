@@ -99,7 +99,9 @@ static void outputBinaryLog(logger_event_t *queueMsg) {
   binary_log_entry_t binEntry = {0};
   binEntry.type = (log_type_t)queueMsg->logEntry.logType;
   binEntry.level = (log_level_t)queueMsg->logEntry.logLevel;
-  binEntry.fileId = logFileIdFromPath(queueMsg->file);
+  if (logFileIdFromPath(queueMsg->file, &binEntry.fileId) != OBC_ERR_CODE_SUCCESS) {
+    return;
+  }
   binEntry.line = (queueMsg->line > UINT16_MAX) ? UINT16_MAX : (uint16_t)queueMsg->line;
 
 #if defined(LOG_DATE_TIME)

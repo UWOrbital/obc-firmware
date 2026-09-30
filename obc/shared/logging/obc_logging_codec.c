@@ -7,39 +7,47 @@
 // pack/unpack of individual records and file-path ID lookup against the
 // generated table in obc_log_file_ids.c.
 
-/**
- * @brief Return the length of a null-terminated string, capped at maxLen.
- *
- * Used when encoding message logs so we never read past the msg buffer or
- * emit more than BINARY_LOG_MAX_MSG_LEN bytes on the wire.
- */
-static size_t boundedStrLen(const char *str, size_t maxLen) {
-  size_t len = 0;
-  while (len < maxLen && str[len] != '\0') {
-    len++;
-  }
-  return len;
-}
-
 // Little-endian pack/unpack helpers. The ground-station Python decoder uses the
 // same byte order, so these must not be changed without updating both repos.
 
-static void packUint16LE(uint8_t *buf, uint16_t val) {
+static obc_error_code_t packUint16LE(uint8_t *buf, uint16_t val) {
+  if (buf == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
   buf[0] = (uint8_t)(val & 0xFFU);
   buf[1] = (uint8_t)((val >> 8) & 0xFFU);
+  return OBC_ERR_CODE_SUCCESS;
 }
 
-static void packUint32LE(uint8_t *buf, uint32_t val) {
+static obc_error_code_t packUint32LE(uint8_t *buf, uint32_t val) {
+  if (buf == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
   buf[0] = (uint8_t)(val & 0xFFU);
   buf[1] = (uint8_t)((val >> 8) & 0xFFU);
   buf[2] = (uint8_t)((val >> 16) & 0xFFU);
   buf[3] = (uint8_t)((val >> 24) & 0xFFU);
+  return OBC_ERR_CODE_SUCCESS;
 }
 
-static uint16_t unpackUint16LE(const uint8_t *buf) { return (uint16_t)(buf[0] | ((uint16_t)buf[1] << 8)); }
+static obc_error_code_t unpackUint16LE(const uint8_t *buf, uint16_t *val) {
+  if (buf == NULL || val == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
 
-static uint32_t unpackUint32LE(const uint8_t *buf) {
-  return (uint32_t)buf[0] | ((uint32_t)buf[1] << 8) | ((uint32_t)buf[2] << 16) | ((uint32_t)buf[3] << 24);
+  *val = (uint16_t)(buf[0] | ((uint16_t)buf[1] << 8));
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+static obc_error_code_t unpackUint32LE(const uint8_t *buf, uint32_t *val) {
+  if (buf == NULL || val == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  *val = (uint32_t)buf[0] | ((uint32_t)buf[1] << 8) | ((uint32_t)buf[2] << 16) | ((uint32_t)buf[3] << 24);
+  return OBC_ERR_CODE_SUCCESS;
 }
 
 obc_error_code_t binaryLogEncode(const binary_log_entry_t *entry, uint8_t *buf, size_t bufLen, size_t *encodedLen) {
@@ -54,7 +62,9 @@ obc_error_code_t binaryLogEncode(const binary_log_entry_t *entry, uint8_t *buf, 
 
   size_t msgLen = 0;
   if (entry->type == LOG_TYPE_MSG) {
-    msgLen = boundedStrLen(entry->msg, BINARY_LOG_MAX_MSG_LEN);
+    while (msgLen < BINARY_LOG_MAX_MSG_LEN && entry->msg[msgLen] != '\0') {
+      msgLen++;
+    }
   }
 
   // Record size depends on which optional/trailing fields are present
@@ -86,20 +96,32 @@ obc_error_code_t binaryLogEncode(const binary_log_entry_t *entry, uint8_t *buf, 
   }
   buf[offset++] = flags;
 
-  packUint16LE(&buf[offset], entry->fileId);
+  obc_error_code_t errCode = packUint16LE(&buf[offset], entry->fileId);
+  if (errCode != OBC_ERR_CODE_SUCCESS) {
+    return errCode;
+  }
   offset += 2;
-  packUint16LE(&buf[offset], entry->line);
+  errCode = packUint16LE(&buf[offset], entry->line);
+  if (errCode != OBC_ERR_CODE_SUCCESS) {
+    return errCode;
+  }
   offset += 2;
 
   // Optional timestamp (unix seconds, same representation as LOG_UNIX text logs)
   if (entry->hasTimestamp) {
-    packUint32LE(&buf[offset], entry->timestamp);
+    errCode = packUint32LE(&buf[offset], entry->timestamp);
+    if (errCode != OBC_ERR_CODE_SUCCESS) {
+      return errCode;
+    }
     offset += 4;
   }
 
   // Trailing payload: either a raw error code or a length-prefixed message
   if (entry->type == LOG_TYPE_ERROR_CODE) {
-    packUint32LE(&buf[offset], entry->errCode);
+    errCode = packUint32LE(&buf[offset], entry->errCode);
+    if (errCode != OBC_ERR_CODE_SUCCESS) {
+      return errCode;
+    }
     offset += 4;
   } else {
     buf[offset++] = (uint8_t)msgLen;
@@ -137,8 +159,14 @@ obc_error_code_t binaryLogDecode(const uint8_t *buf, size_t bufLen, binary_log_e
   entry->level = (log_level_t)level;
   entry->type = (flags & BINARY_LOG_FLAG_TYPE_MSG) ? LOG_TYPE_MSG : LOG_TYPE_ERROR_CODE;
   entry->hasTimestamp = (flags & BINARY_LOG_FLAG_HAS_TIMESTAMP) ? 1U : 0U;
-  entry->fileId = unpackUint16LE(&buf[2]);
-  entry->line = unpackUint16LE(&buf[4]);
+  obc_error_code_t errCode = unpackUint16LE(&buf[2], &entry->fileId);
+  if (errCode != OBC_ERR_CODE_SUCCESS) {
+    return errCode;
+  }
+  errCode = unpackUint16LE(&buf[4], &entry->line);
+  if (errCode != OBC_ERR_CODE_SUCCESS) {
+    return errCode;
+  }
 
   size_t offset = BINARY_LOG_FIXED_HEADER_SIZE;
 
@@ -146,7 +174,10 @@ obc_error_code_t binaryLogDecode(const uint8_t *buf, size_t bufLen, binary_log_e
     if (bufLen < offset + BINARY_LOG_TIMESTAMP_SIZE) {
       return OBC_ERR_CODE_FAILED_UNPACK;
     }
-    entry->timestamp = unpackUint32LE(&buf[offset]);
+    errCode = unpackUint32LE(&buf[offset], &entry->timestamp);
+    if (errCode != OBC_ERR_CODE_SUCCESS) {
+      return errCode;
+    }
     offset += BINARY_LOG_TIMESTAMP_SIZE;
   }
 
@@ -154,7 +185,10 @@ obc_error_code_t binaryLogDecode(const uint8_t *buf, size_t bufLen, binary_log_e
     if (bufLen < offset + BINARY_LOG_ERROR_CODE_SIZE) {
       return OBC_ERR_CODE_FAILED_UNPACK;
     }
-    entry->errCode = unpackUint32LE(&buf[offset]);
+    errCode = unpackUint32LE(&buf[offset], &entry->errCode);
+    if (errCode != OBC_ERR_CODE_SUCCESS) {
+      return errCode;
+    }
     offset += BINARY_LOG_ERROR_CODE_SIZE;
   } else {
     if (bufLen < offset + 1U) {
@@ -174,9 +208,9 @@ obc_error_code_t binaryLogDecode(const uint8_t *buf, size_t bufLen, binary_log_e
   return OBC_ERR_CODE_SUCCESS;
 }
 
-uint16_t logFileIdFromPath(const char *path) {
-  if (path == NULL) {
-    return BINARY_LOG_FILE_ID_UNKNOWN;
+obc_error_code_t logFileIdFromPath(const char *path, uint16_t *fileId) {
+  if (path == NULL || fileId == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
   }
 
   // LOG_FILE_PATHS is sorted alphabetically by gen_log_file_ids.py, so binary
@@ -187,7 +221,8 @@ uint16_t logFileIdFromPath(const char *path) {
     const size_t mid = low + (high - low) / 2;
     const int cmp = strcmp(LOG_FILE_PATHS[mid], path);
     if (cmp == 0) {
-      return (uint16_t)mid;
+      *fileId = (uint16_t)mid;
+      return OBC_ERR_CODE_SUCCESS;
     } else if (cmp < 0) {
       low = mid + 1;
     } else {
@@ -196,7 +231,8 @@ uint16_t logFileIdFromPath(const char *path) {
   }
 
   // e.g. FreeRTOS assert paths that bypass __FILE_FROM_REPO_ROOT__
-  return BINARY_LOG_FILE_ID_UNKNOWN;
+  *fileId = BINARY_LOG_FILE_ID_UNKNOWN;
+  return OBC_ERR_CODE_SUCCESS;
 }
 
 const char *logFilePathFromId(uint16_t fileId) {

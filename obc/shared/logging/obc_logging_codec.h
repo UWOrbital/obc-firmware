@@ -92,9 +92,11 @@ obc_error_code_t binaryLogDecode(const uint8_t *buf, size_t bufLen, binary_log_e
  * @brief Look up the file ID for a repo-relative file path (as produced by __FILE_FROM_REPO_ROOT__).
  *
  * @param path Repo-relative file path
- * @return uint16_t The file ID, or BINARY_LOG_FILE_ID_UNKNOWN if the path is not in the table
+ * @param fileId Set to the file ID, or BINARY_LOG_FILE_ID_UNKNOWN if the path is not in the table
+ * @return obc_error_code_t OBC_ERR_CODE_INVALID_ARG if either pointer is NULL
+ *                          OBC_ERR_CODE_SUCCESS otherwise
  */
-uint16_t logFileIdFromPath(const char *path);
+obc_error_code_t logFileIdFromPath(const char *path, uint16_t *fileId);
 
 /**
  * @brief Look up the repo-relative file path for a file ID.
