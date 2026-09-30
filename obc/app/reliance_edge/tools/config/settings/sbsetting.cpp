@@ -23,9 +23,9 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "sbsetting.h"
-
 #include <stdexcept>
+
+#include "sbsetting.h"
 
 SbSetting::SbSetting(QString macroName, unsigned long defaultValue,
                      std::function<Validity(unsigned long, QString &)> validator, QSpinBox *sb, WarningBtn *btnWarn)

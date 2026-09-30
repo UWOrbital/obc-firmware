@@ -26,20 +26,21 @@
 /** @file
     @brief Implements a command-line image builder tool.
 */
-#include <errno.h>
-#include <limits.h>
-#include <redfs.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <limits.h>
+
+#include <redfs.h>
 
 #if REDCONF_IMAGE_BUILDER == 1
 
-#include <redcoreapi.h>
+#include <redvolume.h>
 #include <redgetopt.h>
 #include <redtoolcmn.h>
+#include <redcoreapi.h>
 #include <redtools.h>
-#include <redvolume.h>
 
 #define COPY_BUFFER_SIZE_MIN (1024U)
 #define COPY_BUFFER_SIZE_MAX (32UL * 1024 * 1024)

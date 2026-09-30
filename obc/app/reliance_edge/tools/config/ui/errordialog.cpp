@@ -23,11 +23,10 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "errordialog.h"
-
-#include <QIcon>
 #include <QListWidget>
+#include <QIcon>
 
+#include "errordialog.h"
 #include "ui_errordialog.h"
 
 ErrorDialog::ErrorDialog(QWidget *parent) : QDialog(parent, Qt::WindowCloseButtonHint), ui(new Ui::ErrorDialog) {

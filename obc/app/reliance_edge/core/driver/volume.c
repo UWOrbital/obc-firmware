@@ -26,9 +26,9 @@
 /** @file
     @brief Implements core volume operations.
 */
-#include <redbdev.h>
-#include <redcore.h>
 #include <redfs.h>
+#include <redcore.h>
+#include <redbdev.h>
 
 /*  Minimum number of blocks needed for metadata on any volume: the master
     block (1), the two metaroots (2), and one doubly-allocated inode (2),

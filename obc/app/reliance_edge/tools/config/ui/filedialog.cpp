@@ -24,7 +24,6 @@
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
 #include "filedialog.h"
-
 #include <debug.h>
 
 QString FileDialog::defaultDir = QDir::homePath();

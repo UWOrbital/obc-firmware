@@ -30,9 +30,9 @@
 #include <QErrorMessage>
 #include <QMessageBox>
 
-#include "input.h"
-#include "output.h"
 #include "ui/configwindow.h"
+#include "output.h"
+#include "input.h"
 
 ///
 /// \brief  The Application class is a child class of QApplication. It runs the

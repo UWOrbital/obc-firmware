@@ -27,9 +27,10 @@
     @brief Implements block device I/O.
 */
 #include <FreeRTOS.h>
-#include <redbdev.h>
+
 #include <redfs.h>
 #include <redvolume.h>
+#include <redbdev.h>
 
 /*------------------------------------------------------------------------------
     Porting Note:

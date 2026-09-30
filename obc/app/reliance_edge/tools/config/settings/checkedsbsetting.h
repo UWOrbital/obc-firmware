@@ -26,12 +26,12 @@
 #ifndef CHECKEDSPSETTING_H
 #define CHECKEDSPSETTING_H
 
-#include <QCheckBox>
-#include <QSpinBox>
 #include <QString>
+#include <QSpinBox>
+#include <QCheckBox>
 
-#include "intsetting.h"
 #include "ui/warningbtn.h"
+#include "intsetting.h"
 
 ///
 /// \brief  The CheckedSbSetting class manages settings that use a QSpinBox

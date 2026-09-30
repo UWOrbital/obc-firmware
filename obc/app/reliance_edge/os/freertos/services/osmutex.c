@@ -28,6 +28,7 @@
 */
 #include <FreeRTOS.h>
 #include <os_semphr.h>
+
 #include <redfs.h>
 
 #if REDCONF_TASK_COUNT > 1U

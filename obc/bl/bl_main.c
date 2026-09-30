@@ -1,14 +1,15 @@
-#include "bl_utils.h"
-#include "bl_uart.h"
-#include "bl_flash.h"
-#include "obc_errors.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "obc_logging.h"
+
 #include "bl_config.h"
 #include "bl_errors.h"
+#include "bl_flash.h"
 #include "bl_time.h"
+#include "bl_uart.h"
+#include "bl_utils.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
 #if defined(DEBUG) && !defined(OBC_REVISION_2)
 #include <gio.h>
 #endif

@@ -23,10 +23,11 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "cbsetting.h"
+#include <stdexcept>
 
 #include <QString>
-#include <stdexcept>
+
+#include "cbsetting.h"
 
 CbSetting::CbSetting(QString macroName, bool defaultValue, std::function<Validity(bool, QString &)> validator,
                      QCheckBox *cb, WarningBtn *btnWarn)

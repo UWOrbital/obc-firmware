@@ -36,9 +36,9 @@
     drivers that are sometimes found in the IoT world, where one operation may
     fail but the next may still succeed.
 */
-#include <redbdev.h>
-#include <redcore.h>
 #include <redfs.h>
+#include <redcore.h>
+#include <redbdev.h>
 
 /** @brief Read a range of logical blocks.
 

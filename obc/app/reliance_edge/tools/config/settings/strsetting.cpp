@@ -23,9 +23,9 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "strsetting.h"
-
 #include <stdexcept>
+
+#include "strsetting.h"
 
 StrSetting::StrSetting(QString macroName, QString defaultValue, std::function<Validity(QString, QString &)> validator,
                        WarningBtn *btnWarn)

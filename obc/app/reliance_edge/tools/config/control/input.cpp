@@ -23,10 +23,9 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "input.h"
-
 #include <QTextStream>
 
+#include "input.h"
 #include "allsettings.h"
 
 Input::Input(QWidget *parentWin) : fileDialog(NULL), parentWindow(parentWin), messageBox(new QMessageBox(parentWin)) {}

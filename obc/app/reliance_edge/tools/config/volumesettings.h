@@ -26,15 +26,15 @@
 #ifndef VOLUMESETTINGS_H
 #define VOLUMESETTINGS_H
 
-#include <QCheckBox>
-#include <QComboBox>
-#include <QLabel>
-#include <QLineEdit>
-#include <QList>
-#include <QListWidget>
-#include <QPushButton>
-#include <QSpinBox>
 #include <QString>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QLabel>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QPushButton>
+#include <QListWidget>
+#include <QList>
 
 #include "settings/cbsetting.h"
 #include "settings/intsetting.h"

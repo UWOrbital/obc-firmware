@@ -26,10 +26,10 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include <QWidget>
+#include <QObject>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QObject>
-#include <QWidget>
 
 #include "ui/filedialog.h"
 

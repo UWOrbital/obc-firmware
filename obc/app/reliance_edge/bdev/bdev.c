@@ -26,9 +26,9 @@
 /** @file
     @brief Implements the block device abstraction of the file system.
 */
-#include <redbdev.h>
 #include <redfs.h>
 #include <redvolume.h>
+#include <redbdev.h>
 
 BDEVINFO gaRedBdevInfo[REDCONF_VOLUME_COUNT];
 

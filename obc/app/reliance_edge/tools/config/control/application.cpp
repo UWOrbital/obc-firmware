@@ -23,10 +23,10 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "application.h"
-
 #include <QErrorMessage>
 #include <QRegularExpressionMatch>
+
+#include "application.h"
 
 Application::Application(int &argc, char *argv[])
     : QApplication(argc, argv),

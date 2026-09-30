@@ -34,9 +34,9 @@
     @{
 */
 
+#include <redvolume.h>
 #include <redcoreapi.h>
 #include <redfse.h>
-#include <redvolume.h>
 
 static REDSTATUS FseEnter(uint8_t bVolNum);
 static void FseLeave(void);

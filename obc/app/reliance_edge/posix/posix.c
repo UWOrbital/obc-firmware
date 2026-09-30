@@ -34,10 +34,10 @@
     @{
 */
 
-#include <redcoreapi.h>
-#include <redpath.h>
-#include <redposix.h>
 #include <redvolume.h>
+#include <redcoreapi.h>
+#include <redposix.h>
+#include <redpath.h>
 
 /*-------------------------------------------------------------------
     File Descriptors

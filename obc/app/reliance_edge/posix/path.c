@@ -31,9 +31,9 @@
 #if REDCONF_API_POSIX == 1
 
 #include <redcoreapi.h>
-#include <redpath.h>
-#include <redposix.h>
 #include <redvolume.h>
+#include <redposix.h>
+#include <redpath.h>
 
 #if (REDCONF_API_POSIX_SYMLINK == 1) && (REDOSCONF_SYMLINK_FOLLOW == 1)
 

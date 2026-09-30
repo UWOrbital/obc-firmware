@@ -26,14 +26,14 @@
 #ifndef OUTPUT_H
 #define OUTPUT_H
 
-#include <QList>
-#include <QObject>
-#include <QString>
 #include <QWidget>
+#include <QObject>
+#include <QList>
+#include <QString>
 
-#include "settings/settingbase.h"
 #include "ui/errordialog.h"
 #include "ui/filedialog.h"
+#include "settings/settingbase.h"
 
 ///
 /// \brief  The Output class controls the processes of reporting invalid values

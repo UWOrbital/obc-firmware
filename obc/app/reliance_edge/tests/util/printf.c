@@ -38,9 +38,9 @@
     Do *not* use these functions from within the file system driver.  They are
     not linked into the driver due to their relatively large size.
 */
-#include <limits.h>
 #include <redfs.h>
 #include <redtestutils.h>
+#include <limits.h>
 #include <stdarg.h>
 
 /** @brief Maximum number of bytes of output supported by RedPrintf().

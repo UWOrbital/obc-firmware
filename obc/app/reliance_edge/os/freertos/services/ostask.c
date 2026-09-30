@@ -28,6 +28,7 @@
 */
 #include <FreeRTOS.h>
 #include <os_task.h>
+
 #include <redfs.h>
 
 #if (REDCONF_TASK_COUNT > 1U) && (REDCONF_API_POSIX == 1)

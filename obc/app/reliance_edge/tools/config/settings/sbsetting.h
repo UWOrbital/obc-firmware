@@ -26,11 +26,11 @@
 #ifndef SPSETTING_H
 #define SPSETTING_H
 
-#include <QSpinBox>
 #include <QString>
+#include <QSpinBox>
 
-#include "intsetting.h"
 #include "ui/warningbtn.h"
+#include "intsetting.h"
 
 ///
 /// \brief  The SbSetting class manages settings that use a QSpinBox for user

@@ -28,13 +28,12 @@
 #ifndef REDCORE_H
 #define REDCORE_H
 
-#include <redformat.h>
 #include <redstat.h>
+#include <redformat.h>
 #include <redvolume.h>
-
+#include "rednodes.h"
 #include "redcoremacs.h"
 #include "redcorevol.h"
-#include "rednodes.h"
 
 #define META_SIG_MASTER (0x5453414DU)    /* 'MAST' */
 #define META_SIG_METAROOT (0x4154454DU)  /* 'META' */

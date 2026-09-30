@@ -26,11 +26,11 @@
 #ifndef LESETTING_H
 #define LESETTING_H
 
-#include <QLineEdit>
 #include <QString>
+#include <QLineEdit>
 
-#include "strsetting.h"
 #include "ui/warningbtn.h"
+#include "strsetting.h"
 
 ///
 /// \brief  The LeSetting class manages settings that use a QLineEdit for user

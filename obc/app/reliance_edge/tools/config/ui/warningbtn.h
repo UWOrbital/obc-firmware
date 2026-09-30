@@ -26,12 +26,12 @@
 #ifndef WARNINGBTN_H
 #define WARNINGBTN_H
 
+#include <QWidget>
 #include <QIcon>
 #include <QMouseEvent>
-#include <QWidget>
 
-#include "ui_warningbtn.h"
 #include "validity.h"
+#include "ui_warningbtn.h"
 
 namespace Ui {
 class WarningBtn;

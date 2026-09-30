@@ -23,9 +23,9 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "intsetting.h"
-
 #include <stdexcept>
+
+#include "intsetting.h"
 
 IntSetting::IntSetting(QString macroName, unsigned long defaultValue,
                        std::function<Validity(unsigned long, QString &)> validator, WarningBtn *btnWarn)

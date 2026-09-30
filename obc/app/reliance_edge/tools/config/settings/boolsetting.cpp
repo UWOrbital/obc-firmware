@@ -23,10 +23,11 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "boolsetting.h"
+#include <stdexcept>
 
 #include <QString>
-#include <stdexcept>
+
+#include "boolsetting.h"
 
 BoolSetting::BoolSetting(QString macroName, bool defaultValue, std::function<Validity(bool, QString &)> validator,
                          WarningBtn *btnWarn)

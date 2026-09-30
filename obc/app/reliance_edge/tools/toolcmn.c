@@ -26,15 +26,16 @@
 /** @file
     @brief Implements common-code utilities for tools and tests.
 */
-#include <errno.h>
-#include <limits.h>
-#include <redcoreapi.h>
-#include <redfs.h>
-#include <redtoolcmn.h>
-#include <redvolume.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <limits.h>
 #include <string.h>
+
+#include <redfs.h>
+#include <redcoreapi.h>
+#include <redvolume.h>
+#include <redtoolcmn.h>
 
 #define ISDIGIT(c) (((c) >= '0') && ((c) <= '9'))
 

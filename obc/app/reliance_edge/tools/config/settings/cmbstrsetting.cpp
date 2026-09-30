@@ -23,9 +23,9 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "cmbstrsetting.h"
-
 #include <stdexcept>
+
+#include "cmbstrsetting.h"
 
 CmbStrSetting::CmbStrSetting(QString macroName, QString defaultValue,
                              std::function<Validity(QString, QString &)> validator, QComboBox *cmb, WarningBtn *btnWarn)

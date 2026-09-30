@@ -49,11 +49,10 @@ extern "C" {
 #if REDCONF_API_POSIX == 1
 
 #include <redtypes.h>
-
 #include "redapimacs.h"
 #include "rederrno.h"
-#include "redformat.h"
 #include "redstat.h"
+#include "redformat.h"
 
 /** Open for reading only. */
 #define RED_O_RDONLY 0x00000001U

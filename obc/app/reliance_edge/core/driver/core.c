@@ -26,10 +26,10 @@
 /** @file
     @brief Implements the entry-points to the core file system.
 */
-#include <redbdev.h>
-#include <redcore.h>
-#include <redcoreapi.h>
 #include <redfs.h>
+#include <redcoreapi.h>
+#include <redcore.h>
+#include <redbdev.h>
 
 #if (REDCONF_READ_ONLY == 0) && (REDCONF_API_POSIX == 1)
 static REDSTATUS CoreCreate(uint32_t ulPInode, const char *pszName, uint16_t uMode, uint32_t *pulInode);

@@ -28,9 +28,8 @@
 #ifndef REDVOLUME_H
 #define REDVOLUME_H
 
-#include <redosconf.h> /* for REDOSCONF_MUTABLE_VOLCONF */
-
 #include "redexclude.h" /* for DISCARD_SUPPORTED */
+#include <redosconf.h>  /* for REDOSCONF_MUTABLE_VOLCONF */
 
 /** Indicates that the sector size should be queried from the block device.
  */

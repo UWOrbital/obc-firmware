@@ -6,8 +6,8 @@
 /** @file
  */
 #include <redconf.h>
-#include <redmacs.h>
 #include <redtypes.h>
+#include <redmacs.h>
 #include <redvolume.h>
 
 const VOLCONF gaRedVolConf[REDCONF_VOLUME_COUNT] = {{512U, 1024U, 0U, false, 100U, 0U, ""}};

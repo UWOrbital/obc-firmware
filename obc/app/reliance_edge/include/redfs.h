@@ -30,16 +30,15 @@
 
 #include <redconf.h>
 #include <redosconf.h>
-#include <redtypes.h>
-
-#include "redapimacs.h"
-#include "redconfigchk.h"
-#include "rederrno.h"
 #include "redexclude.h"
-#include "redmacs.h"
-#include "redmisc.h"
-#include "redosserv.h"
-#include "redutils.h"
 #include "redver.h"
+#include "redconfigchk.h"
+#include <redtypes.h>
+#include "rederrno.h"
+#include "redmacs.h"
+#include "redapimacs.h"
+#include "redmisc.h"
+#include "redutils.h"
+#include "redosserv.h"
 
 #endif

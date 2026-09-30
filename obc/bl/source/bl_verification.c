@@ -1,11 +1,13 @@
 #include "bl_verification.h"
-#include "bl_uart.h"
-#include "bl_flash.h"
-#include "obc_gs_crc.h"
+
 #include <string.h>
-#include "obc_logging.h"
+
 #include "bl_config.h"
+#include "bl_flash.h"
 #include "bl_time.h"
+#include "bl_uart.h"
+#include "obc_gs_crc.h"
+#include "obc_logging.h"
 
 #define MEMORY_BLANK_CHECK_SIZE APP_WRITE_PACKET_SIZE
 

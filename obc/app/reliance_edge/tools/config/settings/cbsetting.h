@@ -26,8 +26,8 @@
 #ifndef CBSETTING_H
 #define CBSETTING_H
 
-#include <QCheckBox>
 #include <QString>
+#include <QCheckBox>
 
 #include "boolsetting.h"
 

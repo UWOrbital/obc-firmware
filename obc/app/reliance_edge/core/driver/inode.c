@@ -26,8 +26,8 @@
 /** @file
     @brief Implements inode functions.
 */
-#include <redcore.h>
 #include <redfs.h>
+#include <redcore.h>
 
 #if DELETE_SUPPORTED
 static REDSTATUS InodeDelete(CINODE *pInode);

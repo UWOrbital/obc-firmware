@@ -30,8 +30,8 @@
     tracks which blocks are allocated or free.  Some of the functionality is
     delegated to imapinline.c and imapextern.c.
 */
-#include <redcore.h>
 #include <redfs.h>
+#include <redcore.h>
 
 /** @brief Get the allocation bit of a block from either metaroot.
 

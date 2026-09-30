@@ -26,11 +26,11 @@
 #ifndef CONFIGWINDOW_H
 #define CONFIGWINDOW_H
 
-#include <QList>
 #include <QMainWindow>
+#include <QList>
 
-#include "settings/dindirreporter.h"
 #include "settings/limitreporter.h"
+#include "settings/dindirreporter.h"
 #include "volumesettings.h"
 
 namespace Ui {

@@ -27,13 +27,13 @@
 #define ALLSETTINGS_H
 
 #include "settings/cbsetting.h"
-#include "settings/checkedsbsetting.h"
 #include "settings/cmbintsetting.h"
 #include "settings/cmbstrsetting.h"
-#include "settings/lesetting.h"
 #include "settings/pathsepsetting.h"
 #include "settings/rbtnsetting.h"
 #include "settings/sbsetting.h"
+#include "settings/lesetting.h"
+#include "settings/checkedsbsetting.h"
 
 ///
 /// \brief  Structure containing public settings pointers for global access.

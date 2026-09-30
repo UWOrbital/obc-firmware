@@ -23,10 +23,9 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "dindirreporter.h"
-
 #include "allsettings.h"
 #include "validators.h"
+#include "dindirreporter.h"
 
 DindirReporter::DindirReporter(QLabel *dindirLabel) : label(dindirLabel) {
   // Assert this one, assume the others.

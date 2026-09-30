@@ -1,16 +1,17 @@
 #include "bl_utils.h"
-#include "bl_verification.h"
-#include "bl_uart.h"
+
+#include "bl_config.h"
 #include "bl_flash.h"
+#include "bl_time.h"
+#include "bl_uart.h"
+#include "bl_verification.h"
+#include "command.h"
+#include "obc_gs_command_data.h"
+#include "obc_gs_command_unpack.h"
 #include "obc_gs_commands_response.h"
 #include "obc_gs_commands_response_pack.h"
 #include "obc_gs_errors.h"
-#include "obc_gs_command_data.h"
-#include "obc_gs_command_unpack.h"
-#include "command.h"
 #include "obc_logging.h"
-#include "bl_config.h"
-#include "bl_time.h"
 
 /* DEFINES */
 #define MAX_PACKET_SIZE 223

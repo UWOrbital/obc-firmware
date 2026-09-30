@@ -33,9 +33,8 @@
     through this module.  When a buffer is needed for a block which is not in
     the cache, a "victim" is selected via a simple LRU scheme.
 */
-#include <redcore.h>
 #include <redfs.h>
-
+#include <redcore.h>
 #include "redbufferpriv.h"
 
 #if BUFFER_MODULE == BM_SIMPLE

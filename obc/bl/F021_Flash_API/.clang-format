@@ -1,0 +1,3 @@
+# The F021 API headers require their original include order.
+BasedOnStyle: InheritParentConfig
+SortIncludes: false

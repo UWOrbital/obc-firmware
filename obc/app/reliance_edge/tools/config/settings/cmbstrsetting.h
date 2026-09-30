@@ -26,11 +26,11 @@
 #ifndef CMBSETTING_H
 #define CMBSETTING_H
 
-#include <QComboBox>
 #include <QString>
+#include <QComboBox>
 
-#include "strsetting.h"
 #include "ui/warningbtn.h"
+#include "strsetting.h"
 ///
 /// \brief  The CmbStrSetting class manages settings that use a QComboBox for
 ///         user input and hold a string value. This includes settings that

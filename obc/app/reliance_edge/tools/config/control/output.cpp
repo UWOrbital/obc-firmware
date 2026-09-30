@@ -23,13 +23,12 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "output.h"
-
-#include "allsettings.h"
-#include "debug.h"
 #include "ui/errordialog.h"
-#include "version.h"
+#include "debug.h"
+#include "output.h"
+#include "allsettings.h"
 #include "volumesettings.h"
+#include "version.h"
 
 Output::Output(QWidget *parentWin)
     : parentWindow(parentWin), fileDialog(NULL), errorDialog(new ErrorDialog(parentWindow)), isSaving(false) {

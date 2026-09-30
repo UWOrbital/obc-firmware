@@ -52,13 +52,14 @@
     symbols with external linkage to avoid naming conflicts in systems where
     there are real getopt()/getopt_long() implementations, and for portability.
 */
-#include <rederrno.h>
-#include <redfs.h>
-#include <redgetopt.h>
-#include <redtestutils.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <redfs.h>
+#include <redgetopt.h>
+#include <redtestutils.h>
+#include <rederrno.h>
 
 int32_t red_opterr = 1;   /* if error message should be printed */
 int32_t red_optind = 1;   /* index into parent argv vector */

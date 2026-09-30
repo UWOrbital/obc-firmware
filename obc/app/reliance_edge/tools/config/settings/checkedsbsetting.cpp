@@ -23,9 +23,9 @@
 
     Visit https://www.tuxera.com/products/reliance-edge/ for more information.
 */
-#include "checkedsbsetting.h"
-
 #include <stdexcept>
+
+#include "checkedsbsetting.h"
 
 CheckedSbSetting::CheckedSbSetting(QString macroName, unsigned long defaultValue,
                                    std::function<Validity(unsigned long, QString &)> validator, QSpinBox *sb,

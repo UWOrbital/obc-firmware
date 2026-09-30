@@ -40,12 +40,12 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wno-wchar-size-warning"
 
-#include "Compatibility.h"
-#include "Constants.h"
-#include "FapiFunctions.h"
-#include "Helpers.h"
-#include "Registers.h"
 #include "Types.h"
+#include "Helpers.h"
+#include "Constants.h"
+#include "Registers.h"
+#include "FapiFunctions.h"
+#include "Compatibility.h"
 
 #pragma GCC diagnostic pop
 

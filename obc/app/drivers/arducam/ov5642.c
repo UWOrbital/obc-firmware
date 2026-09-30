@@ -1,5 +1,6 @@
 #include "ov5642.h"
 
+#include <FreeRTOS.h>
 #include <os_semphr.h>
 
 #include "obc_i2c_io.h"

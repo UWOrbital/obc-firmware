@@ -29,12 +29,11 @@
 ///         the settings.
 ///
 
-#include "validators.h"
-
 #include <QList>
 
-#include "allsettings.h"
 #include "volumesettings.h"
+#include "allsettings.h"
+#include "validators.h"
 
 static bool isPowerOfTwo(unsigned long value);
 

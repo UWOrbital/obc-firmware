@@ -1,7 +1,5 @@
 #include "bl_flash.h"
 
-#include <FapiFunctions.h>
-#include <Types.h>
 #include <stdbool.h>
 #include <stdint.h>
 
