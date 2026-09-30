@@ -30,6 +30,16 @@ endif()
 
 project(OrbitalSw)
 
+# Rescan on every build so added/removed logging calls and source files are picked up.
+# The generator only writes changed content, avoiding unnecessary recompilation.
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_custom_target(generate-log-file-ids ALL
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/scripts/gen_log_file_ids.py"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Generating log file ID tables"
+    VERBATIM
+)
+
 if(${CMAKE_BUILD_TYPE} MATCHES OBC)
     set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
     enable_language(C ASM)

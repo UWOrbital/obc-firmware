@@ -17,6 +17,12 @@ if (NOT DEFINED LOG_DEFAULT_LEVEL)
     set(LOG_DEFAULT_LEVEL LOG_TRACE)
 endif()
 
+# LOG_FORMAT_TEXT for human-readable logs, LOG_FORMAT_BINARY for the compact
+# binary format decoded on the ground station
+if (NOT DEFINED LOG_DEFAULT_OUTPUT_FORMAT)
+    set(LOG_DEFAULT_OUTPUT_FORMAT LOG_FORMAT_TEXT)
+endif()
+
 if(NOT DEFINED ENABLE_BL_BYPASS)
     set(ENABLE_BL_BYPASS 1)
 endif()
