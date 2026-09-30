@@ -37,8 +37,7 @@ TEST(pack_unpack_command_responses, unpackCommandResponse) {
   obc_gs_error_code_t errCode = packCmdResponse(&cmdResponse, buffer, responseData);
   ASSERT_EQ(errCode, OBC_GS_ERR_CODE_SUCCESS);
 
-  cmd_response_header_t cmdResponseUnpacked = {
-      .cmdId = NUM_CMD_CALLBACKS, .errCode = CMD_RESPONSE_ERROR, .dataLen = CMD_RESPONSE_DATA_MAX_SIZE};
+  cmd_response_header_t cmdResponseUnpacked = {};
   errCode = unpackCmdResponse(buffer, &cmdResponseUnpacked, responseData);
   ASSERT_EQ(errCode, OBC_GS_ERR_CODE_SUCCESS);
 
