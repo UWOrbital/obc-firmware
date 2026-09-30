@@ -5,6 +5,7 @@ set(TEST_DEPENDENCIES
     ${CMAKE_SOURCE_DIR}/obc/app/modules/camera_mgr/image_processing.c
     ${CMAKE_SOURCE_DIR}/obc/app/drivers/vn100/vn100_binary_parsing.c
     ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/common/obc_gs_crc.c
+    ${CMAKE_SOURCE_DIR}/interfaces/data_pack_unpack/data_pack_utils.c
     ${CMAKE_SOURCE_DIR}/interfaces/data_pack_unpack/data_unpack_utils.c
     ${CMAKE_SOURCE_DIR}/obc/app/sys/persistent/obc_persistent.c
     ${CMAKE_SOURCE_DIR}/obc/shared/logging/obc_logging_codec.c

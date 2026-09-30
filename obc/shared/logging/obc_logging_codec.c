@@ -1,54 +1,13 @@
 #include "obc_logging_codec.h"
 #include "obc_log_file_ids.h"
+#include "data_pack_utils.h"
+#include "data_unpack_utils.h"
 
 #include <string.h>
 
 // Wire format layout is documented in obc_logging_codec.h. This file implements
 // pack/unpack of individual records and file-path ID lookup against the
 // generated table in obc_log_file_ids.c.
-
-// Little-endian pack/unpack helpers. The ground-station Python decoder uses the
-// same byte order, so these must not be changed without updating both repos.
-
-static obc_error_code_t packUint16LE(uint8_t *buf, uint16_t val) {
-  if (buf == NULL) {
-    return OBC_ERR_CODE_INVALID_ARG;
-  }
-
-  buf[0] = (uint8_t)(val & 0xFFU);
-  buf[1] = (uint8_t)((val >> 8) & 0xFFU);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-static obc_error_code_t packUint32LE(uint8_t *buf, uint32_t val) {
-  if (buf == NULL) {
-    return OBC_ERR_CODE_INVALID_ARG;
-  }
-
-  buf[0] = (uint8_t)(val & 0xFFU);
-  buf[1] = (uint8_t)((val >> 8) & 0xFFU);
-  buf[2] = (uint8_t)((val >> 16) & 0xFFU);
-  buf[3] = (uint8_t)((val >> 24) & 0xFFU);
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-static obc_error_code_t unpackUint16LE(const uint8_t *buf, uint16_t *val) {
-  if (buf == NULL || val == NULL) {
-    return OBC_ERR_CODE_INVALID_ARG;
-  }
-
-  *val = (uint16_t)(buf[0] | ((uint16_t)buf[1] << 8));
-  return OBC_ERR_CODE_SUCCESS;
-}
-
-static obc_error_code_t unpackUint32LE(const uint8_t *buf, uint32_t *val) {
-  if (buf == NULL || val == NULL) {
-    return OBC_ERR_CODE_INVALID_ARG;
-  }
-
-  *val = (uint32_t)buf[0] | ((uint32_t)buf[1] << 8) | ((uint32_t)buf[2] << 16) | ((uint32_t)buf[3] << 24);
-  return OBC_ERR_CODE_SUCCESS;
-}
 
 obc_error_code_t binaryLogEncode(const binary_log_entry_t *entry, uint8_t *buf, size_t bufLen, size_t *encodedLen) {
   if (entry == NULL || buf == NULL || encodedLen == NULL) {
@@ -96,22 +55,22 @@ obc_error_code_t binaryLogEncode(const binary_log_entry_t *entry, uint8_t *buf, 
   }
   buf[offset++] = flags;
 
-  obc_error_code_t errCode = packUint16LE(&buf[offset], entry->fileId);
-  if (errCode != OBC_ERR_CODE_SUCCESS) {
-    return errCode;
+  obc_gs_error_code_t errCode = packUint16LE(&buf[offset], entry->fileId);
+  if (errCode != OBC_GS_ERR_CODE_SUCCESS) {
+    return OBC_ERR_CODE_INVALID_ARG;
   }
   offset += 2;
   errCode = packUint16LE(&buf[offset], entry->line);
-  if (errCode != OBC_ERR_CODE_SUCCESS) {
-    return errCode;
+  if (errCode != OBC_GS_ERR_CODE_SUCCESS) {
+    return OBC_ERR_CODE_INVALID_ARG;
   }
   offset += 2;
 
   // Optional timestamp (unix seconds, same representation as LOG_UNIX text logs)
   if (entry->hasTimestamp) {
     errCode = packUint32LE(&buf[offset], entry->timestamp);
-    if (errCode != OBC_ERR_CODE_SUCCESS) {
-      return errCode;
+    if (errCode != OBC_GS_ERR_CODE_SUCCESS) {
+      return OBC_ERR_CODE_INVALID_ARG;
     }
     offset += 4;
   }
@@ -119,8 +78,8 @@ obc_error_code_t binaryLogEncode(const binary_log_entry_t *entry, uint8_t *buf, 
   // Trailing payload: either a raw error code or a length-prefixed message
   if (entry->type == LOG_TYPE_ERROR_CODE) {
     errCode = packUint32LE(&buf[offset], entry->errCode);
-    if (errCode != OBC_ERR_CODE_SUCCESS) {
-      return errCode;
+    if (errCode != OBC_GS_ERR_CODE_SUCCESS) {
+      return OBC_ERR_CODE_INVALID_ARG;
     }
     offset += 4;
   } else {
@@ -159,13 +118,13 @@ obc_error_code_t binaryLogDecode(const uint8_t *buf, size_t bufLen, binary_log_e
   entry->level = (log_level_t)level;
   entry->type = (flags & BINARY_LOG_FLAG_TYPE_MSG) ? LOG_TYPE_MSG : LOG_TYPE_ERROR_CODE;
   entry->hasTimestamp = (flags & BINARY_LOG_FLAG_HAS_TIMESTAMP) ? 1U : 0U;
-  obc_error_code_t errCode = unpackUint16LE(&buf[2], &entry->fileId);
-  if (errCode != OBC_ERR_CODE_SUCCESS) {
-    return errCode;
+  obc_gs_error_code_t errCode = unpackUint16LE(&buf[2], &entry->fileId);
+  if (errCode != OBC_GS_ERR_CODE_SUCCESS) {
+    return OBC_ERR_CODE_INVALID_ARG;
   }
   errCode = unpackUint16LE(&buf[4], &entry->line);
-  if (errCode != OBC_ERR_CODE_SUCCESS) {
-    return errCode;
+  if (errCode != OBC_GS_ERR_CODE_SUCCESS) {
+    return OBC_ERR_CODE_INVALID_ARG;
   }
 
   size_t offset = BINARY_LOG_FIXED_HEADER_SIZE;
@@ -175,8 +134,8 @@ obc_error_code_t binaryLogDecode(const uint8_t *buf, size_t bufLen, binary_log_e
       return OBC_ERR_CODE_FAILED_UNPACK;
     }
     errCode = unpackUint32LE(&buf[offset], &entry->timestamp);
-    if (errCode != OBC_ERR_CODE_SUCCESS) {
-      return errCode;
+    if (errCode != OBC_GS_ERR_CODE_SUCCESS) {
+      return OBC_ERR_CODE_INVALID_ARG;
     }
     offset += BINARY_LOG_TIMESTAMP_SIZE;
   }
@@ -186,8 +145,8 @@ obc_error_code_t binaryLogDecode(const uint8_t *buf, size_t bufLen, binary_log_e
       return OBC_ERR_CODE_FAILED_UNPACK;
     }
     errCode = unpackUint32LE(&buf[offset], &entry->errCode);
-    if (errCode != OBC_ERR_CODE_SUCCESS) {
-      return errCode;
+    if (errCode != OBC_GS_ERR_CODE_SUCCESS) {
+      return OBC_ERR_CODE_INVALID_ARG;
     }
     offset += BINARY_LOG_ERROR_CODE_SIZE;
   } else {
