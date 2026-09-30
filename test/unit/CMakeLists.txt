@@ -29,6 +29,7 @@ set(TEST_SOURCES
 set(TEST_SOURCES ${TEST_SOURCES} ${TEST_DEPENDENCIES} ${TEST_MOCKS})
 
 add_executable(${TEST_BINARY} ${TEST_SOURCES})
+add_dependencies(${TEST_BINARY} generate-log-file-ids)
 
 target_include_directories(${TEST_BINARY}
     PRIVATE

@@ -43,9 +43,11 @@ const char *const LOG_FILE_PATHS[LOG_FILE_ID_COUNT] = {
     "obc/app/sys/print/obc_print.c",                                // 37
     "obc/app/sys/time/obc_time.c",                                  // 38
     "obc/bl/bl_main.c",                                             // 39
-    "obc/examples/test_app_arducam/main.c",                         // 40
-    "obc/examples/test_app_cc1120_spi/cc1120_spi_tests.c",          // 41
-    "obc/examples/test_app_rtc/main.c",                             // 42
-    "obc/shared/commands/command.c",                                // 43
-    "obc/shared/logging/obc_logging.h",                             // 44
+    "obc/bl/source/bl_utils.c",                                     // 40
+    "obc/bl/source/bl_verification.c",                              // 41
+    "obc/examples/test_app_arducam/main.c",                         // 42
+    "obc/examples/test_app_cc1120_spi/cc1120_spi_tests.c",          // 43
+    "obc/examples/test_app_rtc/main.c",                             // 44
+    "obc/shared/commands/command.c",                                // 45
+    "obc/shared/logging/obc_logging.h",                             // 46
 };

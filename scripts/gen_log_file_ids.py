@@ -2,18 +2,20 @@
 """Generate the log file ID table used by the compact binary log format.
 
 Scans the firmware sources for files that use the logging macros and assigns
-each one a stable ID (its index in the alphabetically sorted path list).
+each one an ID (its index in the alphabetically sorted path list). IDs can shift
+when paths are added or removed, so firmware and decoder mappings must match.
 
 Outputs (all checked into the repo):
   - obc/shared/logging/obc_log_file_ids.h   (C declarations)
   - obc/shared/logging/obc_log_file_ids.c   (C path table)
-    - obc/shared/logging/log_file_ids.json    (mapping for the shared interfaces package)
+  - obc/shared/logging/log_file_ids.json    (mapping for the shared interfaces package)
 
 The JSON file must be copied to the interfaces repo
 (obc_gs_interface/logging/log_file_ids.json) whenever it changes, so ground
 station consumers can decode file IDs back into file paths.
 
 Usage:
+  CMake builds regenerate the tables automatically before compiling consumers.
   python3 scripts/gen_log_file_ids.py           # regenerate the tables
   python3 scripts/gen_log_file_ids.py --check   # exit non-zero if tables are stale (for CI)
 """
@@ -152,13 +154,18 @@ def main() -> int:
         print("Log file ID tables are up to date.")
         return 0
 
+    changed = []
     for path, content in outputs.items():
+        if path.exists() and path.read_text() == content:
+            continue
         path.write_text(content)
+        changed.append(path)
         print(f"Wrote {path.relative_to(REPO_ROOT)}")
     print(f"{len(paths)} files in the log file ID table.")
-    print(
-        "Remember to copy log_file_ids.json to interfaces/obc_gs_interface/logging/ if it changed."
-    )
+    if JSON_PATH in changed:
+        print(
+            "Remember to copy log_file_ids.json to interfaces/obc_gs_interface/logging/ if it changed."
+        )
     return 0
 
 

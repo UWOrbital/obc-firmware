@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define LOG_FILE_ID_COUNT 45U
+#define LOG_FILE_ID_COUNT 47U
 
 // Repo-relative paths of all files that use the logging macros,
 // sorted alphabetically. A file's ID is its index in this table.

@@ -41,6 +41,8 @@
     "obc/app/sys/print/obc_print.c",
     "obc/app/sys/time/obc_time.c",
     "obc/bl/bl_main.c",
+    "obc/bl/source/bl_utils.c",
+    "obc/bl/source/bl_verification.c",
     "obc/examples/test_app_arducam/main.c",
     "obc/examples/test_app_cc1120_spi/cc1120_spi_tests.c",
     "obc/examples/test_app_rtc/main.c",
