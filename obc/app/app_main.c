@@ -1,22 +1,21 @@
-#include "obc_logging.h"
-#include "obc_sci_io.h"
-#include "obc_i2c_io.h"
-#include "obc_spi_io.h"
-#include "obc_reset.h"
-#include "obc_scheduler_config.h"
-#include "state_mgr.h"
-
 #include <FreeRTOS.h>
+#include <can.h>
+#include <gio.h>
+#include <het.h>
+#include <i2c.h>
 #include <os_task.h>
-
+#include <sci.h>
+#include <spi.h>
 #include <sys_common.h>
 #include <sys_core.h>
-#include <gio.h>
-#include <sci.h>
-#include <i2c.h>
-#include <spi.h>
-#include <can.h>
-#include <het.h>
+
+#include "obc_i2c_io.h"
+#include "obc_logging.h"
+#include "obc_reset.h"
+#include "obc_scheduler_config.h"
+#include "obc_sci_io.h"
+#include "obc_spi_io.h"
+#include "state_mgr.h"
 
 // This is the stack canary. It should never be overwritten.
 

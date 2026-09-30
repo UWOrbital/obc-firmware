@@ -1,13 +1,13 @@
-#include "obc_spi_io.h"
-#include "obc_print.h"
-#include "fm25v20a.h"
-
 #include <gio.h>
 #include <sci.h>
 #include <spi.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "fm25v20a.h"
+#include "obc_print.h"
+#include "obc_spi_io.h"
 
 #define UART_MUTEX_BLOCK_TIME portMAX_DELAY
 

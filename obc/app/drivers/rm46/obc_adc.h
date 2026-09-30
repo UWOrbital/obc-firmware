@@ -1,16 +1,15 @@
 #pragma once
 
-#include "obc_logging.h"
-#include "obc_errors.h"
-#include "adc.h"
-#include "reg_adc.h"
-
 #include <FreeRTOS.h>
 #include <os_portmacro.h>
 #include <os_semphr.h>
 #include <os_task.h>
-
 #include <stdint.h>
+
+#include "adc.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
+#include "reg_adc.h"
 
 typedef enum { ADC_MODULE_1 = 0U, ADC_MODULE_2 = 1U } adc_module_t;
 

@@ -1,15 +1,15 @@
 #include "obc_i2c_io.h"
-#include "obc_errors.h"
-#include "obc_assert.h"
-#include "obc_logging.h"
 
 #include <FreeRTOS.h>
+#include <i2c.h>
 #include <os_portmacro.h>
 #include <os_semphr.h>
 #include <os_task.h>
-
-#include <i2c.h>
 #include <sys_common.h>
+
+#include "obc_assert.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
 
 // The I2C bus to use for the OBC
 #define I2C_REG i2cREG1

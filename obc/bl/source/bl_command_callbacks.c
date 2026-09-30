@@ -1,19 +1,20 @@
-#include "reg_system.h"
-#include "bl_errors.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+
 #include "bl_config.h"
+#include "bl_errors.h"
+#include "bl_flash.h"
 #include "bl_time.h"
+#include "bl_uart.h"
+#include "command.h"
 #include "obc_errors.h"
 #include "obc_general_util.h"
 #include "obc_gs_command_data.h"
 #include "obc_gs_command_id.h"
-#include "command.h"
-#include <stddef.h>
 #include "obc_gs_crc.h"
-#include <stdint.h>
-#include "bl_uart.h"
-#include "bl_flash.h"
 #include "obc_metadata.h"
-#include <stdio.h>
+#include "reg_system.h"
 
 #define BL_BIN_RX_CHUNK_SIZE 208U  // Bytes
 #define MAX_PACKET_SIZE 223

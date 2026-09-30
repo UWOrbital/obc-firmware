@@ -1,10 +1,10 @@
 #pragma once
 
-#include "obc_errors.h"
-
-#include <stdint.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <string.h>
+
+#include "obc_errors.h"
 
 #define __FILE_FROM_REPO_ROOT__ \
   (strstr(__FILE__, SOURCE_PATH) ? strstr(__FILE__, SOURCE_PATH) + sizeof(SOURCE_PATH) - 1 : __FILE__)

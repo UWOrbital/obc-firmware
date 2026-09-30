@@ -1,20 +1,19 @@
-#include "obc_logging.h"
-#include "obc_errors.h"
-#include "obc_sci_io.h"
-#include "obc_spi_io.h"
-#include "obc_i2c_io.h"
-#include "obc_print.h"
+#include <gio.h>
+#include <i2c.h>
+#include <sci.h>
+#include <spi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "arducam.h"
 #include "camera_control.h"
-
-#include <gio.h>
-#include <sci.h>
-#include <spi.h>
-#include <i2c.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "obc_errors.h"
+#include "obc_i2c_io.h"
+#include "obc_logging.h"
+#include "obc_print.h"
+#include "obc_sci_io.h"
+#include "obc_spi_io.h"
 
 #define UART_MUTEX_BLOCK_TIME portMAX_DELAY
 // BUFFER_SIZE must be a multiple of 3 for base64 conversion

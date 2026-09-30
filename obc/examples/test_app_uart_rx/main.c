@@ -1,14 +1,13 @@
-#include "obc_print.h"
-#include "obc_sci_io.h"
-#include "obc_board_config.h"
-
 #include <FreeRTOS.h>
+#include <gio.h>
 #include <os_task.h>
-
+#include <sci.h>
 #include <sys_common.h>
 #include <sys_core.h>
-#include <gio.h>
-#include <sci.h>
+
+#include "obc_board_config.h"
+#include "obc_print.h"
+#include "obc_sci_io.h"
 
 #define NUM_CHARS_TO_READ 4U
 #define UART_MUTEX_BLOCK_TIME portMAX_DELAY

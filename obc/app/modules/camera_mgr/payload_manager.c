@@ -1,14 +1,14 @@
 #include "payload_manager.h"
-#include "obc_errors.h"
-#include "obc_scheduler_config.h"
 
 #include <FreeRTOS.h>
+#include <gio.h>
 #include <os_portmacro.h>
 #include <os_queue.h>
 #include <os_task.h>
-
 #include <sys_common.h>
-#include <gio.h>
+
+#include "obc_errors.h"
+#include "obc_scheduler_config.h"
 
 static QueueHandle_t payloadQueueHandle = NULL;
 static StaticQueue_t payloadQueue;

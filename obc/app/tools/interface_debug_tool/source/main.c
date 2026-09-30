@@ -1,28 +1,25 @@
-#include "obc_board_config.h"
-#include "obc_spi_io.h"
-#include "obc_sci_io.h"
-#include "obc_print.h"
-#include "obc_i2c_io.h"
-#include "obc_logging.h"
-
-#include "op_codes.h"
-
-#include "test_sci.h"
-#include "test_spi.h"
-#include "test_i2c.h"
-#include "test_can.h"
-#include "test_adc.h"
-#include "test_gio.h"
-#include "test_lm75bd.h"
 #include <FreeRTOS.h>
+#include <i2c.h>
 #include <os_task.h>
-
-#include <sys_common.h>
 #include <sci.h>
 #include <spi.h>
-#include <i2c.h>
-
 #include <string.h>
+#include <sys_common.h>
+
+#include "obc_board_config.h"
+#include "obc_i2c_io.h"
+#include "obc_logging.h"
+#include "obc_print.h"
+#include "obc_sci_io.h"
+#include "obc_spi_io.h"
+#include "op_codes.h"
+#include "test_adc.h"
+#include "test_can.h"
+#include "test_gio.h"
+#include "test_i2c.h"
+#include "test_lm75bd.h"
+#include "test_sci.h"
+#include "test_spi.h"
 
 #define TASK_STACK_SIZE 1024
 

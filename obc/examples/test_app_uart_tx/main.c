@@ -1,8 +1,8 @@
-#include "obc_sci_io.h"
-#include "obc_print.h"
-
 #include <gio.h>
 #include <sci.h>
+
+#include "obc_print.h"
+#include "obc_sci_io.h"
 
 #define UART_MUTEX_BLOCK_TIME portMAX_DELAY
 

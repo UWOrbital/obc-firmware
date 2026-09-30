@@ -1,17 +1,15 @@
-#include "obc_logging.h"
-#include "obc_sci_io.h"
-#include "obc_spi_io.h"
-
-#include "cc1120_spi_tests.h"
-
-#include "FreeRTOS.h"
-#include "os_task.h"
-#include "os_portable.h"
-
-#include <sys_common.h>
 #include <gio.h>
 #include <sci.h>
 #include <spi.h>
+#include <sys_common.h>
+
+#include "FreeRTOS.h"
+#include "cc1120_spi_tests.h"
+#include "obc_logging.h"
+#include "obc_sci_io.h"
+#include "obc_spi_io.h"
+#include "os_portable.h"
+#include "os_task.h"
 
 static TaskHandle_t testTaskHandle = NULL;
 static StaticTask_t testTaskBuffer;

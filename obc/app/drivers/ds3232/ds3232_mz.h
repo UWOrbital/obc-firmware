@@ -1,9 +1,9 @@
 #pragma once
 
-#include "obc_errors.h"
-
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "obc_errors.h"
 
 // RTC year is 0-99, so we need to add this offset to get the actual year
 #define RTC_YEAR_OFFSET 2000

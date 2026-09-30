@@ -1,8 +1,10 @@
 #include "cc1120_spi_tests.h"
-#include "cc1120_spi.h"
+
+#include <string.h>
+
 #include "cc1120_defs.h"
 #include "cc1120_mcu.h"
-#include <string.h>
+#include "cc1120_spi.h"
 
 uint8_t CC1120_REGS_DEFAULTS[CC1120_REGS_STD_SPACE_SIZE] = {
     CC1120_DEFAULTS_IOCFG3,         CC1120_DEFAULTS_IOCFG2,

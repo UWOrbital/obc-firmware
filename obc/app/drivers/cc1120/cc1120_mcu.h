@@ -1,9 +1,10 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "obc_errors.h"
 #include "obc_logging.h"
 #include "obc_spi_io.h"
-#include <stdint.h>
 
 #define CC1120_SPI_REG spiREG4
 #define CC1120_SPI_PORT spiPORT4

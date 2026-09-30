@@ -1,12 +1,12 @@
 #include "obc_persistent.h"
 
+#include <string.h>
+
 #include "fm25v20a.h"
 #include "obc_assert.h"
+#include "obc_crc.h"
 #include "obc_errors.h"
 #include "obc_logging.h"
-#include "obc_crc.h"
-
-#include <string.h>
 
 /* Config */
 static const obc_persist_config_t obcPersistConfig[] = {

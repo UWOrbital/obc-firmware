@@ -1,10 +1,10 @@
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-#include "obc_errors.h"
 #include "comms_manager.h"
+#include "obc_errors.h"
 
 typedef enum { DOWNLINK_TELEMETRY_FILE, DOWNLINK_DATA_BUFFER, DOWNLINK_CMD_RESPONSE } encode_event_id_t;
 

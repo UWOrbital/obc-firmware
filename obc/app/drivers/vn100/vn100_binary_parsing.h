@@ -1,9 +1,9 @@
 #pragma once
 
-#include "obc_errors.h"
-
 #include <stdint.h>
 #include <stdlib.h>
+
+#include "obc_errors.h"
 
 /* -------------------------------------- Packet structure Byte Sizes -------------------------- */
 #define VN100_BINARY_HEADER_SIZE 4U

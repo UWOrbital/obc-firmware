@@ -1,6 +1,6 @@
-#include <spi.h>
-#include <sci.h>
 #include <gio.h>
+#include <sci.h>
+#include <spi.h>
 
 /* Board macros for registers, ports, CS pins, data formats, etc. */
 

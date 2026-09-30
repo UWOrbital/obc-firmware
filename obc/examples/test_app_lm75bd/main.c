@@ -1,16 +1,15 @@
-#include "obc_sci_io.h"
-#include "obc_i2c_io.h"
-#include "obc_errors.h"
-#include "obc_print.h"
-#include "lm75bd.h"
-
 #include <FreeRTOS.h>
+#include <i2c.h>
 #include <os_task.h>
-
-#include <sys_common.h>
 #include <sci.h>
 #include <spi.h>
-#include <i2c.h>
+#include <sys_common.h>
+
+#include "lm75bd.h"
+#include "obc_errors.h"
+#include "obc_i2c_io.h"
+#include "obc_print.h"
+#include "obc_sci_io.h"
 
 static StaticTask_t taskBuffer;
 static StackType_t taskStack[1024];

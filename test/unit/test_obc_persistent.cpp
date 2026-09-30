@@ -1,13 +1,12 @@
+#include "fm25v20a.h"
+#include "obc_errors.h"
 #include "obc_persistent.h"
 
-#include "obc_errors.h"
-#include "fm25v20a.h"
-
 // Test subjects, add more as persistent grows
-#include "obc_time_utils.h"
-#include "alarm_handler.h"
-
 #include <gtest/gtest.h>
+
+#include "alarm_handler.h"
+#include "obc_time_utils.h"
 
 TEST(TestOBCPersistent, InvalidArgs) {
   obc_time_persist_data_t timeData = {0};

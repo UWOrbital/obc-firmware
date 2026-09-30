@@ -1,8 +1,8 @@
-#include "posix_example.h"
-#include "console.h"
-
 #include <FreeRTOS.h>
 #include <os_task.h>
+
+#include "console.h"
+#include "posix_example.h"
 
 xTaskHandle dummyTaskHandle;
 

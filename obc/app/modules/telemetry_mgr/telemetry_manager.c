@@ -1,25 +1,24 @@
 #include "telemetry_manager.h"
-#include "telemetry_fs_utils.h"
-#include "comms_manager.h"
-#include "obc_logging.h"
-#include "obc_errors.h"
-#include "obc_assert.h"
-#include "obc_scheduler_config.h"
-#include "downlink_encoder.h"
 
 #include <FreeRTOS.h>
+#include <gio.h>
 #include <os_portmacro.h>
 #include <os_queue.h>
-#include <os_task.h>
 #include <os_semphr.h>
-#include <sys_common.h>
-#include <gio.h>
-
+#include <os_task.h>
 #include <redposix.h>
-
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
+#include <sys_common.h>
+
+#include "comms_manager.h"
+#include "downlink_encoder.h"
+#include "obc_assert.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
+#include "obc_scheduler_config.h"
+#include "telemetry_fs_utils.h"
 
 /* Telemetry data queue config */
 #define TELEMETRY_DATA_QUEUE_LENGTH 128U

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "obc_errors.h"
-#include "ds3232_mz.h"
-
 #include <stdint.h>
+
+#include "ds3232_mz.h"
+#include "obc_errors.h"
 
 #ifdef __cplusplus
 extern "C" {

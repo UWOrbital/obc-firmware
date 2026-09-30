@@ -1,19 +1,18 @@
 #include "cc1120_txrx.h"
-#include "obc_logging.h"
-#include "cc1120_mcu.h"
-#include "cc1120.h"
-#include "cc1120_defs.h"
-#include "obc_math.h"
-#include "obc_board_config.h"
-
-#include "uplink_decoder.h"
 
 #include <FreeRTOS.h>
-#include <os_semphr.h>
-#include <sys_common.h>
 #include <FreeRTOSConfig.h>
-
+#include <os_semphr.h>
 #include <stdbool.h>
+#include <sys_common.h>
+
+#include "cc1120.h"
+#include "cc1120_defs.h"
+#include "cc1120_mcu.h"
+#include "obc_board_config.h"
+#include "obc_logging.h"
+#include "obc_math.h"
+#include "uplink_decoder.h"
 
 #define COMMS_MAX_UPLINK_BYTES \
   1000U  // Maximum amount of bytes we will currently be uplinking at a time (should be updated in the future)

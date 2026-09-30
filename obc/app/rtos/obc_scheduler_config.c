@@ -1,15 +1,14 @@
 // This code is generated, do not modify directly!
 #include "obc_scheduler_config.h"
 
-#include "obc_errors.h"
-#include "obc_assert.h"
-
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
 #include <os_task.h>
+#include <stdint.h>
 #include <sys_common.h>
 
-#include <stdint.h>
+#include "obc_assert.h"
+#include "obc_errors.h"
 
 /* DEFINES */
 #define OBC_SCHEDULER_MAX_PRIORITY configMAX_PRIORITIES - 1U

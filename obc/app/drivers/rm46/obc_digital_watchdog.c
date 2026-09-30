@@ -1,10 +1,11 @@
 #include "obc_digital_watchdog.h"
-#include "obc_assert.h"
 
-#include <system.h>
 #include <reg_rti.h>
 #include <rti.h>
 #include <stdint.h>
+#include <system.h>
+
+#include "obc_assert.h"
 
 // Watchdog is fed by writing these two values to the WDKEY register
 #define RESET_DWD_CMD1 0xE51AUL

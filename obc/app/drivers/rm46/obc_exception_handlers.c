@@ -1,9 +1,9 @@
-#include <FreeRTOSConfig.h>
 #include <FreeRTOS.h>
+#include <FreeRTOSConfig.h>
 
-#include "os_task.h"
-#include "obc_reset.h"
 #include "obc_logging.h"
+#include "obc_reset.h"
+#include "os_task.h"
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
   LOG_FATAL_FROM_ISR("***********************STACK OVERFLOW DETECTED!!!!!!***********************");

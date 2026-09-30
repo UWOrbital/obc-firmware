@@ -1,19 +1,19 @@
 #include "logger.h"
-#include "obc_logging.h"
-#include "obc_errors.h"
-#include "obc_print.h"
-#include "obc_time.h"
 
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
-#include <sys_common.h>
 #include <os_queue.h>
 #include <redposix.h>
-
-#include <string.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+#include <sys_common.h>
+
+#include "obc_errors.h"
+#include "obc_logging.h"
+#include "obc_print.h"
+#include "obc_time.h"
 
 #define LOG_FILE_NAME "log.log"
 

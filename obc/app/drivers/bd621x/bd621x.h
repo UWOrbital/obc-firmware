@@ -1,7 +1,7 @@
 #pragma once
 
-#include "obc_errors.h"
 #include "het.h"
+#include "obc_errors.h"
 
 /**
 * @struct DC_motor_t

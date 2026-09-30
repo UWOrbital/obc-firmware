@@ -1,15 +1,14 @@
-#include "obc_print.h"
-#include "obc_sci_io.h"
-#include "obc_board_config.h"
-#include "vn100.h"
-
 #include <FreeRTOS.h>
+#include <gio.h>
 #include <os_task.h>
-
+#include <sci.h>
 #include <sys_common.h>
 #include <sys_core.h>
-#include <gio.h>
-#include <sci.h>
+
+#include "obc_board_config.h"
+#include "obc_print.h"
+#include "obc_sci_io.h"
+#include "vn100.h"
 
 static StaticTask_t taskBuffer;
 static StackType_t taskStack[1024];

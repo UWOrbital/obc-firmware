@@ -1,8 +1,8 @@
 #pragma once
 
-#include "obc_errors.h"
-
 #include <stdint.h>
+
+#include "obc_errors.h"
 
 /* LM75BD I2C Device Address */
 #define LM75BD_OBC_I2C_ADDR 0x4FU /* (0x9U << 3) | 0x7 */

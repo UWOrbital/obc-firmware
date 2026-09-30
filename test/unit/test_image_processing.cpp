@@ -1,10 +1,9 @@
-#include "image_processing.h"
-
-#include "obc_errors.h"
 #include <gtest/gtest.h>
-
 #include <stdint.h>
 #include <stdlib.h>
+
+#include "image_processing.h"
+#include "obc_errors.h"
 
 TEST(TestObcImageProcessing, findBrightestPixelInPacket) {
   uint8_t data[640 * 480] = {0};

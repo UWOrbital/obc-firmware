@@ -1,8 +1,9 @@
 #include "obc_reliance_fs.h"
-#include "obc_logging.h"
-#include "obc_errors.h"
 
 #include <redposix.h>
+
+#include "obc_errors.h"
+#include "obc_logging.h"
 
 obc_error_code_t setupFileSystem(void) {
   int32_t ret;

@@ -1,19 +1,17 @@
-#include <stdint.h>
-#include <stdbool.h>
-
 #include <FreeRTOS.h>
-#include <os_task.h>
-
-#include <sys_common.h>
 #include <gio.h>
+#include <os_task.h>
 #include <spi.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <sys_common.h>
 
-#include "sdc_diskio.h"
-#include "sdc_rm46.h"
-#include "obc_spi_io.h"
-#include "obc_logging.h"
 #include "obc_assert.h"
 #include "obc_board_config.h"
+#include "obc_logging.h"
+#include "obc_spi_io.h"
+#include "sdc_diskio.h"
+#include "sdc_rm46.h"
 
 /* This driver logs errors. If the logging output is set to the
    microSD card, this driver will log errors to itself, which

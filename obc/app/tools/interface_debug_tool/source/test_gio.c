@@ -1,6 +1,7 @@
 #include "test_gio.h"
-#include "obc_print.h"
+
 #include "gio.h"
+#include "obc_print.h"
 
 void testGIO(void) {
   sciPrintf("Testing GIO...\r\n");

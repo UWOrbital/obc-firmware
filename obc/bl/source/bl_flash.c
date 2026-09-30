@@ -1,16 +1,14 @@
 #include "bl_flash.h"
-#include "bl_flash_config.h"
-#include "bl_config.h"
-#include "bl_errors.h"
+
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "F021.h"
+#include "bl_config.h"
+#include "bl_errors.h"
+#include "bl_flash_config.h"
 #include "reg_flash.h"
 #include "sys_core.h"
-
-#include <FapiFunctions.h>
-#include <Types.h>
-#include <stdint.h>
-#include <stdbool.h>
 
 /* DEFINES */
 #define BL_FLASH_APP_SECTORS_MASK 0xFF00U  // Sectors 0-7 are reserved for the bootloader

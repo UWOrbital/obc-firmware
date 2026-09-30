@@ -1,7 +1,7 @@
-#include "obc_time_utils.h"
-#include "obc_errors.h"
-
 #include <gtest/gtest.h>
+
+#include "obc_errors.h"
+#include "obc_time_utils.h"
 
 TEST(TestObcTimeUtils, ValidDatetimeToUnix) {
   rtc_date_time_t datetime = {.date =

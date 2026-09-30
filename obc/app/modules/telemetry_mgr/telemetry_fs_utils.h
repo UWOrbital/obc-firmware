@@ -1,10 +1,10 @@
 #pragma once
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "obc_errors.h"
 #include "telemetry_manager.h"
-
-#include <stdint.h>
-#include <stddef.h>
 
 /* Telemetry file path config */
 #define TELEMETRY_FILE_DIRECTORY "/telemetry/"

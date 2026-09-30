@@ -1,9 +1,9 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "obc_errors.h"
 #include "vn100_binary_parsing.h"
-
-#include <stdint.h>
 
 /* To access the user manual for VN-100 click here --> https://geo-matching.com/media/migrationpiwnum.pdf */
 

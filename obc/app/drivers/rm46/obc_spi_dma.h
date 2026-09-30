@@ -1,9 +1,9 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "obc_errors.h"
 #include "spi.h"
-
-#include <stdint.h>
 
 /**
  * @brief initalizes DMA for facilitating spi transfers for spiReg

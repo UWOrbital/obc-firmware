@@ -1,15 +1,14 @@
 #include "obc_spi_io.h"
-#include "obc_errors.h"
-#include "obc_logging.h"
 
 #include <FreeRTOS.h>
-#include <os_task.h>
-#include <os_semphr.h>
-
 #include <gio.h>
+#include <os_semphr.h>
+#include <os_task.h>
 #include <spi.h>
-
 #include <stdint.h>
+
+#include "obc_errors.h"
+#include "obc_logging.h"
 
 // This includes SPI2 which isn't available on the RM46 PGE package
 #define NUM_SPI_PORTS 5

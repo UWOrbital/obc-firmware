@@ -1,14 +1,13 @@
-#include "obc_sci_io.h"
-#include "obc_i2c_io.h"
-#include "mpu6050.h"
-
 #include <FreeRTOS.h>
+#include <i2c.h>
 #include <os_portmacro.h>
 #include <os_task.h>
+#include <sci.h>
 #include <sys_common.h>
 
-#include <sci.h>
-#include <i2c.h>
+#include "mpu6050.h"
+#include "obc_i2c_io.h"
+#include "obc_sci_io.h"
 
 void taskA(void* pvParameters);
 void taskB(void* pvParameters);

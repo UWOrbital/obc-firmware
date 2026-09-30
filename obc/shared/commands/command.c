@@ -1,4 +1,5 @@
 #include "command.h"
+
 #include "obc_errors.h"
 #include "obc_gs_command_id.h"
 #include "obc_logging.h"

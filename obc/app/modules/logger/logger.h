@@ -1,10 +1,10 @@
 #pragma once
 
+#include <stdio.h>
+
+#include "ds3232_mz.h"
 #include "obc_errors.h"
 #include "obc_logging.h"
-#include "ds3232_mz.h"
-
-#include <stdio.h>
 
 // launchpad doesn't have RTC so we should not try to add timestamps
 #ifdef RM46_LAUNCHPAD

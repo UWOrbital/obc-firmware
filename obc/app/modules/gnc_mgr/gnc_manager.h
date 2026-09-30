@@ -1,9 +1,9 @@
 #pragma once
 
-#include "obc_errors.h"
-
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
+
+#include "obc_errors.h"
 
 /**
  * @brief Set the GNC task period. Will be used for when we want to run GNC tasks more or less frequently (QEYnet

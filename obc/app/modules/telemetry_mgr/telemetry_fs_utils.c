@@ -1,15 +1,15 @@
 #include "telemetry_fs_utils.h"
-#include "telemetry_manager.h"
-#include "obc_logging.h"
-#include "obc_errors.h"
-#include "obc_assert.h"
-#include "obc_reliance_fs.h"
 
 #include <redposix.h>
-
-#include <stdio.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+
+#include "obc_assert.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
+#include "obc_reliance_fs.h"
+#include "telemetry_manager.h"
 
 obc_error_code_t mkTelemetryDir(void) {
   obc_error_code_t errCode;

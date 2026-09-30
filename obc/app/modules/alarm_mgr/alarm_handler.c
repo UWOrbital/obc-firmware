@@ -1,20 +1,21 @@
 #include "alarm_handler.h"
-#include "ds3232_mz.h"
-#include "obc_gs_commands_response.h"
-#include "obc_gs_fec.h"
-#include "obc_scheduler_config.h"
-#include "obc_errors.h"
-#include "obc_logging.h"
-#include "obc_time.h"
-#include "obc_time_utils.h"
-#include "obc_persistent.h"
-#include "obc_assert.h"
-#include "command_manager.h"
 
 #include <FreeRTOS.h>
-#include <os_task.h>
 #include <os_queue.h>
+#include <os_task.h>
 #include <sys_common.h>
+
+#include "command_manager.h"
+#include "ds3232_mz.h"
+#include "obc_assert.h"
+#include "obc_errors.h"
+#include "obc_gs_commands_response.h"
+#include "obc_gs_fec.h"
+#include "obc_logging.h"
+#include "obc_persistent.h"
+#include "obc_scheduler_config.h"
+#include "obc_time.h"
+#include "obc_time_utils.h"
 
 #define ALARM_QUEUE_SIZE 24U
 #define ALARM_HANDLER_QUEUE_LENGTH 64U

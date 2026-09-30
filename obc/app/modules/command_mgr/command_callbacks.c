@@ -1,21 +1,21 @@
-#include "obc_gs_command_data.h"
-#include "obc_gs_command_id.h"
-#include "obc_i2c_io.h"
-#include "obc_reset.h"
-#include "obc_errors.h"
-#include "obc_logging.h"
-#include "obc_time.h"
-#include "obc_time_utils.h"
-#include "downlink_encoder.h"
-#include "os_portmacro.h"
-#include "os_projdefs.h"
-#include "telemetry_manager.h"
-#include "command.h"
-#include "obc_general_util.h"
-
 #include <redposix.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#include "command.h"
+#include "downlink_encoder.h"
+#include "obc_errors.h"
+#include "obc_general_util.h"
+#include "obc_gs_command_data.h"
+#include "obc_gs_command_id.h"
+#include "obc_i2c_io.h"
+#include "obc_logging.h"
+#include "obc_reset.h"
+#include "obc_time.h"
+#include "obc_time_utils.h"
+#include "os_portmacro.h"
+#include "os_projdefs.h"
+#include "telemetry_manager.h"
 
 static obc_error_code_t execObcResetCmdCallback(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
   if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {

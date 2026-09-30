@@ -2,8 +2,8 @@
 
 #include <stdint.h>
 
-#include "obc_errors.h"
 #include "command.h"
+#include "obc_errors.h"
 #include "obc_time.h"
 
 // Alarm handler event IDs

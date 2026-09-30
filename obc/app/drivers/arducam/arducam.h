@@ -1,13 +1,12 @@
 #pragma once
 
-#include "ov5642_config.h"
-#include "ov5642.h"
-
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "obc_errors.h"
 #include "obc_logging.h"
+#include "ov5642.h"
+#include "ov5642_config.h"
 
 /**
  * @enum	camera_t

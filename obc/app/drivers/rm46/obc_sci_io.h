@@ -1,9 +1,9 @@
 #pragma once
 
-#include "obc_errors.h"
-
 #include <sci.h>
 #include <stdint.h>
+
+#include "obc_errors.h"
 
 #ifndef OBC_UART_BAUD_RATE
 #define OBC_UART_BAUD_RATE 115200

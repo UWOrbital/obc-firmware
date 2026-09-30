@@ -1,10 +1,9 @@
-#include "obc_gs_ax25.h"
-#include "obc_gs_fec.h"
-#include "obc_gs_errors.h"
-
+#include <gtest/gtest.h>
 #include <string.h>
 
-#include <gtest/gtest.h>
+#include "obc_gs_ax25.h"
+#include "obc_gs_errors.h"
+#include "obc_gs_fec.h"
 
 // NOTE: AKITO is the groundStationCallsign
 // NOTE: ATLAS is the cubeSatCallSign

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+
 #include "obc_errors.h"
 
 // See chapter 8.5 in the datasheet

@@ -1,14 +1,15 @@
 #include "health_collector.h"
-#include "lm75bd.h"
-#include "obc_time.h"
-#include "telemetry_manager.h"
-#include "obc_errors.h"
-#include "obc_logging.h"
-#include "obc_scheduler_config.h"
 
 #include <FreeRTOS.h>
 #include <os_task.h>
 #include <sys_common.h>
+
+#include "lm75bd.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
+#include "obc_scheduler_config.h"
+#include "obc_time.h"
+#include "telemetry_manager.h"
 
 #define HEALTH_COLLECTION_PERIOD_MS 60000UL
 

@@ -1,4 +1,18 @@
 #include "uplink_decoder.h"
+
+#include <FreeRTOS.h>
+#include <gio.h>
+#include <os_portmacro.h>
+#include <os_queue.h>
+#include <os_semphr.h>
+#include <os_task.h>
+#include <os_timer.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys_common.h>
+
 #include "cc1120.h"
 #include "cc1120_defs.h"
 #include "cc1120_txrx.h"
@@ -15,20 +29,6 @@
 #include "obc_logging.h"
 #include "obc_scheduler_config.h"
 #include "obc_sci_io.h"
-
-#include <FreeRTOS.h>
-#include <gio.h>
-#include <os_portmacro.h>
-#include <os_queue.h>
-#include <os_semphr.h>
-#include <os_task.h>
-#include <os_timer.h>
-#include <sys_common.h>
-
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 
 // decode data queue length should be double TXRX_INTERRUPT_THRESHOLD for safety
 // to avoid cc1120 getting blocked can be reduced later depending on memory

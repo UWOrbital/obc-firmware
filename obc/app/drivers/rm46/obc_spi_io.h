@@ -1,13 +1,12 @@
 #pragma once
 
-#include "obc_errors.h"
-
+#include <FreeRTOS.h>
+#include <gio.h>
+#include <os_semphr.h>
+#include <spi.h>
 #include <stdint.h>
 
-#include <spi.h>
-#include <gio.h>
-#include <FreeRTOS.h>
-#include <os_semphr.h>
+#include "obc_errors.h"
 
 #define DEASSERT_RETURN_IF_ERROR_CODE(_spiPort, _csNum, _ret) \
   do {                                                        \

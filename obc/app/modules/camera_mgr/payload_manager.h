@@ -1,8 +1,8 @@
 #pragma once
 
-#include "obc_errors.h"
-
 #include <sys_common.h>
+
+#include "obc_errors.h"
 
 /**
  * @enum	payload_event_id_t

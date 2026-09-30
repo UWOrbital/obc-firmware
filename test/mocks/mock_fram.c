@@ -1,10 +1,9 @@
-#include "fm25v20a.h"
-
-#include "obc_errors.h"
-#include "obc_assert.h"
-
 #include <stdint.h>
 #include <string.h>
+
+#include "fm25v20a.h"
+#include "obc_assert.h"
+#include "obc_errors.h"
 
 #define MOCK_FRAM_MAX_SIZE 1000  // Change as needed
 static uint8_t memory[MOCK_FRAM_MAX_SIZE] = {0};

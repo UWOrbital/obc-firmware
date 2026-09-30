@@ -1,7 +1,7 @@
-#include "data_unpack_utils.h"
-#include "data_pack_utils.h"
-
 #include <gtest/gtest.h>
+
+#include "data_pack_utils.h"
+#include "data_unpack_utils.h"
 
 TEST(TestPackAndUnpack, ValidUint8PackUnpack) {
   uint8_t val = 0x12;

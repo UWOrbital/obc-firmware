@@ -1,4 +1,5 @@
 #include "bl_time.h"
+
 #include <stdint.h>
 
 static uint32_t initTime;

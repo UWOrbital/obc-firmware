@@ -1,8 +1,9 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "obc_errors.h"
 #include "obc_metadata.h"
-#include <stdint.h>
 
 /**
  * @brief Checks that the app's board ID matches the bootloader's board ID

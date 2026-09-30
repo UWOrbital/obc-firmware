@@ -1,11 +1,10 @@
 #pragma once
 
-#include "obc_errors.h"
-
-#include <stdint.h>
-
 #include <i2c.h>
 #include <os_projdefs.h>
+#include <stdint.h>
+
+#include "obc_errors.h"
 
 /**
  * @brief Initialize the I2C bus mutex

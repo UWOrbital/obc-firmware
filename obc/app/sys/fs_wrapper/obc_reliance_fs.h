@@ -1,9 +1,9 @@
 #pragma once
 
-#include "obc_errors.h"
-
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+
+#include "obc_errors.h"
 
 /**
  * @brief Setup the file system.

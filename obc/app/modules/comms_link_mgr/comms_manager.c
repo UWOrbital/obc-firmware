@@ -1,4 +1,7 @@
 #include "comms_manager.h"
+
+#include <stdint.h>
+
 #include "cc1120.h"
 #include "cc1120_txrx.h"
 #include "downlink_encoder.h"
@@ -20,20 +23,17 @@
 #include "telemetry_fs_utils.h"
 #include "telemetry_manager.h"
 #include "uplink_decoder.h"
-#include <stdint.h>
 
 #if COMMS_PHY == COMMS_PHY_UART
 #include "obc_sci_io.h"
 #endif
 
 #include <FreeRTOS.h>
+#include <gio.h>
 #include <os_portmacro.h>
 #include <os_queue.h>
 #include <os_task.h>
-
 #include <redposix.h>
-
-#include <gio.h>
 #include <sys_common.h>
 
 #define COMMS_MAX_DOWNLINK_FRAMES 1000U

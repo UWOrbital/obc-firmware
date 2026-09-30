@@ -1,29 +1,27 @@
 #include "downlink_encoder.h"
-#include "cc1120_txrx.h"
-#include "obc_board_config.h"
-#include "obc_gs_ax25.h"
-#include "obc_gs_commands_response.h"
-#include "obc_gs_fec.h"
-
-#include "obc_gs_telemetry_pack.h"
-#include "obc_sci_io.h"
-#include "telemetry_fs_utils.h"
-#include "telemetry_manager.h"
-
-#include "comms_manager.h"
-#include "obc_errors.h"
-#include "obc_logging.h"
-#include "obc_reliance_fs.h"
-#include "obc_scheduler_config.h"
 
 #include <FreeRTOS.h>
+#include <gio.h>
 #include <os_portmacro.h>
 #include <os_queue.h>
 #include <os_task.h>
-
-#include <gio.h>
 #include <stdint.h>
 #include <sys_common.h>
+
+#include "cc1120_txrx.h"
+#include "comms_manager.h"
+#include "obc_board_config.h"
+#include "obc_errors.h"
+#include "obc_gs_ax25.h"
+#include "obc_gs_commands_response.h"
+#include "obc_gs_fec.h"
+#include "obc_gs_telemetry_pack.h"
+#include "obc_logging.h"
+#include "obc_reliance_fs.h"
+#include "obc_scheduler_config.h"
+#include "obc_sci_io.h"
+#include "telemetry_fs_utils.h"
+#include "telemetry_manager.h"
 
 #define COMMS_TELEM_ENCODE_QUEUE_LENGTH 2U
 #define COMMS_TELEM_ENCODE_QUEUE_ITEM_SIZE sizeof(encode_event_t)  // Size of the telemetry batch ID

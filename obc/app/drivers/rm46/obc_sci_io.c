@@ -1,18 +1,18 @@
 #include "obc_sci_io.h"
-#include "obc_assert.h"
-#include "obc_board_config.h"
-#include "obc_errors.h"
 
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
 #include <os_portmacro.h>
 #include <os_semphr.h>
 #include <os_task.h>
-
 #include <sci.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#include "obc_assert.h"
+#include "obc_board_config.h"
+#include "obc_errors.h"
 
 static SemaphoreHandle_t sciReadMutex = NULL;
 static SemaphoreHandle_t sciWriteMutex = NULL;

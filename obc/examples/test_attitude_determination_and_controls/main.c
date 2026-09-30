@@ -1,15 +1,14 @@
+#include <FreeRTOS.h>
+#include <gio.h>
+#include <os_task.h>
+#include <sci.h>
+#include <sys_common.h>
+#include <sys_core.h>
+
 #include "attitude_control.h"
 #include "attitude_determination_and_vehi.h"
 #include "onboard_env_modelling_types.h"
 #include "vn100.h"
-
-#include <FreeRTOS.h>
-#include <os_task.h>
-
-#include <sys_common.h>
-#include <sys_core.h>
-#include <gio.h>
-#include <sci.h>
 
 static StaticTask_t taskBuffer;
 static StackType_t taskStack[1024];

@@ -1,10 +1,10 @@
 #pragma once
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "obc_errors.h"
 #include "obc_gs_telemetry_data.h"
-
-#include <stdint.h>
-#include <stddef.h>
 
 /**
  * @brief	Adds a telemetry data point to the telemetry queue

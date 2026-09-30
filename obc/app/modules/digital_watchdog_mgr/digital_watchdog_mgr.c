@@ -1,12 +1,12 @@
 #include "digital_watchdog_mgr.h"
-#include "obc_digital_watchdog.h"
-#include "obc_privilege.h"
-#include "obc_scheduler_config.h"
-#include "obc_logging.h"
-
-#include <system.h>
 
 #include <stdint.h>
+#include <system.h>
+
+#include "obc_digital_watchdog.h"
+#include "obc_logging.h"
+#include "obc_privilege.h"
+#include "obc_scheduler_config.h"
 
 // Must feed the watchdog before the timeout period expires
 // This value should provide some margin

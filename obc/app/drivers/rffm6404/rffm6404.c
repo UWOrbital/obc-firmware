@@ -1,8 +1,8 @@
-#include "obc_errors.h"
-#include "obc_logging.h"
 #include "gio.h"
 #include "max5360.h"
 #include "obc_board_config.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
 
 /* See Page 4 of the RFFM6404 datasheet for truth table explaining necessary pin values for each mode */
 

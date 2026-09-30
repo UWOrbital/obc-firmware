@@ -1,10 +1,11 @@
 #include "ov5642.h"
 
-#include "ov5642_config.h"
-#include "obc_logging.h"
-#include "obc_i2c_io.h"
-
+#include <FreeRTOS.h>
 #include <os_semphr.h>
+
+#include "obc_i2c_io.h"
+#include "obc_logging.h"
+#include "ov5642_config.h"
 
 // Camera Img Sensor (I2C) defines
 #define CAM_I2C_ADDR 0x3C

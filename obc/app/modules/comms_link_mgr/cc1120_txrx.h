@@ -1,11 +1,10 @@
 #pragma once
 
-#include "obc_errors.h"
-
-#include <stdint.h>
-
 #include <FreeRTOS.h>
 #include <os_semphr.h>
+#include <stdint.h>
+
+#include "obc_errors.h"
 
 /**
  * @brief Initializes all of the semaphores that will be used by cc1120Send and cc1120Receive

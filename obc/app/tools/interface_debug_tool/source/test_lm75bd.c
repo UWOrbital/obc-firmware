@@ -1,7 +1,8 @@
 #include "test_lm75bd.h"
+
 #include "lm75bd.h"
-#include "obc_sci_io.h"
 #include "obc_print.h"
+#include "obc_sci_io.h"
 
 #define EXPECTED_TEMP_RANGE1 10.0f
 #define EXPECTED_TEMP_RANGE2 30.0f

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "obc_errors.h"
-
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "obc_errors.h"
 
 /**
  * @brief parses the completely decoded data and sends it to the command manager and detects end of transmission

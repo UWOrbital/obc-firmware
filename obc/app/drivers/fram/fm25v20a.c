@@ -1,13 +1,14 @@
-#include <stdlib.h>
 #include "fm25v20a.h"
-#include <FreeRTOS.h>
 
-#include "spi.h"
-#include "obc_spi_io.h"
-#include "obc_logging.h"
-#include "obc_errors.h"
-#include "obc_board_config.h"
+#include <FreeRTOS.h>
+#include <stdlib.h>
 #include <sys_common.h>
+
+#include "obc_board_config.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
+#include "obc_spi_io.h"
+#include "spi.h"
 
 // SPI values
 static spiDAT1_t framSPIDataFmt = {.CS_HOLD = 0, .CSNR = SPI_CS_NONE, .DFSEL = FRAM_spiFMT, .WDEL = 0};

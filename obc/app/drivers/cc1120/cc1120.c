@@ -1,8 +1,9 @@
 #include "cc1120.h"
+
 #include "cc1120_defs.h"
 #include "cc1120_mcu.h"
-#include "obc_logging.h"
 #include "obc_board_config.h"
+#include "obc_logging.h"
 
 #define READ_BIT 1 << 7
 #define BURST_BIT 1 << 6

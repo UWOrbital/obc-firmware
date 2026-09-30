@@ -1,16 +1,14 @@
-#include "obc_spi_io.h"
-#include "obc_sci_io.h"
-#include "obc_print.h"
-
 #include <FreeRTOS.h>
 #include <os_task.h>
-
-#include <sys_common.h>
+#include <redposix.h>
 #include <sci.h>
 #include <spi.h>
-
-#include <redposix.h>
 #include <string.h>
+#include <sys_common.h>
+
+#include "obc_print.h"
+#include "obc_sci_io.h"
+#include "obc_spi_io.h"
 
 #define UART_MUTEX_BLOCK_TIME portMAX_DELAY
 

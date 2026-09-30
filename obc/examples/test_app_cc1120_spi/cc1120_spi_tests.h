@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+
 #include "cc1120.h"
 #include "obc_logging.h"
 

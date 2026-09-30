@@ -1,9 +1,10 @@
 #include "obc_time_utils.h"
-#include "obc_errors.h"
-#include "ds3232_mz.h"
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+
+#include "ds3232_mz.h"
+#include "obc_errors.h"
 
 obc_error_code_t datetimeToUnix(rtc_date_time_t *datetime, uint32_t *unixTime) {
   if (datetime == NULL || unixTime == NULL) {

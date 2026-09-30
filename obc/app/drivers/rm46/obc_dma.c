@@ -1,7 +1,8 @@
 #include "obc_dma.h"
-#include "obc_spi_dma.h"
 
 #include <sys_dma.h>
+
+#include "obc_spi_dma.h"
 
 void dmaGroupANotification(dmaInterrupt_t inttype, uint32 channel) {
   switch (inttype) {

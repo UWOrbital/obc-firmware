@@ -1,13 +1,14 @@
-#include "obc_errors.h"
-#include "obc_assert.h"
-#include "obc_board_config.h"
 #include "obc_print.h"
-#include "obc_logging.h"
 
 #include <sci.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#include "obc_assert.h"
+#include "obc_board_config.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
 
 #define OBC_UART_BAUD_RATE 115200
 #define UART_MUTEX_BLOCK_TIME portMAX_DELAY

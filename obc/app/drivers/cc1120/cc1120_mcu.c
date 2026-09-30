@@ -1,4 +1,5 @@
 #include "cc1120_mcu.h"
+
 #include "obc_spi_io.h"
 
 static const spiDAT1_t spiConfig = {.CS_HOLD = false, .WDEL = false, .DFSEL = CC1120_SPI_FMT, .CSNR = SPI_CS_NONE};

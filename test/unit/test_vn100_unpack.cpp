@@ -1,10 +1,9 @@
-#include "vn100_binary_parsing.h"
-#include "obc_errors.h"
-
+#include <gtest/gtest.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <gtest/gtest.h>
+#include "obc_errors.h"
+#include "vn100_binary_parsing.h"
 
 TEST(TestVn100PackUnpack, ValidVn100PackUnpack) {
   const uint8_t header[] = {0xFA, 0x01, 0x28, 0x05};

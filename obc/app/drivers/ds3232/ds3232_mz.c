@@ -1,11 +1,12 @@
 #include "ds3232_mz.h"
-#include "obc_i2c_io.h"
-#include "obc_errors.h"
-#include "obc_logging.h"
-#include "obc_bit_ops.h"
 
-#include <stdint.h>
 #include <gio.h>
+#include <stdint.h>
+
+#include "obc_bit_ops.h"
+#include "obc_errors.h"
+#include "obc_i2c_io.h"
+#include "obc_logging.h"
 
 #define DS3232_I2C_ADDRESS 0x68U
 

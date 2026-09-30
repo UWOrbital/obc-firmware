@@ -1,6 +1,7 @@
 #include "obc_reset.h"
-#include "reg_system.h"
+
 #include "obc_privilege.h"
+#include "reg_system.h"
 
 #define RESET_SYSTEM_MASK (1 << 15)
 

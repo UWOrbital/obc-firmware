@@ -1,14 +1,14 @@
-#include "obc_errors.h"
-#include "obc_gs_crc.h"
-
 #include "vn100_binary_parsing.h"
-#include "data_unpack_utils.h"
 
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <stdio.h>
+
+#include "data_unpack_utils.h"
+#include "obc_errors.h"
+#include "obc_gs_crc.h"
 
 /* ------------------------------------------- Packet Error Checking ------------------------------------*/
 #define DEFAULT_SYNC_BYTE 0xFA

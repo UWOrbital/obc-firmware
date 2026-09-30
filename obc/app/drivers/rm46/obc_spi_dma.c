@@ -1,14 +1,15 @@
 #include "obc_spi_dma.h"
-#include "spi.h"
-#include "sys_dma.h"
+
+#include <FreeRTOS.h>
+#include <os_semphr.h>
+
+#include "obc_dma.h"
 #include "obc_errors.h"
 #include "obc_logging.h"
 #include "obc_privilege.h"
 #include "obc_spi_io.h"
-#include "obc_dma.h"
-
-#include <FreeRTOS.h>
-#include <os_semphr.h>
+#include "spi.h"
+#include "sys_dma.h"
 
 #define SPI_NOTIFICATION_DMA_REQ 0x10000
 

@@ -1,16 +1,15 @@
+#include <FreeRTOS.h>
+#include <adc.h>
+#include <os_task.h>
+#include <sci.h>
+#include <sys_common.h>
+#include <sys_core.h>
+
 #include "obc_adc.h"
-#include "obc_sci_io.h"
 #include "obc_errors.h"
 #include "obc_print.h"
 #include "obc_scheduler_config.h"
-
-#include <FreeRTOS.h>
-#include <os_task.h>
-#include <sci.h>
-#include <adc.h>
-
-#include <sys_common.h>
-#include <sys_core.h>
+#include "obc_sci_io.h"
 
 static StaticTask_t taskBuffer;
 static StackType_t taskStack[1024];

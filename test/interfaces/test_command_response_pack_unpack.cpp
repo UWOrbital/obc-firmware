@@ -1,15 +1,16 @@
 
-#include "obc_gs_command_id.h"
-#include "obc_gs_commands_response_pack.h"
-#include "obc_gs_commands_response_unpack.h"
-#include "obc_gs_fec.h"
-#include "obc_gs_commands_response.h"
-#include "data_unpack_utils.h"
-#include "obc_gs_errors.h"
-
-#include <iostream>
 #include <gtest/gtest.h>
 #include <stdbool.h>
+
+#include <iostream>
+
+#include "data_unpack_utils.h"
+#include "obc_gs_command_id.h"
+#include "obc_gs_commands_response.h"
+#include "obc_gs_commands_response_pack.h"
+#include "obc_gs_commands_response_unpack.h"
+#include "obc_gs_errors.h"
+#include "obc_gs_fec.h"
 
 TEST(pack_unpack_command_responses, packResponse) {
   cmd_response_header_t cmdResponse = {.cmdId = CMD_EXEC_OBC_RESET, .errCode = CMD_RESPONSE_SUCCESS, .dataLen = 2};

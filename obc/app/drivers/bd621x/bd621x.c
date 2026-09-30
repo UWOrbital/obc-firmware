@@ -1,10 +1,10 @@
-#include "het.h"
-
 #include "bd621x.h"
-#include "obc_errors.h"
-#include "obc_logging.h"
 
 #include <stdlib.h>
+
+#include "het.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
 
 // Datasheet reference: https://fscdn.rohm.com/en/products/databook/datasheet/ic/motor/dc/bd621x-e.pdf
 

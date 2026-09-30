@@ -1,11 +1,12 @@
 #include "bl_uart.h"
-#include "bl_time.h"
-#include "obc_errors.h"
-#include "sci.h"
 
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#include "bl_time.h"
+#include "obc_errors.h"
+#include "sci.h"
 
 /* DEFINES */
 #define BL_UART_SCIREG_BAUD 115200U

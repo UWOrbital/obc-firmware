@@ -1,16 +1,15 @@
-#include "obc_sci_io.h"
-#include "obc_print.h"
-#include "obc_spi_io.h"
-#include "obc_errors.h"
-#include "obc_persistent.h"
-#include "fm25v20a.h"
-
 #include <FreeRTOS.h>
 #include <os_task.h>
-
-#include <sys_common.h>
 #include <sci.h>
 #include <spi.h>
+#include <sys_common.h>
+
+#include "fm25v20a.h"
+#include "obc_errors.h"
+#include "obc_persistent.h"
+#include "obc_print.h"
+#include "obc_sci_io.h"
+#include "obc_spi_io.h"
 
 static StaticTask_t taskBuffer;
 static StackType_t taskStack[1024];

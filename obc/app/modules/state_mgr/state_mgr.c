@@ -1,23 +1,23 @@
 #include "state_mgr.h"
-#include "comms_manager.h"  // for comms_state_t
-#include "obc_board_config.h"
-#include "obc_errors.h"
-#include "obc_logging.h"
-#include "obc_reliance_fs.h"
-#include "obc_scheduler_config.h"
-#include "obc_time.h"
-
-#include "fm25v20a.h"
-#include "lm75bd.h"  // TODO: Handle within thermal manager
-#include "cc1120_txrx.h"
-#include "cc1120.h"
-#include "arducam.h"
 
 #include <FreeRTOS.h>
 #include <os_portmacro.h>
 #include <os_queue.h>
 #include <os_task.h>
 #include <sys_common.h>
+
+#include "arducam.h"
+#include "cc1120.h"
+#include "cc1120_txrx.h"
+#include "comms_manager.h"  // for comms_state_t
+#include "fm25v20a.h"
+#include "lm75bd.h"  // TODO: Handle within thermal manager
+#include "obc_board_config.h"
+#include "obc_errors.h"
+#include "obc_logging.h"
+#include "obc_reliance_fs.h"
+#include "obc_scheduler_config.h"
+#include "obc_time.h"
 
 #if defined(DEBUG) && !defined(OBC_REVISION_2)
 #include <gio.h>

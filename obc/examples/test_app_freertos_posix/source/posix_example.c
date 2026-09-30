@@ -1,8 +1,9 @@
 #include "posix_example.h"
-#include "console.h"
 
 #include <FreeRTOS.h>
 #include <os_task.h>
+
+#include "console.h"
 
 void vDummyTask(void* pvParameters) {
   while (1) {

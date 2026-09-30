@@ -1,9 +1,10 @@
 #include "mpu6050.h"
-#include "obc_sci_io.h"
-#include "obc_i2c_io.h"
 
 #include <sci.h>
 #include <stdio.h>
+
+#include "obc_i2c_io.h"
+#include "obc_sci_io.h"
 
 #define UART_MUTEX_BLOCK_TIME portMAX_DELAY
 #define I2C_TRANSFER_TIMEOUT pdMS_TO_TICKS(100)

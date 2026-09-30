@@ -1,8 +1,7 @@
+#include "alarm_handler.h"
+#include "cc1120_txrx.h"
 #include "gio.h"
 #include "hal_stdtypes.h"
-
-#include "cc1120_txrx.h"
-#include "alarm_handler.h"
 #include "obc_board_config.h"
 #include "tpl5010.h"
 

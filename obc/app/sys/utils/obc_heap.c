@@ -1,8 +1,7 @@
-#include "sys_heap.h"
-#include "obc_privilege.h"
-
 #include "FreeRTOS.h"
+#include "obc_privilege.h"
 #include "os_portable.h"
+#include "sys_heap.h"
 
 /**
  * @brief Allocates a block of size bytes of memory, returning a pointer to the beginning of the block.

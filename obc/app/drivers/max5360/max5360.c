@@ -1,9 +1,10 @@
 #include "max5360.h"
-#include "obc_errors.h"
-#include "obc_logging.h"
-#include "obc_i2c_io.h"
 
 #include <stdint.h>
+
+#include "obc_errors.h"
+#include "obc_i2c_io.h"
+#include "obc_logging.h"
 
 #define DAC_ADDRESS 0x60U
 #define DAC_VREF_VALUE 2U

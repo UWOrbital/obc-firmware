@@ -1,11 +1,12 @@
 #include "lm75bd.h"
+
+#include <math.h>
+#include <stdint.h>
+
+#include "obc_assert.h"
+#include "obc_errors.h"
 #include "obc_i2c_io.h"
 #include "obc_logging.h"
-#include "obc_errors.h"
-#include "obc_assert.h"
-
-#include <stdint.h>
-#include <math.h>
 
 #define LM75BD_I2C_BASE_ADDR 0x9U
 

@@ -1,9 +1,8 @@
 #include "arducam.h"
 
-#include "ov5642_config.h"
-
-#include "obc_spi_io.h"
 #include "obc_board_config.h"
+#include "obc_spi_io.h"
+#include "ov5642_config.h"
 #include "spi.h"
 
 // Constants

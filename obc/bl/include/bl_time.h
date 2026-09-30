@@ -1,6 +1,7 @@
 #pragma once
-#include "rti.h"
 #include <sci.h>
+
+#include "rti.h"
 
 /* Initalizes the timer */
 void blInitTick();

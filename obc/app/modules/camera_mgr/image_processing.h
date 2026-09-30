@@ -1,9 +1,9 @@
 #pragma once
 
-#include "obc_errors.h"
-
 #include <stddef.h>
 #include <stdint.h>
+
+#include "obc_errors.h"
 
 /**
  * @brief A struct to store an image

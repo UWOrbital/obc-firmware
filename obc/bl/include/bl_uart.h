@@ -1,8 +1,9 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "obc_board_config.h"
 #include "obc_errors.h"
-#include <stdint.h>
 
 /**
  * @brief Initialize the UART module

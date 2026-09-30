@@ -1,21 +1,22 @@
+#include "command_manager.h"
+
+#include <FreeRTOS.h>
+#include <os_queue.h>
+#include <os_task.h>
+#include <stdint.h>
+#include <sys_common.h>
+
 #include "alarm_handler.h"
 #include "command.h"
-#include "command_manager.h"
 #include "downlink_encoder.h"
-#include "obc_gs_command_data.h"
 #include "obc_errors.h"
+#include "obc_gs_command_data.h"
 #include "obc_gs_command_id.h"
 #include "obc_gs_commands_response.h"
 #include "obc_gs_commands_response_pack.h"
 #include "obc_gs_errors.h"
 #include "obc_gs_fec.h"
 #include "obc_logging.h"
-
-#include <FreeRTOS.h>
-#include <stdint.h>
-#include <sys_common.h>
-#include <os_task.h>
-#include <os_queue.h>
 
 #define COMMAND_QUEUE_LENGTH 25UL
 #define COMMAND_QUEUE_ITEM_SIZE sizeof(cmd_msg_t)

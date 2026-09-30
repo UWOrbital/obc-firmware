@@ -1,13 +1,13 @@
-#include "obc_spi_io.h"
-#include "obc_print.h"
-#include "obc_gs_fec.h"
-
 #include <gio.h>
 #include <sci.h>
 #include <spi.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "obc_gs_fec.h"
+#include "obc_print.h"
+#include "obc_spi_io.h"
 
 static StaticTask_t taskBuffer;
 static StackType_t taskStack[1024];

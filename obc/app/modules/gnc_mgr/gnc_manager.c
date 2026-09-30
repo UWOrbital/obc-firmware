@@ -1,24 +1,24 @@
-#include "obc_digital_watchdog.h"
-#include "digital_watchdog_mgr.h"
-#include "obc_errors.h"
-#include "obc_scheduler_config.h"
-#include "obc_print.h"
-#include "obc_logging.h"
-#include "obc_general_util.h"
 #include "gnc_manager.h"
-#include "attitude_control.h"
-#include "attitude_determination_and_vehi.h"
-#include "onboard_env_modelling.h"
-#include "vn100.h"
-#include "bd621x.h"
 
 #include <FreeRTOS.h>
+#include <gio.h>
+#include <math.h>
 #include <os_portmacro.h>
 #include <os_task.h>
 #include <sys_common.h>
-#include <gio.h>
 
-#include <math.h>
+#include "attitude_control.h"
+#include "attitude_determination_and_vehi.h"
+#include "bd621x.h"
+#include "digital_watchdog_mgr.h"
+#include "obc_digital_watchdog.h"
+#include "obc_errors.h"
+#include "obc_general_util.h"
+#include "obc_logging.h"
+#include "obc_print.h"
+#include "obc_scheduler_config.h"
+#include "onboard_env_modelling.h"
+#include "vn100.h"
 
 #define DEFAULT_GNC_TASK_PERIOD_MS 50 /* 50ms period or 20Hz */
 #define MAX_GNC_TASK_PERIOD_MS 100

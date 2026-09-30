@@ -1,19 +1,19 @@
-#include "obc_gs_ax25.h"
-#include "obc_gs_fec.h"
-#include "obc_gs_aes128.h"
-#include "obc_gs_errors.h"
-#include "obc_gs_command_pack.h"
-#include "obc_gs_command_unpack.h"
-#include "obc_gs_command_data.h"
-#include "obc_gs_command_id.h"
-
+#include <gtest/gtest.h>
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 
-#include <gtest/gtest.h>
-#include <stdio.h>
 #include <cstdint>
 #include <iostream>
+
+#include "obc_gs_aes128.h"
+#include "obc_gs_ax25.h"
+#include "obc_gs_command_data.h"
+#include "obc_gs_command_id.h"
+#include "obc_gs_command_pack.h"
+#include "obc_gs_command_unpack.h"
+#include "obc_gs_errors.h"
+#include "obc_gs_fec.h"
 
 // TEST: A simulated send with the entire pipline (some bits are also flipped before sending to test fec)
 TEST(TestEncodeDecode, sendData) {

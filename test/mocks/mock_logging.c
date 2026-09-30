@@ -1,9 +1,9 @@
-#include "obc_logging.h"
-#include "obc_errors.h"
-
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#include "obc_errors.h"
+#include "obc_logging.h"
 
 static log_level_t logLevel;
 static log_output_location_t outputLocation;

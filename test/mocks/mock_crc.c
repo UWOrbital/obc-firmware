@@ -1,11 +1,10 @@
 // Copied from obc/reliance_edge/util/crc.c with RED function calls removed
-#include "obc_crc.h"
-
-#include "obc_errors.h"
-
-#include <stdint.h>
 #include <redconf.h>
 #include <redmacs.h>
+#include <stdint.h>
+
+#include "obc_crc.h"
+#include "obc_errors.h"
 
 #define SUSPICIOUS_CRC_VALUE (0xBAADC0DEU)
 
