@@ -14,7 +14,6 @@
 #include "obc_logging.h"
 #include "obc_assert.h"
 #include "obc_board_config.h"
-#include "obc_spi_dma.h"
 
 /* This driver logs errors. If the logging output is set to the
    microSD card, this driver will log errors to itself, which
@@ -92,12 +91,6 @@ static spiDAT1_t sdcSpiConfig = {
 static volatile DSTATUS stat = STA_NOINIT; /* Disk status */
 static uint8_t cardType;                   /* Card type flags: b0:MMC, b1:SDC, b2:Block addressing */
 static sdc_power_t powerFlag = POWER_OFF;  /* indicates if "power" is on */
-
-#define SDC_DMA_MUTEX_TIMEOUT_MS 1000U
-#define SDC_DMA_TRANSFER_TIMEOUT_MS 1000U
-
-static uint16_t sdcDmaTxBuf[SD_SECTOR_SIZE];
-static uint16_t sdcDmaRxBuf[SD_SECTOR_SIZE];
 
 /*---------------------------------------------*/
 /* SD Card Private Functions                   */
@@ -177,7 +170,7 @@ static bool rcvDataBlock(uint8_t *buff, uint32_t btr) {
 
   // Assume CS is already asserted
 
-  if (btr % 2 != 0 || btr > SD_SECTOR_SIZE)  // Must be an even number and within buffer size
+  if (btr % 2 != 0)  // Must be an even number
     return false;
 
   uint8_t token = 0xFF;
@@ -192,19 +185,11 @@ static bool rcvDataBlock(uint8_t *buff, uint32_t btr) {
   /* If not valid data token, return with error */
   if (token != SDC_CMD17_DATA_TOKEN) return false;
 
-  /* Prepare TX buffer with 0xFF to keep MOSI high while clocking */
-  for (uint32_t i = 0; i < btr; i++) {
-    sdcDmaTxBuf[i] = SDC_MOSI_HIGH;
-  }
-
-  /* Receive the data block into buffer via DMA */
-  LOG_IF_ERROR_CODE(dmaSpiTransmitandReceiveBytes(SDC_SPI_REG, sdcDmaTxBuf, sdcDmaRxBuf, btr,
-                                                 SDC_DMA_MUTEX_TIMEOUT_MS, SDC_DMA_TRANSFER_TIMEOUT_MS));
-  if (errCode != OBC_ERR_CODE_SUCCESS) return false;
-
-  /* Unpack 16-bit DMA words into 8-bit output buffer */
-  for (uint32_t i = 0; i < btr; i++) {
-    buff[i] = (uint8_t)(sdcDmaRxBuf[i] & 0xFFU);
+  /* Receive the data block into buffer */
+  while (btr) {
+    LOG_IF_ERROR_CODE(spiTransmitAndReceiveByte(SDC_SPI_REG, &sdcSpiConfig, SDC_MOSI_HIGH, buff++));
+    LOG_IF_ERROR_CODE(spiTransmitAndReceiveByte(SDC_SPI_REG, &sdcSpiConfig, SDC_MOSI_HIGH, buff++));
+    btr -= 2;
   }
 
   /* Discard CRC */
@@ -233,15 +218,10 @@ static bool sendDataBlock(const uint8_t *buff, uint8_t token) {
   LOG_IF_ERROR_CODE(spiTransmitByte(SDC_SPI_REG, &sdcSpiConfig, token));  // Send token
 
   if (token != SD_STOP_TRANSMISSION) {
-    /* Pack 8-bit data into 16-bit DMA TX buffer */
-    for (uint32_t i = 0; i < SD_SECTOR_SIZE; i++) {
-      sdcDmaTxBuf[i] = (uint16_t)buff[i];
+    for (unsigned int wc = 0; wc < SD_SECTOR_SIZE; wc++) {
+      // Send the data block
+      LOG_IF_ERROR_CODE(spiTransmitByte(SDC_SPI_REG, &sdcSpiConfig, *buff++));
     }
-
-    /* Transmit 512 bytes via DMA (sdcDmaRxBuf receives discarded incoming words) */
-    LOG_IF_ERROR_CODE(dmaSpiTransmitandReceiveBytes(SDC_SPI_REG, sdcDmaTxBuf, sdcDmaRxBuf, SD_SECTOR_SIZE,
-                                                   SDC_DMA_MUTEX_TIMEOUT_MS, SDC_DMA_TRANSFER_TIMEOUT_MS));
-    if (errCode != OBC_ERR_CODE_SUCCESS) return false;
 
     // Send dummy CRC
     LOG_IF_ERROR_CODE(spiTransmitByte(SDC_SPI_REG, &sdcSpiConfig, 0xFF));
@@ -452,8 +432,6 @@ DSTATUS disk_initialize(uint8_t drv) {
 
   if (ty) {
     stat &= ~STA_NOINIT;  // Clear STA_NOINIT
-    initDmaSpiSemaphores();
-    LOG_IF_ERROR_CODE(spiDmaInit(SDC_SPI_REG));
   } else {
     turnOffSDC();  // Initialization failed
   }
