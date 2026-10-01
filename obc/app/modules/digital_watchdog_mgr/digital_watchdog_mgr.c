@@ -5,6 +5,7 @@
 #include "obc_logging.h"
 
 #include <system.h>
+#include <sys_common.h>
 
 #include <stdint.h>
 
@@ -118,7 +119,7 @@ void obcTaskFunctionSwWatchdog(void *params) {
   // have a valid missed check in severity
   for (uint8_t i = 0; i < OBC_SCHEDULER_TASK_COUNT; i++) {
     digitalWatchdogTaskCheckIn(i);
-    assert(watchdogTaskArray[i].taskMissedCheckInSeverity >= WATCHDOG_MISSED_CHECK_IN_SYSTEM_RESET &&
+    ASSERT(watchdogTaskArray[i].taskMissedCheckInSeverity >= WATCHDOG_MISSED_CHECK_IN_SYSTEM_RESET &&
            watchdogTaskArray[i].taskMissedCheckInSeverity <= WATCHDOG_MISSED_CHECK_IN_NOTHING);
   }
 
