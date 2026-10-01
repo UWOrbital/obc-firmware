@@ -30,9 +30,16 @@
 #define TASK_DIGITAL_WATCHDOG_MGR_WATCHDOG_TIMEOUT portMAX_DELAY
 #define TASK_GNC_MGR_WATCHDOG_TIMEOUT pdMS_TO_TICKS(100)
 
+typedef enum {
+  WATCHDOG_MISSED_CHECK_IN_SYSTEM_RESET,
+  WATCHDOG_MISSED_CHECK_IN_LOG_ERROR,
+  WATCHDOG_MISSED_CHECK_IN_NOTHING
+} watchdog_missed_check_in_severity_t;
+
 typedef struct {
   uint32_t taskTimeoutTicks;
   uint32_t taskLastCheckInTick;
+  watchdog_missed_check_in_severity_t taskMissedCheckInSeverity;
 } watchdog_task_info_t;
 
 static watchdog_task_info_t watchdogTaskArray[] = {
@@ -107,13 +114,16 @@ void obcTaskFunctionSwWatchdog(void *params) {
 
   initDigitalWatchdog();
 
-  // initialize all tasks as checked in
+  // initialize all tasks as checked in and ensure all tasks
+  // have a valid missed check in severity
   for (uint8_t i = 0; i < OBC_SCHEDULER_TASK_COUNT; i++) {
     digitalWatchdogTaskCheckIn(i);
+    assert(watchdogTaskArray[i].taskMissedCheckInSeverity >= WATCHDOG_MISSED_CHECK_IN_SYSTEM_RESET &&
+           watchdogTaskArray[i].taskMissedCheckInSeverity <= WATCHDOG_MISSED_CHECK_IN_NOTHING);
   }
 
   while (1) {
-    bool allTasksCheckedIn = true;
+    bool needSystemReset = false;
     TickType_t currentTick = xTaskGetTickCount();
     uint8_t i;
     for (i = 0; i < OBC_SCHEDULER_TASK_COUNT; i++) {
@@ -124,16 +134,26 @@ void obcTaskFunctionSwWatchdog(void *params) {
 
       // The task does not respond after timeout period
       if (ticksSinceLastCheckin > watchdogTaskArray[i].taskTimeoutTicks) {
-        allTasksCheckedIn = false;
-        break;
+        switch (watchdogTaskArray[i].taskMissedCheckInSeverity) {
+          case WATCHDOG_MISSED_CHECK_IN_NOTHING:
+            break;
+          case WATCHDOG_MISSED_CHECK_IN_LOG_ERROR:
+            LOG_ERROR_CODE(DIGITAL_WATCHDOG_ERROR_CODE_OFFSET + i);
+            break;
+          case WATCHDOG_MISSED_CHECK_IN_SYSTEM_RESET:
+            LOG_ERROR_CODE(DIGITAL_WATCHDOG_ERROR_CODE_OFFSET + i);
+            needSystemReset = true;
+            break;
+        }
       }
     }
-    if (allTasksCheckedIn) {
-      feedDigitalWatchdog();
+
+    if (needSystemReset) {
+      vTaskSuspend(NULL);
     } else {
-      LOG_ERROR_CODE(DIGITAL_WATCHDOG_ERROR_CODE_OFFSET + i);
-      vTaskSuspend(NULL);  // suspend this task and wait for reset
+      feedDigitalWatchdog();
     }
+
     vTaskDelay(FEEDING_PERIOD);
   }
 }
