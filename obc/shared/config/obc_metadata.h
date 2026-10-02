@@ -15,3 +15,5 @@ typedef struct __attribute__((packed)) {
   uint8_t reserved[6];
   uint32_t crc_addr;
 } metadata_t;
+
+extern const metadata_t app_metadata;

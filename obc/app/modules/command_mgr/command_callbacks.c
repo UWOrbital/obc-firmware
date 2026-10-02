@@ -1,6 +1,7 @@
 #include "obc_gs_command_data.h"
 #include "obc_gs_command_id.h"
 #include "obc_i2c_io.h"
+#include "obc_sci_io.h"
 #include "obc_reset.h"
 #include "obc_errors.h"
 #include "obc_logging.h"
@@ -13,10 +14,18 @@
 #include "command.h"
 #include "obc_general_util.h"
 #include "flash.h"
+#include "obc_metadata.h"
+#include "obc_board_config.h"
 
 #include <redposix.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+
+#define OBC_MAX_MSG_SIZE 64U
+#define APP_WRITE_PACKET_SIZE 208
+
+extern uint32_t __APP_IMAGE_TOTAL_SECTION_SIZE;
 
 static obc_error_code_t execObcResetCmdCallback(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
   if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
@@ -117,7 +126,7 @@ static obc_error_code_t I2CProbeCmdCallback(cmd_msg_t *cmd, uint8_t *responseDat
   return OBC_ERR_CODE_SUCCESS;
 }
 
-static obc_error_code_t eraseAdjacentApp(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+static obc_error_code_t eraseAppBFromAppA(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
   if (cmd == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
@@ -126,7 +135,7 @@ static obc_error_code_t eraseAdjacentApp(cmd_msg_t *cmd, uint8_t *responseData, 
 
   if (app_metadata.occupied_slot == 0) {
     appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
-  } else if (appWriteBFlag == 0) {
+  } else if (app_metadata.occupied_slot == 1) {
     appStartAddress = CUSTOM_START_ADDRESS;
   } else {
     return OBC_ERR_CODE_INVALID_ARG;
@@ -136,16 +145,16 @@ static obc_error_code_t eraseAdjacentApp(cmd_msg_t *cmd, uint8_t *responseData, 
       flashFapiBlockErase((uint32_t)appStartAddress, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1);
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
-    char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
-    int32_t blUartWriteBufferLen =
-        snprintf(blUartWriteBuffer, BL_MAX_MSG_SIZE, "Failed to erase, BL error code: %d\r\n", errCode);
-    if (blUartWriteBufferLen < 0) {
+    char obcUartWriteBuffer[OBC_MAX_MSG_SIZE] = {0};
+    int32_t obcUartWriteBufferLen =
+        snprintf(obcUartWriteBuffer, OBC_MAX_MSG_SIZE, "Failed to erase, BL error code: %d\r\n", errCode);
+    if (obcUartWriteBufferLen < 0) {
       uint8_t msgSize = sizeof("Error with processing message buffer length\r\n");
       memcpy(responseData, "Error with processing message buffer length\r\n", msgSize);
       *responseDataLen = msgSize;
     } else {
-      memcpy(responseData, blUartWriteBuffer, blUartWriteBufferLen);
-      *responseDataLen = blUartWriteBufferLen;
+      memcpy(responseData, obcUartWriteBuffer, obcUartWriteBufferLen);
+      *responseDataLen = obcUartWriteBufferLen;
     }
     return OBC_ERR_CODE_FAILED_FILE_WRITE;
   }
@@ -153,7 +162,7 @@ static obc_error_code_t eraseAdjacentApp(cmd_msg_t *cmd, uint8_t *responseData, 
   return OBC_ERR_CODE_SUCCESS;
 }
 
-static obc_error_code_t downloadAdjacentData(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+static obc_error_code_t downloadAppBFromAppA(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
   if (cmd == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
@@ -166,7 +175,7 @@ static obc_error_code_t downloadAdjacentData(cmd_msg_t *cmd, uint8_t *responseDa
     appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
     flashLowLim = CUSTOM_START_ADDRESS + APP_SIZE;
     flashHighLim = 0x08000000;
-  } else if (appWriteBFlag == 1) {
+  } else if (app_metadata.occupied_slot == 1) {
     appStartAddress = CUSTOM_START_ADDRESS;
     flashLowLim = 0x00400000;
     flashHighLim = CUSTOM_START_ADDRESS + APP_SIZE - 0x00000001;
@@ -195,28 +204,32 @@ static obc_error_code_t downloadAdjacentData(cmd_msg_t *cmd, uint8_t *responseDa
   }
 
   // TODO: Figure out why you need to write a byte here before writing
-  blUartWriteBytes(1, (uint8_t *)"W");
+  sciSend(UART_BL_REG, 1, (uint8_t *)"W");
 
   flash_error_code_t errCode =
       flashFapiBlockWrite(cmd->downloadData.address, (uint32_t)cmd->downloadData.data, cmd->downloadData.length);
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
-    char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
-    int32_t blUartWriteBufferLen =
-        snprintf(blUartWriteBuffer, BL_MAX_MSG_SIZE, "Failed to write, BL error code: %d\r\n", errCode);
-    if (blUartWriteBufferLen < 0) {
+    char obcUartWriteBuffer[OBC_MAX_MSG_SIZE] = {0};
+    int32_t obcUartWriteBufferLen =
+        snprintf(obcUartWriteBuffer, OBC_MAX_MSG_SIZE, "Failed to write, BL error code: %d\r\n", errCode);
+    if (obcUartWriteBufferLen < 0) {
       uint8_t msgSize = sizeof("Error with processing message buffer length\r\n");
       memcpy(responseData, "Error with processing message buffer length\r\n", msgSize);
       *responseDataLen = msgSize;
     } else {
-      memcpy(responseData, blUartWriteBuffer, blUartWriteBufferLen);
-      *responseDataLen = blUartWriteBufferLen;
+      memcpy(responseData, obcUartWriteBuffer, obcUartWriteBufferLen);
+      *responseDataLen = obcUartWriteBufferLen;
     }
     return OBC_ERR_CODE_FAILED_FILE_WRITE;
   }
 
   return OBC_ERR_CODE_SUCCESS;
 }
+
+static obc_error_code_t eraseAppAFromAppB(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {}
+
+static obc_error_code_t downloadAppAFromAppB(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {}
 
 const cmd_info_t cmdsConfig[] = {
     [CMD_END_OF_FRAME] = {NULL, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
@@ -228,8 +241,10 @@ const cmd_info_t cmdsConfig[] = {
     [CMD_PING] = {pingCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_DOWNLINK_TELEM] = {downlinkTelemCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_I2C_PROBE] = {I2CProbeCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_ERASE_ADJACENT_APP] = {eraseAdjacentApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_DOWNLOAD_ADJACENT_DATA] = {downloadAdjacentData, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_ERASE_APP_B_FROM_APP_A] = {eraseAppBFromAppA, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_ERASE_APP_A_FROM_APP_B] = {eraseAppAFromAppB, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_DOWNLOAD_APP_B_FROM_APP_A] = {downloadAppBFromAppA, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_DOWNLOAD_APP_A_FROM_APP_B] = {downloadAppAFromAppB, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
 };
 
 // This function is purely to trick the compiler into thinking we are using the cmdsConfig variable so we avoid the

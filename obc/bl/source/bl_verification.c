@@ -45,17 +45,17 @@ obc_error_code_t verifyMagicNum(uint32_t magicNum) {
   }
 }
 
-obc_error_code_t verifyMetadata(metadata_t *app_metadata, uint32_t appStartAddress) {
+obc_error_code_t verifyMetadata(metadata_t *app_metadata_pointer, uint32_t appStartAddress) {
   obc_error_code_t errCode;
-  RETURN_IF_ERROR_CODE(verifyMagicNum(app_metadata->magic_num));
-  RETURN_IF_ERROR_CODE(verifyBoardType(app_metadata->board_id));
-  RETURN_IF_ERROR_CODE(verifyCrc(app_metadata->crc_addr, appStartAddress));
+  RETURN_IF_ERROR_CODE(verifyMagicNum(app_metadata_pointer->magic_num));
+  RETURN_IF_ERROR_CODE(verifyBoardType(app_metadata_pointer->board_id));
+  RETURN_IF_ERROR_CODE(verifyCrc(app_metadata_pointer->crc_addr, appStartAddress));
   return OBC_ERR_CODE_SUCCESS;
 }
 
 // NOTE: This function does not check if the crc is written
-obc_error_code_t blAppBlankCheck(metadata_t *app_metadata, uint32_t appStartAddress) {
-  uint16_t writeSections = (app_metadata->crc_addr - appStartAddress) / MEMORY_BLANK_CHECK_SIZE;
+obc_error_code_t blAppBlankCheck(metadata_t *app_metadata_pointer, uint32_t appStartAddress) {
+  uint16_t writeSections = (app_metadata_pointer->crc_addr - appStartAddress) / MEMORY_BLANK_CHECK_SIZE;
 
   for (uint16_t i = 0; i < writeSections; i++) {
     if (flashFapiBlankCheck(appStartAddress + i * MEMORY_BLANK_CHECK_SIZE, MEMORY_BLANK_CHECK_SIZE / 4)) {
@@ -65,8 +65,9 @@ obc_error_code_t blAppBlankCheck(metadata_t *app_metadata, uint32_t appStartAddr
   }
 
   // Any left over memory that needs to be checked
-  if (flashFapiBlankCheck(appStartAddress + writeSections * MEMORY_BLANK_CHECK_SIZE,
-                          (app_metadata->crc_addr - appStartAddress - writeSections * MEMORY_BLANK_CHECK_SIZE))) {
+  if (flashFapiBlankCheck(
+          appStartAddress + writeSections * MEMORY_BLANK_CHECK_SIZE,
+          (app_metadata_pointer->crc_addr - appStartAddress - writeSections * MEMORY_BLANK_CHECK_SIZE))) {
     blUartWriteBytes(strlen("ERROR: Blank check failed \r\n"), (uint8_t *)"ERROR: Blank check failed \r\n");
     return OBC_ERR_CODE_CORRUPTED_APP;
   }

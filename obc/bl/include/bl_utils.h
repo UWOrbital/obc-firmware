@@ -1,10 +1,8 @@
 #pragma once
 
 #include "obc_errors.h"
+#include "bl_app_flag.h"
 #include <stdint.h>
-
-extern uint8_t appBootBFlag;
-extern uint8_t appWriteBFlag;
 
 /**
  * @brief Unpacks and runs a CmdMsg
@@ -14,18 +12,11 @@ extern uint8_t appWriteBFlag;
 obc_error_code_t blRunCommand(uint8_t recvBuffer[]);
 
 /**
- * @brief Chooses which app to boot into
+ * @brief Edits App flag struct in flash
  *
- * @param enableBootAppB 0 to select app A, 1 to select app B. Returns error otherwise.
+ * @param replacement_app_flag App flag struct to be written to flash
  */
-obc_error_code_t blEnableBootApp(uint8_t enableBootAppB);
-
-/**
- * @brief Chooses which app to write to
- *
- * @param enableWriteAppB 0 to select app A, 1 to select app B. Returns error otherwise.
- */
-obc_error_code_t blEnableWriteApp(uint8_t enableWriteAppB);
+obc_error_code_t blEditAppFlag(app_flag_t replacement_app_flag);
 
 /**
  * @brief Checks the integrity of the app and jumps to it's reset vector

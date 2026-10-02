@@ -28,13 +28,13 @@ obc_error_code_t verifyMagicNum(uint32_t magicNum);
 /**
  * @brief Verify's the app metadata using verifyBoardType, verifyCrc, and verifyMagicNum
  *
- * @param app_metadata Address of the app's metadata
+ * @param app_metadata_pointer Address of the app's metadata
  */
-obc_error_code_t verifyMetadata(metadata_t *app_metadata, uint32_t appStartAddress);
+obc_error_code_t verifyMetadata(metadata_t *app_metadata_pointer, uint32_t appStartAddress);
 
 /**
  * @brief Verify there are no blank sectors in the app.
  *
- * @param app_metadata Address of the app's metadata
+ * @param app_metadata_pointer Address of the app's metadata
  */
-obc_error_code_t blAppBlankCheck(metadata_t *app_metadata, uint32_t appStartAddress);
+obc_error_code_t blAppBlankCheck(metadata_t *app_metadata_pointer, uint32_t appStartAddress);

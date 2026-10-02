@@ -30,7 +30,7 @@ option(ENABLE_BL_BYPASS "Write directly to 0x0 and overwrite the bootloader" ON)
 set(APP_SIZE_INPUT "384_KB" CACHE STRING "The size of each app bank")
 
 # Define the app slot option
-set(APP_SLOT "B" CACHE STRING "Which bank to build app to")
+set(APP_SLOT "B" CACHE STRING "Which partition to build app to")
 
 # Set the custom address based on the option
 if(ENABLE_BL_BYPASS)
@@ -324,6 +324,10 @@ target_compile_options(debug-tool.out PRIVATE ${TARGET_OPTIMIZATION_FLAGS})
 target_compile_definitions(debug-tool.out PRIVATE
     ${BOARD_TYPE}
     BOARD_ID=${BOARD_TYPE_TO_INT_MAP}
+    APP_SIZE=${APP_SIZE}
+    APP_ADDRESS_OFFSET=${APP_ADDRESS_OFFSET}
+    CUSTOM_START_ADDRESS=${CUSTOM_START_ADDRESS}
+    APP_SLOT=${APP_SLOT_TO_INT_MAP}
     LOG_DEFAULT_OUTPUT_LOCATION=${LOG_DEFAULT_OUTPUT_LOCATION}
     LOG_DEFAULT_LEVEL=${LOG_DEFAULT_LEVEL}
     LOG_DATE_TIME

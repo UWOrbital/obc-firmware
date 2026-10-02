@@ -6,6 +6,9 @@ _estack = 0x8040000;    /* end of 256K RAM */
 
 _Min_Heap_Size = 0x400;      /* required amount of heap  */
 
+/* The size of the app (used for erasing the app from flash) */
+__APP_IMAGE_TOTAL_SECTION_SIZE = LENGTH(APP_VECTORS) + LENGTH(APP_KERNEL) + LENGTH(APP_FLASH) + LENGTH(APP_METADATA);
+
 SECTIONS
 {
 

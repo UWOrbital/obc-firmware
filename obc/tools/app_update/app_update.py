@@ -23,6 +23,7 @@ from interfaces.obc_gs_interface.commands.python.command_factories import (
     create_cmd_enable_boot_app_b,
     create_cmd_enable_write_app_a,
     create_cmd_enable_write_app_b,
+    create_cmd_erase_adjacent_app,
 )
 
 from interfaces.obc_gs_interface.commands.python.command_response_callbacks import (
@@ -118,6 +119,25 @@ def write_command(
                 raise ValueError(
                     "Data and iteration need to be specified for the write command"
                 )
+        case CmdCallbackId.CMD_DOWNLOAD_ADJACENT_DATA:
+            if (
+                app_data is not None
+                and iteration is not None
+                and is_last_packet is not None
+            ):
+                packed_command = create_app_packet(
+                    iteration, app_data, app_starting_address, is_last_packet
+                )
+                bytes_to_read = RS_DECODED_DATA_SIZE + 1
+                cmd_res_cutoff = 1
+            else:
+                raise ValueError(
+                    "Data and iteration need to be specified for the write command"
+                )
+        case CmdCallbackId.CMD_ERASE_ADJACENT_APP:
+            packed_command = pack_command(create_cmd_erase_adjacent_app()).ljust(
+                RS_DECODED_DATA_SIZE, b"\x00"
+            )
         case CmdCallbackId.CMD_VERIFY_CRC:
             packed_command = pack_command(create_cmd_verify_crc()).ljust(
                 RS_DECODED_DATA_SIZE, b"\x00"
@@ -185,6 +205,7 @@ def send_bin(file_path: str, com_port: str, app_starting_address: int) -> None:
         progress_bar = tqdm(
             desc="Packets Written: ", total=commands_needed, dynamic_ncols=True
         )
+
         for i in range(commands_needed - 1):
             if write_command(
                 ser,
@@ -222,9 +243,9 @@ def main() -> None:
     A function that initializes the com port and path to update the app
     """
 
-    if len(argv) != 5:
+    if len(argv) != 4:
         print(
-            "Five arguments needed: Com Port, Application File Path, app write slot(A/B), and active app slot (A/B)"
+            "Three arguments needed: Com Port, Application File Path, and active app slot (A/B)"
         )
         return
 
@@ -262,28 +283,9 @@ def main() -> None:
                     + ")"
                 )
 
-            if argv[4] == "A":
-                if not write_command(ser, CmdCallbackId.CMD_ENABLE_WRITE_APP_A):
-                    print("Failed to select App A for write")
-                    return
-                app_starting_address = 0x00040000
-                print(
-                    "Successfully set write slot to A, starting Flashing Procedure..."
-                )
-                send_bin(str(path), com_port, app_starting_address)
-            elif argv[4] == "B":
-                if not write_command(ser, CmdCallbackId.CMD_ENABLE_WRITE_APP_B):
-                    print("Failed to select App B for write")
-                    return
-                app_starting_address = 0x000A0000
-                print(
-                    "Successfully set write slot to B, starting Flashing Procedure..."
-                )
-                send_bin(str(path), com_port, app_starting_address)
-            elif argv[4] != "NC":
-                print(
-                    "Invalid app write slot (Expected A/B/NC, recieved " + argv[4] + ")"
-                )
+            # Full app update functionality is yet to be implemented
+
+            send_bin(str(path), com_port, 0x000A0000)
 
             sleep(5)
 

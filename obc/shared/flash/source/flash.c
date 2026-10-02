@@ -12,7 +12,7 @@
 #include <stdbool.h>
 
 /* DEFINES */
-#define BL_FLASH_APP_SECTORS_MASK 0xFF00U  // Sectors 0-7 are reserved for the bootloader
+#define BL_FLASH_APP_SECTORS_MASK 0xFF80U  // Sectors 0-6 are reserved for the bootloader
 #define FLASH_BANK_WIDTH_BYTES 16U         // Programming at an address is limited to the bank width number of bytes
 
 #define SYS_CLK_FREQ 220UL  // MHz
