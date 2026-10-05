@@ -243,22 +243,23 @@ static obc_err_code_t downlinkChallenge(cmd_msg_t *cmd, uint8_t *responseData, u
   return OBC_ERR_CODE_SUCCESS;
 }
 
-static obc_err_code_t uplinkChallenge(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
-  const cmd_info_t cmdsConfig[] = {
-      [CMD_END_OF_FRAME] = {NULL, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-      // TODO: Change this to critial once critical commands are implemented
-      [CMD_EXEC_OBC_RESET] = {execObcResetCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-      [CMD_RTC_SYNC] = {rtcSyncCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-      [CMD_DOWNLINK_LOGS_NEXT_PASS] = {downlinkLogsNextPassCmdCallback, CMD_POLICY_PROD, CMD_TYPE_CRITICAL},
-      [CMD_MICRO_SD_FORMAT] = {microSDFormatCmdCallback, CMD_POLICY_PROD, CMD_TYPE_CRITICAL},
-      [CMD_PING] = {pingCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-      [CMD_DOWNLINK_TELEM] = {downlinkTelemCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-      [CMD_I2C_PROBE] = {I2CProbeCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-      [CMD_OBC_ERASE_APP] = {obcEraseApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-      [CMD_OBC_WRITE_APP] = {obcWriteApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-      [CMD_OBC_SET_PROGRAMMING_SESSION] = {obcWriteApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-  };
+static obc_err_code_t uplinkChallenge(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {}
 
-  // This function is purely to trick the compiler into thinking we are using the cmdsConfig variable so we avoid the
-  // unused variable error
-  void unusedFunc() { UNUSED(cmdsConfig); }
+const cmd_info_t cmdsConfig[] = {
+    [CMD_END_OF_FRAME] = {NULL, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    // TODO: Change this to critial once critical commands are implemented
+    [CMD_EXEC_OBC_RESET] = {execObcResetCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_RTC_SYNC] = {rtcSyncCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_DOWNLINK_LOGS_NEXT_PASS] = {downlinkLogsNextPassCmdCallback, CMD_POLICY_PROD, CMD_TYPE_CRITICAL},
+    [CMD_MICRO_SD_FORMAT] = {microSDFormatCmdCallback, CMD_POLICY_PROD, CMD_TYPE_CRITICAL},
+    [CMD_PING] = {pingCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_DOWNLINK_TELEM] = {downlinkTelemCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_I2C_PROBE] = {I2CProbeCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_OBC_ERASE_APP] = {obcEraseApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_OBC_WRITE_APP] = {obcWriteApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_OBC_SET_PROGRAMMING_SESSION] = {obcWriteApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+};
+
+// This function is purely to trick the compiler into thinking we are using the cmdsConfig variable so we avoid the
+// unused variable error
+void unusedFunc() { UNUSED(cmdsConfig); }
