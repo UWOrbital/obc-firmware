@@ -25,7 +25,7 @@
 #define OBC_MAX_MSG_SIZE 64U
 #define APP_WRITE_PACKET_SIZE 208
 
-extern uint32_t __APP_IMAGE_TOTAL_SECTION_SIZE;
+extern uint32_t __APP_IE_TOTAL_SECTION_SIZE;
 
 static obc_error_code_t execObcResetCmdCallback(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
   if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
@@ -126,19 +126,21 @@ static obc_error_code_t I2CProbeCmdCallback(cmd_msg_t *cmd, uint8_t *responseDat
   return OBC_ERR_CODE_SUCCESS;
 }
 
-static obc_error_code_t eraseAppBFromAppA(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
-  if (cmd == NULL) {
+static obc_error_code_t obcEraseApp(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  if (cmd == NULL || (cmd->selectedAppSlot != 0 && cmd->selectedAppSlot != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
   uint32_t appStartAddress = 0;
 
-  if (app_metadata.occupied_slot == 0) {
-    appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
-  } else if (app_metadata.occupied_slot == 1) {
+  if (cmd->selectedAppSlot == app_metadata.occupied_slot) {
+    return OBC_ERR_CODE_RED_EACCES;
+  }
+
+  if (cmd->selectedAppSlot == 0) {
     appStartAddress = CUSTOM_START_ADDRESS;
   } else {
-    return OBC_ERR_CODE_INVALID_ARG;
+    appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
   }
 
   flash_error_code_t errCode =
@@ -162,8 +164,8 @@ static obc_error_code_t eraseAppBFromAppA(cmd_msg_t *cmd, uint8_t *responseData,
   return OBC_ERR_CODE_SUCCESS;
 }
 
-static obc_error_code_t downloadAppBFromAppA(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
-  if (cmd == NULL) {
+static obc_error_code_t obcDownloadApp(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  if (cmd == NULL || (cmd->selectedAppSlot != 0 && cmd->selectedAppSlot != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
@@ -171,20 +173,22 @@ static obc_error_code_t downloadAppBFromAppA(cmd_msg_t *cmd, uint8_t *responseDa
   uint32_t flashLowLim = 0;
   uint32_t flashHighLim = 0;
 
-  if (app_metadata.occupied_slot == 0) {
+  if (cmd->selectedAppSlot == app_metadata.occupied_slot) {
+    return OBC_ERR_CODE_RED_EACCES;
+  }
+
+  if (cmd->selectedAppSlot == 0) {
+    appStartAddress = CUSTOM_START_ADDRESS;
+    flashLowLim = CUSTOM_START_ADDRESS;
+    flashHighLim = flashLowLim + APP_SIZE - 0x00000001;
+  } else {
     appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
     flashLowLim = CUSTOM_START_ADDRESS + APP_SIZE;
-    flashHighLim = 0x08000000;
-  } else if (app_metadata.occupied_slot == 1) {
-    appStartAddress = CUSTOM_START_ADDRESS;
-    flashLowLim = 0x00400000;
-    flashHighLim = CUSTOM_START_ADDRESS + APP_SIZE - 0x00000001;
-  } else {
-    return OBC_ERR_CODE_INVALID_ARG;
+    flashHighLim = flashLowLim + APP_SIZE - 0x00000001;
   }
 
   if (cmd->downloadData.address < flashLowLim || cmd->downloadData.address + cmd->downloadData.length > flashHighLim) {
-    return OBC_ERR_CODE_INVALID_ARG;
+    return OBC_ERR_CODE_RED_EACCES;
   }
 
   // TODO: Replace magic number
@@ -227,26 +231,34 @@ static obc_error_code_t downloadAppBFromAppA(cmd_msg_t *cmd, uint8_t *responseDa
   return OBC_ERR_CODE_SUCCESS;
 }
 
-static obc_error_code_t eraseAppAFromAppB(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {}
+static obc_err_code_t downlinkChallenge(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  if (cmd == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
 
-static obc_error_code_t downloadAppAFromAppB(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {}
+  if (app_metadata.enabled_app != SHORT_ENABLE_APP_MAGIC_NUM) {
+    return OBC_ERR_CODE_RED_EACCES;
+  }
 
-const cmd_info_t cmdsConfig[] = {
-    [CMD_END_OF_FRAME] = {NULL, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    // TODO: Change this to critial once critical commands are implemented
-    [CMD_EXEC_OBC_RESET] = {execObcResetCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_RTC_SYNC] = {rtcSyncCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_DOWNLINK_LOGS_NEXT_PASS] = {downlinkLogsNextPassCmdCallback, CMD_POLICY_PROD, CMD_TYPE_CRITICAL},
-    [CMD_MICRO_SD_FORMAT] = {microSDFormatCmdCallback, CMD_POLICY_PROD, CMD_TYPE_CRITICAL},
-    [CMD_PING] = {pingCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_DOWNLINK_TELEM] = {downlinkTelemCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_I2C_PROBE] = {I2CProbeCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_ERASE_APP_B_FROM_APP_A] = {eraseAppBFromAppA, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_ERASE_APP_A_FROM_APP_B] = {eraseAppAFromAppB, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_DOWNLOAD_APP_B_FROM_APP_A] = {downloadAppBFromAppA, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_DOWNLOAD_APP_A_FROM_APP_B] = {downloadAppAFromAppB, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-};
+  return OBC_ERR_CODE_SUCCESS;
+}
 
-// This function is purely to trick the compiler into thinking we are using the cmdsConfig variable so we avoid the
-// unused variable error
-void unusedFunc() { UNUSED(cmdsConfig); }
+static obc_err_code_t uplinkChallenge(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  const cmd_info_t cmdsConfig[] = {
+      [CMD_END_OF_FRAME] = {NULL, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+      // TODO: Change this to critial once critical commands are implemented
+      [CMD_EXEC_OBC_RESET] = {execObcResetCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+      [CMD_RTC_SYNC] = {rtcSyncCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+      [CMD_DOWNLINK_LOGS_NEXT_PASS] = {downlinkLogsNextPassCmdCallback, CMD_POLICY_PROD, CMD_TYPE_CRITICAL},
+      [CMD_MICRO_SD_FORMAT] = {microSDFormatCmdCallback, CMD_POLICY_PROD, CMD_TYPE_CRITICAL},
+      [CMD_PING] = {pingCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+      [CMD_DOWNLINK_TELEM] = {downlinkTelemCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+      [CMD_I2C_PROBE] = {I2CProbeCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+      [CMD_OBC_ERASE_APP] = {obcEraseApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+      [CMD_OBC_WRITE_APP] = {obcWriteApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+      [CMD_OBC_SET_PROGRAMMING_SESSION] = {obcWriteApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+  };
+
+  // This function is purely to trick the compiler into thinking we are using the cmdsConfig variable so we avoid the
+  // unused variable error
+  void unusedFunc() { UNUSED(cmdsConfig); }
