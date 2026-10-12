@@ -36,9 +36,7 @@ int main(void) {
   spiInit();
   canInit();
   hetInit();
-
   dmaEnable();
-  initDmaSpiSemaphores();
 
   _enable_interrupt_();
 
@@ -46,9 +44,6 @@ int main(void) {
   initSciMutex();
   initI2CMutex();
   initSpiMutex();
-  // Initialize DMA semaphores and preiperal
-  initDmaSpiSemaphores();
-  spiDmaInit(SDC_SPI_REG);
 
   // The state_mgr is the only task running initially.
   obcSchedulerInitTask(OBC_SCHEDULER_CONFIG_ID_STATE_MGR);

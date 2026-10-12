@@ -14,6 +14,7 @@
 #include "obc_logging.h"
 #include "obc_assert.h"
 #include "obc_board_config.h"
+#include "obc_spi_dma.h"
 
 /* This driver logs errors. If the logging output is set to the
    microSD card, this driver will log errors to itself, which
@@ -91,6 +92,9 @@ static spiDAT1_t sdcSpiConfig = {
 static volatile DSTATUS stat = STA_NOINIT; /* Disk status */
 static uint8_t cardType;                   /* Card type flags: b0:MMC, b1:SDC, b2:Block addressing */
 static sdc_power_t powerFlag = POWER_OFF;  /* indicates if "power" is on */
+
+static uint8_t sdcDmaDummyTx[SD_SECTOR_SIZE] = {[0 ... SD_SECTOR_SIZE - 1] = SDC_MOSI_HIGH};
+static uint8_t sdcDmaDummyRx[SD_SECTOR_SIZE];
 
 /*---------------------------------------------*/
 /* SD Card Private Functions                   */
@@ -200,6 +204,53 @@ static bool rcvDataBlock(uint8_t *buff, uint32_t btr) {
   return true;
 }
 
+/**
+ * @brief Receive a data packet from the SD card using DMA.
+ * @param buff Buffer to store the received data.
+ * @param btr Number of bytes to receive (Must be an even number).
+ * @return bool True if the packet was received successfully, false otherwise.
+ */
+static bool rcvDataBlockDMA(uint8_t *buff, uint32_t btr) {
+  obc_error_code_t errCode;
+
+  // CS is already asserted by caller (disk_read)
+
+  if (buff == NULL || btr == 0 || (btr % 2 != 0)) {
+    return false;
+  }
+
+  uint8_t token = 0xFF;
+
+  /* Wait for a data packet */
+  for (uint8_t i = 0; i < SDC_ACTION_NUM_ATTEMPTS_DEFAULT; i++) {
+    LOG_IF_ERROR_CODE(spiTransmitAndReceiveByte(SDC_SPI_REG, &sdcSpiConfig, SDC_MOSI_HIGH, &token));
+    if (token != 0xFF) break;
+    vTaskDelay(SDC_DELAY_1MS);
+  }
+
+  /* If not valid data token, return with error */
+  if (token != SDC_CMD17_DATA_TOKEN) return false;
+
+  /* Receive the data block into buffer using DMA */
+  while (btr > 0) {
+    uint32_t transferSize = (btr > SD_SECTOR_SIZE) ? SD_SECTOR_SIZE : btr;
+    errCode = dmaSpiTransmitandReceiveBytes(SDC_SPI_REG, sdcDmaDummyTx, buff, transferSize, 1000, 10000);
+    if (errCode != OBC_ERR_CODE_SUCCESS) {
+      LOG_ERROR_CODE(errCode);
+      return false;
+    }
+    buff += transferSize;
+    btr -= transferSize;
+  }
+
+  /* Discard CRC */
+  unsigned char crc;
+  LOG_IF_ERROR_CODE(spiTransmitAndReceiveByte(SDC_SPI_REG, &sdcSpiConfig, SDC_MOSI_HIGH, &crc));
+  LOG_IF_ERROR_CODE(spiTransmitAndReceiveByte(SDC_SPI_REG, &sdcSpiConfig, SDC_MOSI_HIGH, &crc));
+
+  return true;
+}
+
 #if _READONLY == 0
 
 /**
@@ -236,6 +287,43 @@ static bool sendDataBlock(const uint8_t *buff, uint8_t token) {
   return true;
 }
 
+/**
+ * @brief Send a data packet to the SD card using DMA.
+ * @param buff 512 uint8_t buffer containing the data to send.
+ * @param token Data/Stop token.
+ * @return bool True if the packet was sent successfully, false otherwise.
+ */
+static bool sendDataBlockDMA(const uint8_t *buff, uint8_t token) {
+  obc_error_code_t errCode;
+
+  // CS is already asserted by caller (disk_write)
+
+  if (!isCardReady()) return false;
+
+  LOG_IF_ERROR_CODE(spiTransmitByte(SDC_SPI_REG, &sdcSpiConfig, token));  // Send token
+
+  if (token != SD_STOP_TRANSMISSION) {
+    if (buff == NULL) return false;
+
+    // Send data block using DMA
+    errCode = dmaSpiTransmitandReceiveBytes(SDC_SPI_REG, (uint8_t *)buff, sdcDmaDummyRx, SD_SECTOR_SIZE, 1000, 10000);
+    if (errCode != OBC_ERR_CODE_SUCCESS) {
+      LOG_ERROR_CODE(errCode);
+      return false;
+    }
+
+    // Send dummy CRC
+    LOG_IF_ERROR_CODE(spiTransmitByte(SDC_SPI_REG, &sdcSpiConfig, 0xFF));
+    LOG_IF_ERROR_CODE(spiTransmitByte(SDC_SPI_REG, &sdcSpiConfig, 0xFF));
+
+    uint8_t resp;
+    LOG_IF_ERROR_CODE(
+        spiTransmitAndReceiveByte(SDC_SPI_REG, &sdcSpiConfig, SDC_MOSI_HIGH, &resp)); /* Receive data response */
+    if ((resp & SD_DATA_RESPONSE_MASK) != SD_DATA_RESPONSE_ACCEPTED) return false;
+  }
+
+  return true;
+}
 #endif /* _READONLY */
 
 /**
@@ -436,6 +524,9 @@ DSTATUS disk_initialize(uint8_t drv) {
     turnOffSDC();  // Initialization failed
   }
 
+  // Initialize spiDMA to run on SD card's SPI reg (assuming dma always enabled)
+  spiDmaInit(SDC_SPI_REG);
+  initDmaSpiSemaphores();
   return stat;
 }
 
@@ -478,12 +569,12 @@ DRESULT disk_read(uint8_t pdrv, uint8_t *buff, uint32_t sector, uint32_t count) 
 
   if (count == 1) {
     /* Single block read */
-    if ((sendCMD(SDC_CMD17, sector) == 0) && rcvDataBlock(buff, SD_SECTOR_SIZE)) count = 0;
+    if ((sendCMD(SDC_CMD17, sector) == 0) && rcvDataBlockDMA(buff, SD_SECTOR_SIZE)) count = 0;
   } else {
     /* Multiple block read */
     if (sendCMD(SDC_CMD18, sector) == 0) {
       do {
-        if (!rcvDataBlock(buff, SD_SECTOR_SIZE)) break;
+        if (!rcvDataBlockDMA(buff, SD_SECTOR_SIZE)) break;
         buff += SD_SECTOR_SIZE;
       } while (--count);
       stopTransmission();
@@ -531,7 +622,7 @@ DRESULT disk_write(uint8_t pdrv, const uint8_t *buff, uint32_t sector, uint32_t 
 
   if (count == 1) {
     /* Single block write */
-    if ((sendCMD(SDC_CMD24, sector) == 0) && sendDataBlock(buff, SDC_CMD24_DATA_TOKEN)) count = 0;
+    if ((sendCMD(SDC_CMD24, sector) == 0) && sendDataBlockDMA(buff, SDC_CMD24_DATA_TOKEN)) count = 0;
   } else {
     /* Multiple block write */
     if (cardType & CARD_TYPE_SDC_MASK) {
@@ -541,7 +632,7 @@ DRESULT disk_write(uint8_t pdrv, const uint8_t *buff, uint32_t sector, uint32_t 
 
     if (sendCMD(SDC_CMD25, sector) == 0) {
       do {
-        if (!sendDataBlock(buff, SDC_CMD25_DATA_TOKEN)) break;
+        if (!sendDataBlockDMA(buff, SDC_CMD25_DATA_TOKEN)) break;
         buff += SD_SECTOR_SIZE;
       } while (--count);
 
