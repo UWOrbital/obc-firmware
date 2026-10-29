@@ -161,7 +161,7 @@ static obc_error_code_t obcEraseApp(cmd_msg_t *cmd, uint8_t *responseData, uint8
 
   _disable_interrupt_();
   flash_error_code_t errCode =
-      flashFapiBlockErase((uint32_t)appStartAddress, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1);
+      flashFapiBlockErase((uint32_t)appStartAddress, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1, 0U);
   _enable_interrupt_();
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
@@ -239,7 +239,7 @@ static obc_error_code_t obcWriteApp(cmd_msg_t *cmd, uint8_t *responseData, uint8
 
   _disable_interrupt_();
   flash_error_code_t errCode =
-      flashFapiBlockWrite(cmd->downloadData.address, (uint32_t)cmd->downloadData.data, cmd->downloadData.length);
+      flashFapiBlockWrite(cmd->downloadData.address, (uint32_t)cmd->downloadData.data, cmd->downloadData.length, 0U);
   _enable_interrupt_();
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {

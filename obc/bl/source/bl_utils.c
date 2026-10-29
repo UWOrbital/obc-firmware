@@ -12,6 +12,7 @@
 #include "bl_config.h"
 #include "bl_time.h"
 #include "bl_app_flag.h"
+#include "fcmd_msg.h"
 
 /* DEFINES */
 #define MAX_PACKET_SIZE 223
@@ -22,36 +23,42 @@ typedef void (*appStartFunc_t)(void);
 static uint8_t sendBuffer[MAX_PACKET_SIZE] = {0};
 static uint8_t responseBuffer[CMD_RESPONSE_DATA_MAX_SIZE] = {0};
 
-obc_error_code_t blRunCommand(uint8_t recvBuffer[]) {
+obc_error_code_t blUnpackCommand(uint8_t recvBuffer[], cmd_msg_t *unpackedCmdMsg) {
   if (recvBuffer == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
   obc_error_code_t errCode = OBC_ERR_CODE_SUCCESS;
-  cmd_info_t currCmdInfo;
-  cmd_msg_t unpackedCmdMsg = {0};
   uint32_t unpackOffset = 0;
 
-  obc_gs_error_code_t interfaceErr = unpackCmdMsg(recvBuffer, &unpackOffset, &unpackedCmdMsg);
+  obc_gs_error_code_t interfaceErr = unpackCmdMsg(recvBuffer, &unpackOffset, unpackedCmdMsg);
   if (interfaceErr != OBC_GS_ERR_CODE_SUCCESS) {
     blUartWriteBytes(strlen("ERROR: Message Corrupted\r\n"), (uint8_t *)"ERROR: Message Corrupted\r\n");
     return OBC_ERR_CODE_CORRUPTED_MSG;
   }
 
+  return errCode;
+}
+
+obc_error_code_t blRunCommand(cmd_msg_t *unpackedCmdMsg) {
   uint8_t responseDataLen = 0;
   memset(responseBuffer, 0, CMD_RESPONSE_DATA_MAX_SIZE);
   memset(sendBuffer, 0, MAX_PACKET_SIZE);
   cmd_response_header_t cmdResponse = {0};
 
-  if (verifyCommand(&unpackedCmdMsg, &currCmdInfo) == OBC_ERR_CODE_SUCCESS &&
-      processNonTimeTaggedCommand(&unpackedCmdMsg, &currCmdInfo, responseBuffer, &responseDataLen) ==
+  cmd_info_t currCmdInfo;
+
+  obc_error_code_t errCode = OBC_ERR_CODE_SUCCESS;
+
+  if (verifyCommand(unpackedCmdMsg, &currCmdInfo) == OBC_ERR_CODE_SUCCESS &&
+      processNonTimeTaggedCommand(unpackedCmdMsg, &currCmdInfo, responseBuffer, &responseDataLen) ==
           OBC_ERR_CODE_SUCCESS) {
     cmdResponse.errCode = CMD_RESPONSE_SUCCESS;
   } else {
     cmdResponse.errCode = CMD_RESPONSE_ERROR;
   }
 
-  cmdResponse.cmdId = unpackedCmdMsg.id;
+  cmdResponse.cmdId = unpackedCmdMsg->id;
   cmdResponse.dataLen = responseDataLen;
 
   if (packCmdResponse(&cmdResponse, sendBuffer, responseBuffer) != OBC_GS_ERR_CODE_SUCCESS) {
@@ -68,13 +75,13 @@ obc_error_code_t blEditAppFlag(app_flag_t replacement_app_flag) {
 
   uint32_t length = sizeof(replacement_app_flag);
 
-  flash_error_code_t errCode = flashFapiBlockErase(APP_FLAG_START_ADDRESS, (uint32_t)APP_FLAG_SECTION_SIZE);
+  flash_error_code_t errCode = flashFapiBlockErase(APP_FLAG_START_ADDRESS, (uint32_t)APP_FLAG_SECTION_SIZE, 7U);
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
     return OBC_ERR_CODE_UNKNOWN;
   };
 
-  errCode = flashFapiBlockWrite(APP_FLAG_START_ADDRESS, (uint32_t)&replacement_app_flag, length);
+  errCode = flashFapiBlockWrite(APP_FLAG_START_ADDRESS, (uint32_t)&replacement_app_flag, length, 7U);
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
     return OBC_ERR_CODE_UNKNOWN;
@@ -135,4 +142,22 @@ obc_error_code_t blJumpToApp() {
   // If it was not possible to jump to the app, we log that error here
   blUartWriteBytes(strlen("ERROR: Failed to run application\r\n"), (uint8_t *)"ERROR: Failed to run application\r\n");
   return OBC_ERR_CODE_FAILED_TO_LOAD_APP;
+}
+
+obc_error_code_t blReadFCmd(cmd_msg_t *buffer) {
+  if (buffer == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  fcmd_msg_t *fCmd_pointer = (fcmd_msg_t *)CMD_FORWARDING_START_ADDRESS;
+
+  *buffer = fCmd_pointer->fCmd;
+
+  fcmd_msg_t replacement_fcmd_msg = (fcmd_msg_t)*fCmd_pointer;
+
+  replacement_fcmd_msg.fEnabled = 0;
+
+  editFCmdMsg(replacement_fcmd_msg);
+
+  return OBC_ERR_CODE_SUCCESS;
 }

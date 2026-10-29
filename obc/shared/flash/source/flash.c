@@ -2,8 +2,6 @@
 #include "flash_config.h"
 #include "flash_errors.h"
 
-#include "reg_rti.h"
-
 #include "F021.h"
 #include "reg_flash.h"
 #include "sys_core.h"
@@ -13,9 +11,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <reg_rti.h>
+
+#include "obc_board_config.h"  // Debugging
+
 /* DEFINES */
 #define BL_FLASH_APP_SECTORS_MASK 0xFF80U  // Sectors 0-6 are reserved for the bootloader
-#define FLASH_BANK_WIDTH_BYTES 16U         // Programming at an address is limited to the bank width number of bytes
+#define BL_FLASH_FLAG_SECTORS_MASK 0x0000000F
+
+// Programming at an address is limited to the bank width number of bytes
+#define FLASH_BANK_0_WIDTH_BYTES 16U
+#define FLASH_BANK_7_WIDTH_BYTES 8U
 
 #define SYS_CLK_FREQ 220UL  // MHz
 
@@ -24,6 +30,10 @@
 
 /* PUBLIC FUNCTION DEFINITIONS */
 flash_error_code_t flashFapiInitBank(uint32_t bankNum) {
+  if (bankNum != 0U && bankNum != 7U) {
+    return FLASH_ERR_CODE_INVALID_ARG;
+  }
+
   if ((Fapi_initializeFlashBanks(SYS_CLK_FREQ)) != Fapi_Status_Success) {
     return FLASH_ERR_CODE_UNKNOWN;
   }
@@ -32,8 +42,14 @@ flash_error_code_t flashFapiInitBank(uint32_t bankNum) {
     return FLASH_ERR_CODE_INVALID_ARG;
   }
 
-  if (Fapi_enableMainBankSectors(BL_FLASH_APP_SECTORS_MASK) != Fapi_Status_Success) {
-    return FLASH_ERR_CODE_UNKNOWN;
+  if (bankNum == 0U) {
+    if (Fapi_enableMainBankSectors(BL_FLASH_APP_SECTORS_MASK) != Fapi_Status_Success) {
+      return FLASH_ERR_CODE_UNKNOWN;
+    }
+  } else {
+    if (Fapi_enableEepromBankSectors(BL_FLASH_FLAG_SECTORS_MASK, 0x00000000) != Fapi_Status_Success) {
+      return FLASH_ERR_CODE_UNKNOWN;
+    }
   }
 
   // Possible infinite loop, but watchdog should reset the device if it gets stuck
@@ -66,7 +82,13 @@ uint32_t flashSectorEndAddr(uint8_t sector) {
 
 uint8_t flashGetNumSectors(void) { return NUM_FLASH_SECTORS; }
 
-flash_error_code_t flashFapiBlockErase(uint32_t startAddr, uint32_t size) {
+flash_error_code_t flashFapiBlockErase(uint32_t startAddr, uint32_t size, uint32_t bankNum) {
+  if (bankNum != 0U && bankNum != 7U) {
+    return FLASH_ERR_CODE_INVALID_ARG;
+  }
+
+  flashFapiInitBank(bankNum);
+
   flash_error_code_t errCode = FLASH_ERR_CODE_SUCCESS;
 
   const uint32_t endAddr = startAddr + size;
@@ -90,13 +112,23 @@ flash_error_code_t flashFapiBlockErase(uint32_t startAddr, uint32_t size) {
   return errCode;
 }
 
-flash_error_code_t flashFapiBlockWrite(uint32_t dstAddr, uint32_t srcAddr, uint32_t numBytes) {
+flash_error_code_t flashFapiBlockWrite(uint32_t dstAddr, uint32_t srcAddr, uint32_t numBytes, uint32_t bankNum) {
+  if (bankNum != 0U && bankNum != 7U) {
+    return FLASH_ERR_CODE_INVALID_ARG;
+  }
+
+  flashFapiInitBank(bankNum);
+
+  Fapi_setActiveFlashBank((Fapi_FlashBankType)bankNum);
+
   flash_error_code_t errCode = FLASH_ERR_CODE_SUCCESS;
 
   register uint32_t src = srcAddr;
   register uint32_t dst = dstAddr;
 
-  uint32_t bytesToFlashNext = numBytes < FLASH_BANK_WIDTH_BYTES ? numBytes : FLASH_BANK_WIDTH_BYTES;
+  uint8_t flashBankWidthBytes = bankNum == 0U ? FLASH_BANK_0_WIDTH_BYTES : FLASH_BANK_7_WIDTH_BYTES;
+
+  uint32_t bytesToFlashNext = numBytes < flashBankWidthBytes ? numBytes : flashBankWidthBytes;
 
   while (numBytes > 0) {
     if (Fapi_issueProgrammingCommand((uint32_t *)dst, (uint8_t *)src, (uint32_t)bytesToFlashNext, NULL, 0,
@@ -113,7 +145,7 @@ flash_error_code_t flashFapiBlockWrite(uint32_t dstAddr, uint32_t srcAddr, uint3
 
     numBytes -= bytesToFlashNext;
 
-    if (numBytes < FLASH_BANK_WIDTH_BYTES) {
+    if (numBytes < flashBankWidthBytes) {
       bytesToFlashNext = numBytes;
     }
   }
@@ -162,13 +194,19 @@ void flashWaitFsmReady(void) {
   while (FAPI_CHECK_FSM_READY_BUSY != Fapi_Status_FsmReady) {
     // TODO: implement an iteration limit so this doesn't hang if the FSM is borked, ie make it safer
     asm(" NOP");
-    rtiREG1->WDKEY = 0xE51AU;
-    rtiREG1->WDKEY = 0xA35CU;
+    if (rtiREG1->DWDCTRL == 0xA98559DAU) {  // only when the watchdog is running
+      rtiREG1->WDKEY = 0xE51AU;
+      rtiREG1->WDKEY = 0xA35CU;
+    }
   }
 }
 
 void flashWaitFsmStatusSuccess(void) {
   while (FAPI_GET_FSM_STATUS != Fapi_Status_Success) {
     asm(" NOP");
+    if (rtiREG1->DWDCTRL == 0xA98559DAU) {  // only when the watchdog is running
+      rtiREG1->WDKEY = 0xE51AU;
+      rtiREG1->WDKEY = 0xA35CU;
+    }
   }
 }

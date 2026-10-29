@@ -12,6 +12,7 @@ set(BL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/source/bl_utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/source/bl_verification.c
     ${CMAKE_CURRENT_SOURCE_DIR}/source/bl_app_flag.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/fcmd_msg.c
 
     ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/commands/src/obc_gs_command_pack.c
     ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/commands/src/obc_gs_commands_response_pack.c
