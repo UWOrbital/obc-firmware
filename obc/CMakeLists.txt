@@ -76,6 +76,8 @@ elseif(${CMAKE_BUILD_TYPE} MATCHES Examples)
         add_executable(${OUT_FILE_NAME} examples/test_app_rs/main.c)
     elseif(${EXAMPLE_TYPE} MATCHES ARDUCAM)
         add_executable(${OUT_FILE_NAME} examples/test_app_arducam/main.c)
+    elseif(${EXAMPLE_TYPE} MATCHES BENCHMARK_SDC)
+        add_executable(${OUT_FILE_NAME} examples/benchmark_sdc/main.c)
 
   # ADD MORE EXAMPLES ABOVE THIS COMMENT
 	else ()
