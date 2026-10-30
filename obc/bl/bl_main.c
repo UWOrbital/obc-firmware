@@ -1,6 +1,5 @@
 #include "bl_utils.h"
 #include "bl_uart.h"
-#include "bl_flash.h"
 #include "obc_errors.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -9,6 +8,11 @@
 #include "bl_config.h"
 #include "bl_errors.h"
 #include "bl_time.h"
+#include "flash.h"
+#include "flash_errors.h"
+#include "fcmd_msg.h"
+#include "command.h"
+#include "F021.h"  // For testing purposes
 #if defined(DEBUG) && !defined(OBC_REVISION_2)
 #include <gio.h>
 #endif
@@ -31,6 +35,9 @@ extern uint32_t __ramFuncsRunEnd__;
 #define DEFAULT_APP_JUMP_TIMEOUT 2000
 #define LED_DELAY_MS 500
 
+// Cmd resolution
+extern const cmd_info_t cmdsConfig[];
+
 static uint8_t recvBuffer[MAX_PACKET_SIZE] = {0};
 
 /* PUBLIC FUNCTIONS */
@@ -45,18 +52,42 @@ int main(void) {
   // can't execute from the same flash bank being modified
   memcpy(&__ramFuncsRunStart__, &__ramFuncsLoadStart__, (uint32_t)&__ramFuncsSize__);
 
-  bl_error_code_t interfaceErr = blFlashFapiInitBank(RM46_FLASH_BANK);
+  flash_error_code_t interfaceErr = flashFapiInitBank(RM46_BANK_7);
 
-  if (interfaceErr != BL_ERR_CODE_SUCCESS) {
+  if (interfaceErr != FLASH_ERR_CODE_SUCCESS) {
     char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
     int32_t blUartWriteBufferLen =
-        snprintf(blUartWriteBuffer, BL_MAX_MSG_SIZE, "Failed to init flash, BL error code: %d\r\n", errCode);
+        snprintf(blUartWriteBuffer, BL_MAX_MSG_SIZE, "Failed to init flash bank 0, BL error code: %d\r\n", errCode);
     if (blUartWriteBufferLen < 0) {
       blUartWriteBytes(strlen("Error with processing message buffer length\r\n"),
                        (uint8_t *)"Error with processing message buffer length\r\n");
     } else {
       blUartWriteBytes(blUartWriteBufferLen, (uint8_t *)blUartWriteBuffer);
     }
+  }
+
+  fcmd_msg_t fCmd = {0};
+
+  blReadFCmd(&fCmd);
+
+  cmd_msg_t cmdMsg = fCmd.fCmd;
+
+  interfaceErr = flashFapiInitBank(RM46_FLASH_BANK);
+
+  if (interfaceErr != FLASH_ERR_CODE_SUCCESS) {
+    char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
+    int32_t blUartWriteBufferLen =
+        snprintf(blUartWriteBuffer, BL_MAX_MSG_SIZE, "Failed to init flash bank 0, BL error code: %d\r\n", errCode);
+    if (blUartWriteBufferLen < 0) {
+      blUartWriteBytes(strlen("Error with processing message buffer length\r\n"),
+                       (uint8_t *)"Error with processing message buffer length\r\n");
+    } else {
+      blUartWriteBytes(blUartWriteBufferLen, (uint8_t *)blUartWriteBuffer);
+    }
+  }
+
+  if (fCmd.fEnabled) {
+    LOG_IF_ERROR_CODE(blRunCommand(&cmdMsg));
   }
 
   uint32_t jumpToAppTimeout = blGetCurrentTick() + DEFAULT_APP_JUMP_TIMEOUT;
@@ -70,7 +101,9 @@ int main(void) {
     }
 
     if (blUartReadBytes(recvBuffer, MAX_PACKET_SIZE, 100) == OBC_ERR_CODE_SUCCESS) {
-      LOG_IF_ERROR_CODE(blRunCommand(recvBuffer));
+      cmd_msg_t unpackedCmdMsg = {0};
+      blUnpackCommand(recvBuffer, &unpackedCmdMsg);
+      LOG_IF_ERROR_CODE(blRunCommand(&unpackedCmdMsg));
       jumpToAppTimeout = blGetCurrentTick() + EXTENDED_APP_JUMP_TIMEOUT;
     }
 

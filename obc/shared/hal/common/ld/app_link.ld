@@ -6,6 +6,9 @@ _estack = 0x8040000;    /* end of 256K RAM */
 
 _Min_Heap_Size = 0x400;      /* required amount of heap  */
 
+/* The size of the app (used for erasing the app from flash) */
+__APP_IMAGE_TOTAL_SECTION_SIZE = LENGTH(APP_VECTORS) + LENGTH(APP_KERNEL) + LENGTH(APP_FLASH) + LENGTH(APP_METADATA);
+
 SECTIONS
 {
 
@@ -22,6 +25,20 @@ SECTIONS
     KEEP(*(.metadata))
     . = ALIGN(32);
   } >APP_METADATA
+  
+  /* Flash API */
+  .ramFuncs : ALIGN(8)
+  {
+    __ramFuncsRunStart__ = .;
+    *(.ramFuncs)
+    *(.ramFuncs*)
+    *F021_API_CortexR4_LE.lib:*(.text .text*)
+    __ramFuncsRunEnd__ = .;
+  } >RAM AT> APP_FLASH
+
+    /* used by app to copy F021 API to RAM */
+  __ramFuncsLoadStart__ = LOADADDR(.ramFuncs);
+  __ramFuncsSize__ = SIZEOF(.ramFuncs);
 
    /* FreeRTOS Kernel in protected region of Flash */
   .kernelTEXT :

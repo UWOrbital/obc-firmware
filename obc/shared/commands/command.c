@@ -2,6 +2,11 @@
 #include "obc_errors.h"
 #include "obc_gs_command_id.h"
 #include "obc_logging.h"
+#include "bl_config.h"
+#include "flash.h"
+#include "fcmd_msg.h"
+#include "obc_board_config.h"  // Debugging
+
 #ifdef NO_FREERTOS
 #include <stddef.h>
 #endif
@@ -63,5 +68,32 @@ obc_error_code_t processNonTimeTaggedCommand(cmd_msg_t *cmd, cmd_info_t *currCmd
   }
   // TODO: Handle safety-critical command failures
   RETURN_IF_ERROR_CODE(currCmdInfo->callback(cmd, responseData, responseDataLen));
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+obc_error_code_t editFCmdMsg(fcmd_msg_t replacement_fcmd_msg) {
+  volatile fcmd_msg_t *volatile_fcmd_msg_pointer = (fcmd_msg_t *)CMD_FORWARDING_START_ADDRESS;
+
+  uint32_t length = sizeof(replacement_fcmd_msg);
+
+  flash_error_code_t errCode =
+      flashFapiBlockErase(CMD_FORWARDING_START_ADDRESS, (uint32_t)CMD_FORWARDING_SECTION_SIZE, 7U);
+
+  if (errCode != FLASH_ERR_CODE_SUCCESS) {
+    return OBC_ERR_CODE_UNKNOWN;
+  };
+
+  errCode = flashFapiBlockWrite(CMD_FORWARDING_START_ADDRESS, (uint32_t)&replacement_fcmd_msg, length, 7U);
+
+  if (errCode != FLASH_ERR_CODE_SUCCESS) {
+    return OBC_ERR_CODE_UNKNOWN;
+  };
+
+  fcmd_msg_t readback = *volatile_fcmd_msg_pointer;
+
+  if (memcmp(&readback, &replacement_fcmd_msg, length)) {
+    return OBC_ERR_CODE_UNKNOWN;
+  }
+
   return OBC_ERR_CODE_SUCCESS;
 }

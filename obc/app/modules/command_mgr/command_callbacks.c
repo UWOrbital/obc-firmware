@@ -1,6 +1,7 @@
 #include "obc_gs_command_data.h"
 #include "obc_gs_command_id.h"
 #include "obc_i2c_io.h"
+#include "obc_sci_io.h"
 #include "obc_reset.h"
 #include "obc_errors.h"
 #include "obc_logging.h"
@@ -12,10 +13,30 @@
 #include "telemetry_manager.h"
 #include "command.h"
 #include "obc_general_util.h"
+#include "flash.h"
+#include "obc_metadata.h"
+#include "obc_board_config.h"
+#include "magic_numbers.h"
+#include "bl_config.h"
+#include "obc_privilege.h"
+#include "sys_core.h"
 
 #include <redposix.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+
+#define OBC_MAX_MSG_SIZE 64U
+#define APP_WRITE_PACKET_SIZE 208
+
+/* LINKER EXPORTED SYMBOLS */
+extern uint32_t __ramFuncsLoadStart__;
+extern uint32_t __ramFuncsSize__;
+
+extern uint32_t __ramFuncsRunStart__;
+extern uint32_t __ramFuncsRunEnd__;
+
+extern uint32_t __APP_IMAGE_TOTAL_SECTION_SIZE;
 
 static obc_error_code_t execObcResetCmdCallback(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
   if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
@@ -116,6 +137,145 @@ static obc_error_code_t I2CProbeCmdCallback(cmd_msg_t *cmd, uint8_t *responseDat
   return OBC_ERR_CODE_SUCCESS;
 }
 
+static obc_error_code_t obcEraseApp(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  BaseType_t xRunningPrivileged = prvRaisePrivilege();
+
+  if (cmd == NULL || (cmd->downloadData.programmingSession != 0 &&
+                      cmd->downloadData.programmingSession != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
+    portRESET_PRIVILEGE(xRunningPrivileged);
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  uint32_t appStartAddress = 0;
+
+  if (cmd->downloadData.programmingSession == app_metadata.occupied_slot) {
+    portRESET_PRIVILEGE(xRunningPrivileged);
+    return OBC_ERR_CODE_RED_EACCES;
+  }
+
+  if (cmd->downloadData.programmingSession == 0) {
+    appStartAddress = CUSTOM_START_ADDRESS;
+  } else {
+    appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
+  }
+
+  _disable_interrupt_();
+  flash_error_code_t errCode =
+      flashFapiBlockErase((uint32_t)appStartAddress, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1, 0U);
+  _enable_interrupt_();
+
+  if (errCode != FLASH_ERR_CODE_SUCCESS) {
+    char obcUartWriteBuffer[OBC_MAX_MSG_SIZE] = {0};
+    int32_t obcUartWriteBufferLen =
+        snprintf(obcUartWriteBuffer, OBC_MAX_MSG_SIZE, "Failed to erase, OBC error code: %d\r\n", errCode);
+    if (obcUartWriteBufferLen < 0) {
+      uint8_t msgSize = sizeof("Error with processing message buffer length\r\n");
+      memcpy(responseData, "Error with processing message buffer length\r\n", msgSize);
+      *responseDataLen = msgSize;
+    } else {
+      memcpy(responseData, obcUartWriteBuffer, obcUartWriteBufferLen);
+      *responseDataLen = obcUartWriteBufferLen;
+    }
+    portRESET_PRIVILEGE(xRunningPrivileged);
+    return OBC_ERR_CODE_FAILED_FILE_WRITE;
+  }
+
+  portRESET_PRIVILEGE(xRunningPrivileged);
+
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+static obc_error_code_t obcWriteApp(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  BaseType_t xRunningPrivileged = prvRaisePrivilege();
+
+  if (cmd == NULL || (cmd->downloadData.programmingSession != 0 &&
+                      cmd->downloadData.programmingSession != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
+    portRESET_PRIVILEGE(xRunningPrivileged);
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  uint32_t appStartAddress = 0;
+  uint32_t flashLowLim = 0;
+  uint32_t flashHighLim = 0;
+
+  if (cmd->downloadData.programmingSession == app_metadata.occupied_slot) {
+    portRESET_PRIVILEGE(xRunningPrivileged);
+    return OBC_ERR_CODE_RED_EACCES;
+  }
+
+  if (cmd->downloadData.programmingSession == 0) {
+    appStartAddress = CUSTOM_START_ADDRESS;
+    flashLowLim = CUSTOM_START_ADDRESS;
+    flashHighLim = flashLowLim + APP_SIZE - 0x00000001;
+  } else {
+    appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
+    flashLowLim = CUSTOM_START_ADDRESS + APP_SIZE;
+    flashHighLim = flashLowLim + APP_SIZE - 0x00000001;
+  }
+
+  if (cmd->downloadData.address < flashLowLim ||
+      cmd->downloadData.address + cmd->downloadData.length - 1 > flashHighLim) {
+    portRESET_PRIVILEGE(xRunningPrivileged);
+    return OBC_ERR_CODE_RED_EACCES;
+  }
+
+  // TODO: Replace magic number
+  if (!flashIsStartAddrValid(cmd->downloadData.address, APP_WRITE_PACKET_SIZE)) {
+    uint8_t msgSize = sizeof("Invalid start address\r\n");
+    memcpy(responseData, "Invalid start address\r\n", msgSize);
+    *responseDataLen = msgSize;
+    portRESET_PRIVILEGE(xRunningPrivileged);
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  if ((cmd->downloadData.address - appStartAddress) % APP_WRITE_PACKET_SIZE != 0) {
+    uint8_t msgSize = sizeof("Start address not 208 byte aligned\r\n");
+    memcpy(responseData, "Start address not 208 byte aligned\r\n", msgSize);
+    *responseDataLen = msgSize;
+
+    portRESET_PRIVILEGE(xRunningPrivileged);
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  _disable_interrupt_();
+  flash_error_code_t errCode =
+      flashFapiBlockWrite(cmd->downloadData.address, (uint32_t)cmd->downloadData.data, cmd->downloadData.length, 0U);
+  _enable_interrupt_();
+
+  if (errCode != FLASH_ERR_CODE_SUCCESS) {
+    char obcUartWriteBuffer[OBC_MAX_MSG_SIZE] = {0};
+    int32_t obcUartWriteBufferLen =
+        snprintf(obcUartWriteBuffer, OBC_MAX_MSG_SIZE, "Failed to write, OBC error code: %d\r\n", errCode);
+    if (obcUartWriteBufferLen < 0) {
+      uint8_t msgSize = sizeof("Error with processing message buffer length\r\n");
+      memcpy(responseData, "Error with processing message buffer length\r\n", msgSize);
+      *responseDataLen = msgSize;
+    } else {
+      memcpy(responseData, obcUartWriteBuffer, obcUartWriteBufferLen);
+      *responseDataLen = obcUartWriteBufferLen;
+    }
+    portRESET_PRIVILEGE(xRunningPrivileged);
+    return OBC_ERR_CODE_FAILED_FILE_WRITE;
+  }
+
+  portRESET_PRIVILEGE(xRunningPrivileged);
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+static obc_error_code_t obcWriteFCmd(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  obc_error_code_t errCode = OBC_ERR_CODE_SUCCESS;
+
+  return errCode;
+}
+
+// static obc_error_code_t downlinkChallenge(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+//   if (cmd == NULL) {
+//     return OBC_ERR_CODE_INVALID_ARG;
+//   }
+
+//   return OBC_ERR_CODE_SUCCESS;
+// }
+
 const cmd_info_t cmdsConfig[] = {
     [CMD_END_OF_FRAME] = {NULL, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     // TODO: Change this to critial once critical commands are implemented
@@ -126,6 +286,9 @@ const cmd_info_t cmdsConfig[] = {
     [CMD_PING] = {pingCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_DOWNLINK_TELEM] = {downlinkTelemCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_I2C_PROBE] = {I2CProbeCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_OBC_ERASE_APP] = {obcEraseApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_OBC_WRITE_APP] = {obcWriteApp, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
+    [CMD_OBC_WRITE_FCMD] = {obcWriteFCmd, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
 };
 
 // This function is purely to trick the compiler into thinking we are using the cmdsConfig variable so we avoid the
