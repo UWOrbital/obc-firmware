@@ -144,16 +144,16 @@ obc_error_code_t blJumpToApp() {
   return OBC_ERR_CODE_FAILED_TO_LOAD_APP;
 }
 
-obc_error_code_t blReadFCmd(cmd_msg_t *buffer) {
+obc_error_code_t blReadFCmd(fcmd_msg_t *buffer) {
   if (buffer == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
   fcmd_msg_t *fCmd_pointer = (fcmd_msg_t *)CMD_FORWARDING_START_ADDRESS;
 
-  *buffer = fCmd_pointer->fCmd;
+  *buffer = *fCmd_pointer;
 
-  fcmd_msg_t replacement_fcmd_msg = (fcmd_msg_t)*fCmd_pointer;
+  fcmd_msg_t replacement_fcmd_msg = *fCmd_pointer;
 
   replacement_fcmd_msg.fEnabled = 0;
 

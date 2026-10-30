@@ -194,6 +194,9 @@ void flashWaitFsmReady(void) {
   while (FAPI_CHECK_FSM_READY_BUSY != Fapi_Status_FsmReady) {
     // TODO: implement an iteration limit so this doesn't hang if the FSM is borked, ie make it safer
     asm(" NOP");
+
+    // Debugging -> We don't want to feed the watchdog here, in the case that it causes an infinite loop
+    // TODO: make a better implementation for long-delay commands like erase
     if (rtiREG1->DWDCTRL == 0xA98559DAU) {  // only when the watchdog is running
       rtiREG1->WDKEY = 0xE51AU;
       rtiREG1->WDKEY = 0xA35CU;
@@ -204,6 +207,9 @@ void flashWaitFsmReady(void) {
 void flashWaitFsmStatusSuccess(void) {
   while (FAPI_GET_FSM_STATUS != Fapi_Status_Success) {
     asm(" NOP");
+
+    // Debugging -> We don't want to feed the watchdog here, in the case that it causes an infinite loop
+    // TODO: make a better implementation for long-delay commands like erase
     if (rtiREG1->DWDCTRL == 0xA98559DAU) {  // only when the watchdog is running
       rtiREG1->WDKEY = 0xE51AU;
       rtiREG1->WDKEY = 0xA35CU;
