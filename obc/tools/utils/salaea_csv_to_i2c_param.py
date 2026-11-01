@@ -51,14 +51,18 @@ at_scl_rise = te[sda_chg & (scl_prev == 0) & (scl_new == 1)]  # SDA changes with
 def next_after(a, b):
     """Interval from each a to the first b strictly after it."""
     i = np.searchsorted(b, a, side='right')
-    out = np.full(len(a), np.nan); ok = i < len(b)
-    out[ok] = b[i[ok]] - a[ok]; return out
+    out = np.full(len(a), np.nan)
+    ok = i < len(b)
+    out[ok] = b[i[ok]] - a[ok]
+    return out
 
 def prev_before(a, b, inclusive=False):
     """Interval since the last b before each a (<= if inclusive, else <)."""
     i = np.searchsorted(b, a, side='right' if inclusive else 'left') - 1
-    out = np.full(len(a), np.nan); ok = i >= 0
-    out[ok] = a[ok] - b[i[ok]]; return out
+    out = np.full(len(a), np.nan)
+    ok = i >= 0
+    out[ok] = a[ok] - b[i[ok]]
+    return out
 
 # Repeated START = START with no STOP since the previous START
 is_rep = np.array([i > 0 and not ((stop > start[i-1]) & (stop < start[i])).any()
