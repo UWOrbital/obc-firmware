@@ -9,8 +9,8 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
   LOG_FATAL_FROM_ISR("***********************STACK OVERFLOW DETECTED!!!!!!***********************");
 }
 
-__attribute__((noreturn)) void freertosConfigAssert(const char *pcFile, unsigned long ulLine) {
-  logErrorCode(LOG_FATAL, pcFile, ulLine, OBC_ERR_CODE_FREERTOS_ASSERT_FAIL);
+__attribute__((noreturn)) void freertosConfigAssert(log_file_ref_t file, unsigned long ulLine) {
+  logErrorCode(LOG_FATAL, file, ulLine, OBC_ERR_CODE_FREERTOS_ASSERT_FAIL);
 
   vTaskDelay(15);
 
