@@ -88,8 +88,9 @@ obc_error_code_t binaryLogEncode(const binary_log_entry_t *entry, uint8_t *buf, 
  */
 obc_error_code_t binaryLogDecode(const uint8_t *buf, size_t bufLen, binary_log_entry_t *entry, size_t *consumedLen);
 
+#if !LOG_USE_FILE_IDS
 /**
- * @brief Look up the file ID for a repo-relative file path (as produced by __FILE_FROM_REPO_ROOT__).
+ * @brief Look up the file ID for callers that still supply a repo-relative file path.
  *
  * @param path Repo-relative file path
  * @param fileId Set to the file ID, or BINARY_LOG_FILE_ID_UNKNOWN if the path is not in the table
@@ -105,6 +106,7 @@ obc_error_code_t logFileIdFromPath(const char *path, uint16_t *fileId);
  * @return const char* The file path, or NULL if the ID is not in the table
  */
 const char *logFilePathFromId(uint16_t fileId);
+#endif
 
 #ifdef __cplusplus
 }

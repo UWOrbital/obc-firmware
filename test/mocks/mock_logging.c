@@ -17,10 +17,12 @@ void logSetLevel(log_level_t newLogLevel) { logLevel = newLogLevel; }
 
 void logSetOutputLocation(log_output_location_t newOutputLocation) { outputLocation = newOutputLocation; }
 
-obc_error_code_t logErrorCode(log_level_t msgLevel, const char *file, uint32_t line, uint32_t errCode) {
+obc_error_code_t logErrorCode(log_level_t msgLevel, log_file_ref_t file, uint32_t line, uint32_t errCode) {
   if (msgLevel < logLevel) return OBC_ERR_CODE_LOG_MSG_SILENCED;
 
+#if !LOG_USE_FILE_IDS
   if (file == NULL) return OBC_ERR_CODE_INVALID_ARG;
+#endif
 
   return OBC_ERR_CODE_SUCCESS;
 }

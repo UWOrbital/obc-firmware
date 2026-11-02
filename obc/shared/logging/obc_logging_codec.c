@@ -1,5 +1,7 @@
 #include "obc_logging_codec.h"
-#include "obc_log_file_ids.h"
+#if !LOG_USE_FILE_IDS
+#include <obc_log_file_ids.h>
+#endif
 #include "data_pack_utils.h"
 #include "data_unpack_utils.h"
 
@@ -167,13 +169,14 @@ obc_error_code_t binaryLogDecode(const uint8_t *buf, size_t bufLen, binary_log_e
   return OBC_ERR_CODE_SUCCESS;
 }
 
+#if !LOG_USE_FILE_IDS
 obc_error_code_t logFileIdFromPath(const char *path, uint16_t *fileId) {
   if (path == NULL || fileId == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
   // LOG_FILE_PATHS is sorted alphabetically by gen_log_file_ids.py, so binary
-  // search is valid. Paths come from __FILE_FROM_REPO_ROOT__ at compile time.
+  // search is valid. This helper is for callers that still supply a path.
   size_t low = 0;
   size_t high = LOG_FILE_ID_COUNT;
   while (low < high) {
@@ -189,7 +192,7 @@ obc_error_code_t logFileIdFromPath(const char *path, uint16_t *fileId) {
     }
   }
 
-  // e.g. FreeRTOS assert paths that bypass __FILE_FROM_REPO_ROOT__
+  // e.g. FreeRTOS assert paths that are not in the generated table
   *fileId = BINARY_LOG_FILE_ID_UNKNOWN;
   return OBC_ERR_CODE_SUCCESS;
 }
@@ -200,3 +203,4 @@ const char *logFilePathFromId(uint16_t fileId) {
   }
   return LOG_FILE_PATHS[fileId];
 }
+#endif
