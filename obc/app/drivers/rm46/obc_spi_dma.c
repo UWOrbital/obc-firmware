@@ -63,6 +63,13 @@ obc_error_code_t spiDmaInit(spiBASE_t *spiReg) {
   if (spiReg == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+
+  // Ensure semaphores are created before DMA interrupts can trigger callbacks
+  initDmaSpiSemaphores();
+
+  BaseType_t xRunningPrivileged = prvRaisePrivilege();
+  /* START PRIVILEGED SECTION */
+  /* Accessing DMA registers in unprivileged user mode causes a Data Abort */
   switch ((uint32_t)spiReg) {
     case (uint32_t)spiREG1:
       dmaReqAssign(DMA_SPI_1_RX_CHANNEL,
@@ -84,8 +91,11 @@ obc_error_code_t spiDmaInit(spiBASE_t *spiReg) {
       break;
     // Add more cases as we start to implement different spi buses with DMA
     default:
+      portRESET_PRIVILEGE(xRunningPrivileged);
       return OBC_ERR_CODE_INVALID_ARG;
   }
+  /* END PRIVILEGED SECTION */
+  portRESET_PRIVILEGE(xRunningPrivileged);
   return OBC_ERR_CODE_SUCCESS;
 }
 
@@ -203,22 +213,29 @@ obc_error_code_t dmaSpiTransmitandReceiveBytes(spiBASE_t *spiReg, uint8_t *txDat
   /* END PRIVILEGED SECTION */
   portRESET_PRIVILEGE(xRunningPrivileged);
 
+  obc_error_code_t transferStatus = OBC_ERR_CODE_SUCCESS;
   switch ((uint32_t)spiReg) {
     case (uint32_t)spiREG1:
       if (xSemaphoreTake(dmaSpi1FinishedSemaphore, pdMS_TO_TICKS(transferCompleteTimeoutMs)) != pdPASS) {
-        return OBC_ERR_CODE_SEMAPHORE_TIMEOUT;
+        transferStatus = OBC_ERR_CODE_SEMAPHORE_TIMEOUT;
       }
       break;
     case (uint32_t)spiREG3:
       if (xSemaphoreTake(dmaSpi3FinishedSemaphore, pdMS_TO_TICKS(transferCompleteTimeoutMs)) != pdPASS) {
-        return OBC_ERR_CODE_SEMAPHORE_TIMEOUT;
+        transferStatus = OBC_ERR_CODE_SEMAPHORE_TIMEOUT;
       }
       break;
     default:
-      return OBC_ERR_CODE_INVALID_ARG;
+      transferStatus = OBC_ERR_CODE_INVALID_ARG;
+      break;
   }
 
-  return OBC_ERR_CODE_SUCCESS;
+  // Disable SPI DMA request generation so subsequent non-DMA SPI transfers operate in standard polling mode
+  xRunningPrivileged = prvRaisePrivilege();
+  spiDisableNotification(spiReg, SPI_NOTIFICATION_DMA_REQ);
+  portRESET_PRIVILEGE(xRunningPrivileged);
+
+  return transferStatus;
 }
 
 /**
@@ -226,10 +243,13 @@ obc_error_code_t dmaSpiTransmitandReceiveBytes(spiBASE_t *spiReg, uint8_t *txDat
  */
 void dmaSpi1FinishedCallback(void) {
   BaseType_t xHigherPriorityTaskAwoken = pdFALSE;
-  // give semaphore and set xHigherPriorityTaskAwoken to pdTRUE if this unblocks a higher priority task than the current
+  // Guard against NULL pointer dereference if an interrupt fires before semaphore initialization
+  // Give semaphore and set xHigherPriorityTaskAwoken to pdTRUE if this unblocks a higher priority task than the current
   // one
-  if (xSemaphoreGiveFromISR(dmaSpi1FinishedSemaphore, &xHigherPriorityTaskAwoken) != pdPASS) {
-    /* TODO: figure out how to log from ISR */
+  if (dmaSpi1FinishedSemaphore != NULL) {
+    if (xSemaphoreGiveFromISR(dmaSpi1FinishedSemaphore, &xHigherPriorityTaskAwoken) != pdPASS) {
+      /* TODO: figure out how to log from ISR */
+    }
   }
   // if xHigherPriorityTaskAwoken == pdTRUE then request a context switch since this means a higher priority task has
   // been unblocked
@@ -241,10 +261,13 @@ void dmaSpi1FinishedCallback(void) {
  */
 void dmaSpi3FinishedCallback(void) {
   BaseType_t xHigherPriorityTaskAwoken = pdFALSE;
-  // give semaphore and set xHigherPriorityTaskAwoken to pdTRUE if this unblocks a higher priority task than the current
+  // Guard against NULL pointer dereference if an interrupt fires before semaphore initialization
+  // Give semaphore and set xHigherPriorityTaskAwoken to pdTRUE if this unblocks a higher priority task than the current
   // one
-  if (xSemaphoreGiveFromISR(dmaSpi3FinishedSemaphore, &xHigherPriorityTaskAwoken) != pdPASS) {
-    /* TODO: figure out how to log from ISR */
+  if (dmaSpi3FinishedSemaphore != NULL) {
+    if (xSemaphoreGiveFromISR(dmaSpi3FinishedSemaphore, &xHigherPriorityTaskAwoken) != pdPASS) {
+      /* TODO: figure out how to log from ISR */
+    }
   }
   // if xHigherPriorityTaskAwoken == pdTRUE then request a context switch since this means a higher priority task has
   // been unblocked
