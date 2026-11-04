@@ -1,13 +1,11 @@
 #pragma once
 
 #include "obc_errors.h"
+#include "obc_log_source.h"
 
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
-
-#define __FILE_FROM_REPO_ROOT__ \
-  (strstr(__FILE__, SOURCE_PATH) ? strstr(__FILE__, SOURCE_PATH) + sizeof(SOURCE_PATH) - 1 : __FILE__)
 
 /**
  * @enum log_output_location_t
@@ -19,6 +17,20 @@ typedef enum { LOG_TO_SDCARD, LOG_TO_UART } log_output_location_t;
 
 #ifndef LOG_DEFAULT_OUTPUT_LOCATION
 #define LOG_DEFAULT_OUTPUT_LOCATION LOG_TO_UART
+#endif
+
+/**
+ * @enum log_output_format_t
+ * @brief Log output format enum.
+ *
+ * LOG_FORMAT_TEXT outputs human-readable text lines.
+ * LOG_FORMAT_BINARY outputs compact binary records (see obc_logging_codec.h)
+ * that are decoded back to text on the ground station.
+ */
+typedef enum { LOG_FORMAT_TEXT, LOG_FORMAT_BINARY } log_output_format_t;
+
+#ifndef LOG_DEFAULT_OUTPUT_FORMAT
+#define LOG_DEFAULT_OUTPUT_FORMAT LOG_FORMAT_TEXT
 #endif
 
 /**
@@ -42,22 +54,22 @@ typedef enum { LOG_TYPE_ERROR_CODE = 0, LOG_TYPE_MSG = 1 } log_type_t;
 #define LOG_DEFAULT_LEVEL LOG_TRACE
 #endif
 
-#define LOG_TRACE(msg) logMsg(LOG_TRACE, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
-#define LOG_DEBUG(msg) logMsg(LOG_DEBUG, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
-#define LOG_INFO(msg) logMsg(LOG_INFO, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
-#define LOG_WARN(msg) logMsg(LOG_WARN, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
-#define LOG_ERROR(msg) logMsg(LOG_ERROR, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
-#define LOG_FATAL(msg) logMsg(LOG_FATAL, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
+#define LOG_TRACE(msg) logMsg(LOG_TRACE, OBC_LOG_FILE, __LINE__, msg)
+#define LOG_DEBUG(msg) logMsg(LOG_DEBUG, OBC_LOG_FILE, __LINE__, msg)
+#define LOG_INFO(msg) logMsg(LOG_INFO, OBC_LOG_FILE, __LINE__, msg)
+#define LOG_WARN(msg) logMsg(LOG_WARN, OBC_LOG_FILE, __LINE__, msg)
+#define LOG_ERROR(msg) logMsg(LOG_ERROR, OBC_LOG_FILE, __LINE__, msg)
+#define LOG_FATAL(msg) logMsg(LOG_FATAL, OBC_LOG_FILE, __LINE__, msg)
 
-#define LOG_TRACE_FROM_ISR(msg) logMsgFromISR(LOG_TRACE, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
-#define LOG_DEBUG_FROM_ISR(msg) logMsgFromISR(LOG_DEBUG, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
-#define LOG_INFO_FROM_ISR(msg) logMsgFromISR(LOG_INFO, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
-#define LOG_WARN_FROM_ISR(msg) logMsgFromISR(LOG_WARN, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
-#define LOG_ERROR_FROM_ISR(msg) logMsgFromISR(LOG_ERROR, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
-#define LOG_FATAL_FROM_ISR(msg) logMsgFromISR(LOG_FATAL, __FILE_FROM_REPO_ROOT__, __LINE__, msg)
+#define LOG_TRACE_FROM_ISR(msg) logMsgFromISR(LOG_TRACE, OBC_LOG_FILE, __LINE__, msg)
+#define LOG_DEBUG_FROM_ISR(msg) logMsgFromISR(LOG_DEBUG, OBC_LOG_FILE, __LINE__, msg)
+#define LOG_INFO_FROM_ISR(msg) logMsgFromISR(LOG_INFO, OBC_LOG_FILE, __LINE__, msg)
+#define LOG_WARN_FROM_ISR(msg) logMsgFromISR(LOG_WARN, OBC_LOG_FILE, __LINE__, msg)
+#define LOG_ERROR_FROM_ISR(msg) logMsgFromISR(LOG_ERROR, OBC_LOG_FILE, __LINE__, msg)
+#define LOG_FATAL_FROM_ISR(msg) logMsgFromISR(LOG_FATAL, OBC_LOG_FILE, __LINE__, msg)
 
-#define LOG_ERROR_CODE(errCode) logErrorCode(LOG_ERROR, __FILE_FROM_REPO_ROOT__, __LINE__, errCode)
-#define LOG_ERROR_CODE_FROM_ISR(errCode) logErrorCodeFromISR(LOG_ERROR, __FILE_FROM_REPO_ROOT__, __LINE__, errCode)
+#define LOG_ERROR_CODE(errCode) logErrorCode(LOG_ERROR, OBC_LOG_FILE, __LINE__, errCode)
+#define LOG_ERROR_CODE_FROM_ISR(errCode) logErrorCodeFromISR(LOG_ERROR, OBC_LOG_FILE, __LINE__, errCode)
 
 #define RETURN_IF_ERROR_CODE(_ret)         \
   do {                                     \
@@ -97,62 +109,62 @@ void logSetLevel(log_level_t newLogLevel);
  * @brief Log an error code
  *
  * @param msgLevel				Level of the message
- * @param file					File of message
+ * @param file          Source file ID or path, selected by LOG_USE_FILE_IDS
  * @param line					Line of message
  * @param errCode       the error code that needs to be logged
  * @return obc_error_code_t		OBC_ERR_CODE_LOG_MSG_SILENCED 	if msgLevel is lower than logging level
  * 								OBC_ERR_CODE_BUFF_TOO_SMALL		if logged message is too long
- * 								OBC_ERR_CODE_INVALID_ARG		if file or s are null or if there is an encoding error
+ * 								OBC_ERR_CODE_INVALID_ARG		if a file path is null or there is an encoding error
  * 								OBC_ERR_CODE_SUCCESS			if message is successfully logged
  * 								OBC_ERR_CODE_UNKNOWN 			otherwise
  *
  */
-obc_error_code_t logErrorCode(log_level_t msgLevel, const char *file, uint32_t line, uint32_t errCode);
+obc_error_code_t logErrorCode(log_level_t msgLevel, log_file_ref_t file, uint32_t line, uint32_t errCode);
 
 /**
  * @brief Log a message
  *
  * @param msgLevel				Level of the message
- * @param file					File of message
+ * @param file          Source file ID or path, selected by LOG_USE_FILE_IDS
  * @param line					Line of message
  * @param msg           the message that should be logged (MUST BE STATIC)
  * @return obc_error_code_t		OBC_ERR_CODE_LOG_MSG_SILENCED 	if msgLevel is lower than logging level
  * 								OBC_ERR_CODE_BUFF_TOO_SMALL		if logged message is too long
- * 								OBC_ERR_CODE_INVALID_ARG		if file or s are null or if there is an encoding error
+ * 								OBC_ERR_CODE_INVALID_ARG		if msg or a file path is null or there is an encoding error
  * 								OBC_ERR_CODE_SUCCESS			if message is successfully logged
  * 								OBC_ERR_CODE_UNKNOWN 			otherwise
  *
  */
-obc_error_code_t logMsg(log_level_t msgLevel, const char *file, uint32_t line, const char *msg);
+obc_error_code_t logMsg(log_level_t msgLevel, log_file_ref_t file, uint32_t line, const char *msg);
 
 /**
  * @brief Log an error code from ISR
  *
  * @param msgLevel				Level of the message
- * @param file					File of message
+ * @param file          Source file ID or path, selected by LOG_USE_FILE_IDS
  * @param line					Line of message
  * @param errCode       the error code that needs to be logged
  * @return obc_error_code_t		OBC_ERR_CODE_LOG_MSG_SILENCED 	if msgLevel is lower than logging level
  * 								OBC_ERR_CODE_BUFF_TOO_SMALL		if logged message is too long
- * 								OBC_ERR_CODE_INVALID_ARG		if file or s are null or if there is an encoding error
+ * 								OBC_ERR_CODE_INVALID_ARG		if a file path is null or there is an encoding error
  * 								OBC_ERR_CODE_SUCCESS			if message is successfully logged
  * 								OBC_ERR_CODE_UNKNOWN 			otherwise
  *
  */
-obc_error_code_t logErrorCodeFromISR(log_level_t msgLevel, const char *file, uint32_t line, uint32_t errCode);
+obc_error_code_t logErrorCodeFromISR(log_level_t msgLevel, log_file_ref_t file, uint32_t line, uint32_t errCode);
 
 /**
  * @brief Log a message from ISR
  *
  * @param msgLevel				Level of the message
- * @param file					File of message
+ * @param file          Source file ID or path, selected by LOG_USE_FILE_IDS
  * @param line					Line of message
  * @param msg           the message that should be logged (MUST BE STATIC)
  * @return obc_error_code_t		OBC_ERR_CODE_LOG_MSG_SILENCED 	if msgLevel is lower than logging level
  * 								OBC_ERR_CODE_BUFF_TOO_SMALL		if logged message is too long
- * 								OBC_ERR_CODE_INVALID_ARG		if file or s are null or if there is an encoding error
+ * 								OBC_ERR_CODE_INVALID_ARG		if msg or a file path is null or there is an encoding error
  * 								OBC_ERR_CODE_SUCCESS			if message is successfully logged
  * 								OBC_ERR_CODE_UNKNOWN 			otherwise
  *
  */
-obc_error_code_t logMsgFromISR(log_level_t msgLevel, const char *file, uint32_t line, const char *msg);
+obc_error_code_t logMsgFromISR(log_level_t msgLevel, log_file_ref_t file, uint32_t line, const char *msg);

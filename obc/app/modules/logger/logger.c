@@ -1,8 +1,10 @@
 #include "logger.h"
 #include "obc_logging.h"
+#include "obc_logging_codec.h"
 #include "obc_errors.h"
 #include "obc_print.h"
 #include "obc_time.h"
+#include "obc_time_utils.h"
 
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
@@ -16,9 +18,17 @@
 #include <stdio.h>
 
 #define LOG_FILE_NAME "log.log"
+#define BINARY_LOG_FILE_NAME "log.bin"
 
 #define MAX_MSG_SIZE 128U
 #define MAX_FNAME_LINENUM_SIZE 150U
+#if LOG_USE_FILE_IDS
+#define LOG_FILE_FORMAT "%u"
+#define LOG_FILE_ARGUMENT(file) ((unsigned int)(file))
+#else
+#define LOG_FILE_FORMAT "%s"
+#define LOG_FILE_ARGUMENT(file) (file)
+#endif
 // Extra 10 for the small extra pieces in "%s - %s\r\n"
 #define MAX_LOG_SIZE (MAX_MSG_SIZE + MAX_FNAME_LINENUM_SIZE + 10U)
 
@@ -38,6 +48,7 @@ static const char *LEVEL_STRINGS[] = {"TRACE", "DEBUG", "INFO", "WARN", "ERROR",
 
 static log_level_t logLevel;
 static log_output_location_t outputLocation;
+static log_output_format_t outputFormat;
 
 #define LOGGER_QUEUE_LENGTH 10U
 #define LOGGER_QUEUE_ITEM_SIZE sizeof(logger_event_t)
@@ -64,6 +75,15 @@ static obc_error_code_t sendToLoggerQueue(logger_event_t *event, size_t blockTim
  */
 static obc_error_code_t sendToLoggerQueueFromISR(logger_event_t *event);
 
+/**
+ * @brief Writes a fully formatted/encoded log record to the configured output location
+ *
+ * @param fname File to append to when logging to the SD card
+ * @param buf Bytes to write
+ * @param bufLen Number of bytes to write
+ */
+static void writeLogOutput(const char *fname, const uint8_t *buf, size_t bufLen);
+
 void logSetLevel(log_level_t newLogLevel) { logLevel = newLogLevel; }
 
 void obcTaskInitLogger(void) {
@@ -73,7 +93,53 @@ void obcTaskInitLogger(void) {
   }
 
   outputLocation = LOG_DEFAULT_OUTPUT_LOCATION;
+  outputFormat = LOG_DEFAULT_OUTPUT_FORMAT;
   logLevel = LOG_DEFAULT_LEVEL;
+}
+
+/**
+ * @brief Encodes a logger event into the compact binary log format and writes it out
+ *
+ * @param queueMsg The logger event to encode
+ */
+static void outputBinaryLog(logger_event_t *queueMsg) {
+  binary_log_entry_t binEntry = {0};
+  binEntry.type = (log_type_t)queueMsg->logEntry.logType;
+  binEntry.level = (log_level_t)queueMsg->logEntry.logLevel;
+#if LOG_USE_FILE_IDS
+  binEntry.fileId = queueMsg->file;
+#else
+  if (logFileIdFromPath(queueMsg->file, &binEntry.fileId) != OBC_ERR_CODE_SUCCESS) {
+    return;
+  }
+#endif
+  binEntry.line = (queueMsg->line > UINT16_MAX) ? UINT16_MAX : (uint16_t)queueMsg->line;
+
+#if defined(LOG_DATE_TIME)
+  uint32_t unixTime = 0;
+  if (datetimeToUnix(&queueMsg->timestamp, &unixTime) == OBC_ERR_CODE_SUCCESS) {
+    binEntry.hasTimestamp = 1;
+    binEntry.timestamp = unixTime;
+  }
+#elif defined(LOG_UNIX)
+  binEntry.hasTimestamp = 1;
+  binEntry.timestamp = queueMsg->timestamp;
+#endif
+
+  if (queueMsg->logEntry.logType == LOG_TYPE_ERROR_CODE) {
+    binEntry.errCode = queueMsg->errCode;
+  } else {
+    strncpy(binEntry.msg, queueMsg->msg, BINARY_LOG_MAX_MSG_LEN);
+    binEntry.msg[BINARY_LOG_MAX_MSG_LEN] = '\0';
+  }
+
+  uint8_t encodeBuf[BINARY_LOG_MAX_ENTRY_SIZE] = {0};
+  size_t encodedLen = 0;
+  if (binaryLogEncode(&binEntry, encodeBuf, sizeof(encodeBuf), &encodedLen) != OBC_ERR_CODE_SUCCESS) {
+    return;
+  }
+
+  writeLogOutput(BINARY_LOG_FILE_NAME, encodeBuf, encodedLen);
 }
 
 void obcTaskFunctionLogger(void *pvParameters) {
@@ -87,8 +153,14 @@ void obcTaskFunctionLogger(void *pvParameters) {
       LOG_ERROR_CODE(OBC_ERR_CODE_UNSUPPORTED_EVENT);
       continue;
     }
+#if !LOG_USE_FILE_IDS
     if (queueMsg.file == NULL) {
       LOG_ERROR_CODE(OBC_ERR_CODE_UNSUPPORTED_EVENT);
+      continue;
+    }
+#endif
+    if (outputFormat == LOG_FORMAT_BINARY) {
+      outputBinaryLog(&queueMsg);
       continue;
     }
 
@@ -98,15 +170,18 @@ void obcTaskFunctionLogger(void *pvParameters) {
 
 #if defined(LOG_DATE_TIME)
     const rtc_date_time_t *currDate = &queueMsg.timestamp;
-    ret = snprintf(infobuf, MAX_FNAME_LINENUM_SIZE, "%02u-%02u-%02u_%02u-%02u-%02u %-5s -> %s:%lu", currDate->date.year,
-                   currDate->date.month, currDate->date.date, currDate->time.hours, currDate->time.minutes,
-                   currDate->time.seconds, LEVEL_STRINGS[queueMsg.logEntry.logLevel], queueMsg.file, queueMsg.line);
+    ret = snprintf(infobuf, MAX_FNAME_LINENUM_SIZE, "%02u-%02u-%02u_%02u-%02u-%02u %-5s -> " LOG_FILE_FORMAT ":%lu",
+                   currDate->date.year, currDate->date.month, currDate->date.date, currDate->time.hours,
+                   currDate->time.minutes, currDate->time.seconds, LEVEL_STRINGS[queueMsg.logEntry.logLevel],
+                   LOG_FILE_ARGUMENT(queueMsg.file), (unsigned long)queueMsg.line);
 #elif defined(LOG_UNIX)
-    ret = snprintf(infobuf, MAX_FNAME_LINENUM_SIZE, "%u %-5s -> %s:%lu", queueMsg.timestamp,
-                   LEVEL_STRINGS[queueMsg.logEntry.logLevel], queueMsg.file, queueMsg.line);
+    ret = snprintf(infobuf, MAX_FNAME_LINENUM_SIZE, "%u %-5s -> " LOG_FILE_FORMAT ":%lu",
+                   (unsigned int)queueMsg.timestamp, LEVEL_STRINGS[queueMsg.logEntry.logLevel],
+                   LOG_FILE_ARGUMENT(queueMsg.file), (unsigned long)queueMsg.line);
 #else
-    ret = snprintf(infobuf, MAX_FNAME_LINENUM_SIZE, "%-5s -> %s:%lu", LEVEL_STRINGS[queueMsg.logEntry.logLevel],
-                   queueMsg.file, queueMsg.line);
+    ret = snprintf(infobuf, MAX_FNAME_LINENUM_SIZE, "%-5s -> " LOG_FILE_FORMAT ":%lu",
+                   LEVEL_STRINGS[queueMsg.logEntry.logLevel], LOG_FILE_ARGUMENT(queueMsg.file),
+                   (unsigned long)queueMsg.line);
 #endif
 
     if (ret < 0) {
@@ -122,7 +197,7 @@ void obcTaskFunctionLogger(void *pvParameters) {
     switch (queueMsg.logEntry.logType) {
       case LOG_TYPE_ERROR_CODE:
         // Prepare entire output
-        logBufLen = snprintf(logBuf, MAX_LOG_SIZE, "%s - %lu\r\n", infobuf, queueMsg.errCode);
+        logBufLen = snprintf(logBuf, MAX_LOG_SIZE, "%s - %lu\r\n", infobuf, (unsigned long)queueMsg.errCode);
         if (logBufLen < 0) {
           LOG_ERROR_CODE(OBC_ERR_CODE_INVALID_ARG);
           continue;
@@ -149,20 +224,24 @@ void obcTaskFunctionLogger(void *pvParameters) {
         LOG_ERROR_CODE(OBC_ERR_CODE_UNSUPPORTED_EVENT);
         continue;
     }
-    if (outputLocation == LOG_TO_SDCARD) {
-      int32_t fdescriptor = red_open(fname, RED_O_WRONLY | RED_O_APPEND | RED_O_CREAT);
-      if (fdescriptor == -1) {
-        continue;
-      }
-      if (red_write(fdescriptor, logBuf, logBufLen) == -1) {
-        continue;
-      }
-      if (red_close(fdescriptor) == -1) {
-        continue;
-      }
-    } else {
-      sciPrintText((unsigned char *)logBuf, logBufLen, UART_MUTEX_BLOCK_TIME);
+    writeLogOutput(fname, (const uint8_t *)logBuf, (size_t)logBufLen);
+  }
+}
+
+static void writeLogOutput(const char *fname, const uint8_t *buf, size_t bufLen) {
+  if (outputLocation == LOG_TO_SDCARD) {
+    int32_t fdescriptor = red_open(fname, RED_O_WRONLY | RED_O_APPEND | RED_O_CREAT);
+    if (fdescriptor == -1) {
+      return;
     }
+    if (red_write(fdescriptor, buf, bufLen) == -1) {
+      return;
+    }
+    if (red_close(fdescriptor) == -1) {
+      return;
+    }
+  } else {
+    sciPrintText((unsigned char *)buf, bufLen, UART_MUTEX_BLOCK_TIME);
   }
 }
 
@@ -201,14 +280,17 @@ static obc_error_code_t sendToLoggerQueueFromISR(logger_event_t *event) {
 
 void logSetOutputLocation(log_output_location_t newOutputLocation) { outputLocation = newOutputLocation; }
 
-obc_error_code_t logErrorCode(log_level_t msgLevel, const char *file, uint32_t line, uint32_t errCode) {
+void logSetOutputFormat(log_output_format_t newOutputFormat) { outputFormat = newOutputFormat; }
+
+obc_error_code_t logErrorCode(log_level_t msgLevel, log_file_ref_t file, uint32_t line, uint32_t errCode) {
   if (msgLevel < logLevel) {
     return OBC_ERR_CODE_LOG_MSG_SILENCED;
   }
-
+#if !LOG_USE_FILE_IDS
   if (file == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+#endif
 
   logger_event_t logEvent = {.logEntry = {.logType = LOG_TYPE_ERROR_CODE, .logLevel = msgLevel},
                              .file = file,
@@ -223,14 +305,15 @@ obc_error_code_t logErrorCode(log_level_t msgLevel, const char *file, uint32_t l
   return sendToLoggerQueue(&logEvent, LOGGER_QUEUE_TX_WAIT_PERIOD);
 }
 
-obc_error_code_t logMsg(log_level_t msgLevel, const char *file, uint32_t line, const char *msg) {
+obc_error_code_t logMsg(log_level_t msgLevel, log_file_ref_t file, uint32_t line, const char *msg) {
   if (msgLevel < logLevel) {
     return OBC_ERR_CODE_LOG_MSG_SILENCED;
   }
-
+#if !LOG_USE_FILE_IDS
   if (file == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+#endif
 
   if (msg == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
@@ -246,14 +329,15 @@ obc_error_code_t logMsg(log_level_t msgLevel, const char *file, uint32_t line, c
   return sendToLoggerQueue(&logEvent, LOGGER_QUEUE_TX_WAIT_PERIOD);
 }
 
-obc_error_code_t logErrorCodeFromISR(log_level_t msgLevel, const char *file, uint32_t line, uint32_t errCode) {
+obc_error_code_t logErrorCodeFromISR(log_level_t msgLevel, log_file_ref_t file, uint32_t line, uint32_t errCode) {
   if (msgLevel < logLevel) {
     return OBC_ERR_CODE_LOG_MSG_SILENCED;
   }
-
+#if !LOG_USE_FILE_IDS
   if (file == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+#endif
 
   logger_event_t logEvent = {.logEntry = {.logType = LOG_TYPE_ERROR_CODE, .logLevel = msgLevel},
                              .file = file,
@@ -268,14 +352,15 @@ obc_error_code_t logErrorCodeFromISR(log_level_t msgLevel, const char *file, uin
   return sendToLoggerQueueFromISR(&logEvent);
 }
 
-obc_error_code_t logMsgFromISR(log_level_t msgLevel, const char *file, uint32_t line, const char *msg) {
+obc_error_code_t logMsgFromISR(log_level_t msgLevel, log_file_ref_t file, uint32_t line, const char *msg) {
   if (msgLevel < logLevel) {
     return OBC_ERR_CODE_LOG_MSG_SILENCED;
   }
-
+#if !LOG_USE_FILE_IDS
   if (file == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+#endif
 
   if (msg == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;

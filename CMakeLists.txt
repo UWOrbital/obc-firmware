@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.18)
 
 # Set the toolchain file before the project is declared
 if(${CMAKE_BUILD_TYPE} MATCHES OBC)
@@ -15,10 +15,12 @@ elseif(${CMAKE_BUILD_TYPE} MATCHES HIL)
     include(${CMAKE_SOURCE_DIR}/cmake/fetch_googletest.cmake)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchain_hil_gcc.cmake)
 elseif(${CMAKE_BUILD_TYPE} MATCHES Test)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+    if(NOT APPLE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+        set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchain_linux_gcc.cmake)
+    endif()
     include(${CMAKE_SOURCE_DIR}/cmake/fetch_googletest.cmake)
-    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchain_linux_gcc.cmake)
 elseif(${CMAKE_BUILD_TYPE} MATCHES Examples)
     if(NOT EXISTS ${CMAKE_BINARY_DIR}/toolchain)
         include(${CMAKE_SOURCE_DIR}/cmake/download_arm_toolchain.cmake)
@@ -29,6 +31,8 @@ else()
 endif()
 
 project(OrbitalSw)
+
+include("${CMAKE_SOURCE_DIR}/cmake/log_file_ids.cmake")
 
 if(${CMAKE_BUILD_TYPE} MATCHES OBC)
     set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -64,3 +68,5 @@ add_subdirectory(libs)
 
 # Build interface libs
 add_subdirectory(interfaces)
+
+apply_log_file_ids("${CMAKE_SOURCE_DIR}")
