@@ -2,8 +2,6 @@
 
 #include "obc_logging.h"
 #include "obc_errors.h"
-#include "adc.h"
-#include "reg_adc.h"
 
 #include <FreeRTOS.h>
 #include <os_portmacro.h>
