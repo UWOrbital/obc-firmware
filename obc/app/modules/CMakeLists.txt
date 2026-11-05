@@ -16,6 +16,7 @@ set(INCLUDES
     ${CMAKE_CURRENT_SOURCE_DIR}/timekeeper
     ${CMAKE_CURRENT_SOURCE_DIR}/task_stats_collector
     ${CMAKE_CURRENT_SOURCE_DIR}/logger
+    ${CMAKE_SOURCE_DIR}/obc/bl/include/
 )
 
 set(SOURCES

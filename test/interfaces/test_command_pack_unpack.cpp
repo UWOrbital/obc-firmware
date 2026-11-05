@@ -163,7 +163,7 @@ TEST(TestCommandPackUnpack, ValidCmdSetProgrammingSessionPackUnpack) {
   obc_gs_error_code_t errCode;
   cmd_msg_t cmdMsg = {0};
   cmdMsg.id = CMD_SET_PROGRAMMING_SESSION;
-  cmdMsg.setProgrammingSession.programmingSession = APPLICATION;
+  cmdMsg.setProgrammingSession.programmingSession = APP_SLOT_A;
 
   uint8_t buff[MAX_CMD_MSG_SIZE] = {0};
   uint32_t packOffset = 0;
@@ -190,7 +190,7 @@ TEST(TestCommandPackUnpack, ValidCmdDownloadDataPackUnpack) {
   obc_gs_error_code_t errCode;
   cmd_msg_t cmdMsg = {0};
   cmdMsg.id = CMD_DOWNLOAD_DATA;
-  cmdMsg.downloadData.programmingSession = APPLICATION;
+  cmdMsg.downloadData.programmingSession = APP_SLOT_A;
   cmdMsg.downloadData.length = 208;
   cmdMsg.downloadData.address = 0x00040000;
 

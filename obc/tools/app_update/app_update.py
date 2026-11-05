@@ -19,6 +19,8 @@ from interfaces.obc_gs_interface.commands.python.command_factories import (
     create_cmd_download_data,
     create_cmd_erase_app,
     create_cmd_verify_crc,
+    create_cmd_enable_boot_app_a,
+    create_cmd_enable_boot_app_b,
 )
 
 from interfaces.obc_gs_interface.commands.python.command_response_callbacks import (
@@ -29,11 +31,15 @@ from interfaces.obc_gs_interface.commands.python.command_response_callbacks impo
 COMMAND_DATA_SIZE: Final[int] = 208
 
 # Refer to bl_config.h for the start address
-APP_STARTING_ADDRESS: Final[int] = 0x00040000
+DEFAULT_APP_STARTING_ADDRESS: Final[int] = 0x00040000
 
 
 def create_app_packet(
-    packet_number: int, app_bin: bytes, is_last_packet: bool = False
+    packet_number: int,
+    app_bin: bytes,
+    app_starting_address: int,
+    programming_session: ProgrammingSession,
+    is_last_packet: bool = False,
 ) -> bytes:
     """
     A helper function that creates an app packet to send to the bootloader
@@ -47,9 +53,9 @@ def create_app_packet(
     if is_last_packet:
         command_bytes = pack_command(
             create_cmd_download_data(
-                ProgrammingSession.APPLICATION,
+                programming_session,
                 len(app_bin[packet_number * COMMAND_DATA_SIZE :]),
-                APP_STARTING_ADDRESS + packet_number * COMMAND_DATA_SIZE,
+                app_starting_address + packet_number * COMMAND_DATA_SIZE,
             )
         )
         return (command_bytes + app_bin[packet_number * COMMAND_DATA_SIZE :]).ljust(
@@ -58,9 +64,9 @@ def create_app_packet(
     else:
         command_bytes = pack_command(
             create_cmd_download_data(
-                ProgrammingSession.APPLICATION,
+                programming_session,
                 COMMAND_DATA_SIZE,
-                APP_STARTING_ADDRESS + packet_number * COMMAND_DATA_SIZE,
+                app_starting_address + packet_number * COMMAND_DATA_SIZE,
             )
         )
         return command_bytes + app_bin[
@@ -72,6 +78,7 @@ def write_command(
     ser: Serial,
     command: CmdCallbackId,
     app_data: bytes | None = None,
+    programming_session: ProgrammingSession | None = None,
     iteration: int | None = None,
     is_last_packet: bool | None = None,
 ) -> bool:
@@ -83,6 +90,16 @@ def write_command(
     :param app_data: The app binary in bytes for the CMD_DOWNLOAD_DATA
     :param iteration: The packet of app being written for CMD_DOWNLOAD_DATA
     """
+
+    # TODO edit to reflect cmake values
+    if programming_session == ProgrammingSession.APP_SLOT_A:
+        app_starting_address = 0x00040000
+    elif programming_session == ProgrammingSession.APP_SLOT_B:
+        app_starting_address = 0x000A0000
+    else:
+        print("Invalid app slot")
+        return
+
     packed_command = b""
     cmd_print_response = False
 
@@ -92,16 +109,18 @@ def write_command(
 
     match command:
         case CmdCallbackId.CMD_ERASE_APP:
-            packed_command = pack_command(create_cmd_erase_app()).ljust(
-                RS_DECODED_DATA_SIZE, b"\x00"
-            )
+            packed_command = pack_command(
+                create_cmd_erase_app(programming_session)
+            ).ljust(RS_DECODED_DATA_SIZE, b"\x00")
         case CmdCallbackId.CMD_DOWNLOAD_DATA:
             if (
                 app_data is not None
                 and iteration is not None
                 and is_last_packet is not None
             ):
-                packed_command = create_app_packet(iteration, app_data, is_last_packet)
+                packed_command = create_app_packet(
+                    iteration, app_data, app_starting_address, is_last_packet
+                )
                 bytes_to_read = RS_DECODED_DATA_SIZE + 1
                 cmd_res_cutoff = 1
             else:
@@ -113,6 +132,14 @@ def write_command(
                 RS_DECODED_DATA_SIZE, b"\x00"
             )
             cmd_print_response = True
+        case CmdCallbackId.CMD_ENABLE_BOOT_APP_A:
+            packed_command = pack_command(create_cmd_enable_boot_app_a()).ljust(
+                RS_DECODED_DATA_SIZE, b"\x00"
+            )
+        case CmdCallbackId.CMD_ENABLE_BOOT_APP_B:
+            packed_command = pack_command(create_cmd_enable_boot_app_b()).ljust(
+                RS_DECODED_DATA_SIZE, b"\x00"
+            )
         case _:
             raise ValueError("Command not supported")
 
@@ -129,7 +156,9 @@ def write_command(
     return True
 
 
-def send_bin(file_path: str, com_port: str) -> None:
+def send_bin(
+    file_path: str, com_port: str, programming_session: ProgrammingSession
+) -> None:
     """
     Sends .bin file over UART serial port
 
@@ -150,7 +179,9 @@ def send_bin(file_path: str, com_port: str) -> None:
         stopbits=STOPBITS_TWO,
         timeout=15,
     ) as ser:
-        if write_command(ser, CmdCallbackId.CMD_ERASE_APP):
+        if write_command(
+            ser, CmdCallbackId.CMD_ERASE_APP, programming_session=programming_session
+        ):
             print("Erased App")
         else:
             return
@@ -159,8 +190,16 @@ def send_bin(file_path: str, com_port: str) -> None:
         progress_bar = tqdm(
             desc="Packets Written: ", total=commands_needed, dynamic_ncols=True
         )
+
         for i in range(commands_needed - 1):
-            if write_command(ser, CmdCallbackId.CMD_DOWNLOAD_DATA, app_bin, i, False):
+            if write_command(
+                ser,
+                CmdCallbackId.CMD_DOWNLOAD_DATA,
+                app_bin,
+                programming_session,
+                i,
+                False,
+            ):
                 progress_bar.update(1)
                 ser.reset_output_buffer()
                 ser.reset_input_buffer()
@@ -168,7 +207,12 @@ def send_bin(file_path: str, com_port: str) -> None:
                 return
 
         if write_command(
-            ser, CmdCallbackId.CMD_DOWNLOAD_DATA, app_bin, commands_needed - 1, True
+            ser,
+            CmdCallbackId.CMD_DOWNLOAD_DATA,
+            app_bin,
+            programming_session,
+            commands_needed - 1,
+            True,
         ):
             progress_bar.update(1)
             progress_bar.close()
@@ -183,8 +227,11 @@ def main() -> None:
     """
     A function that initializes the com port and path to update the app
     """
-    if len(argv) != 3:
-        print("Two arguments needed: Com Port and Application File Path")
+
+    if len(argv) != 5:
+        print(
+            "Four arguments needed: Com Port, Application File Path, active app slot (A/B), and active app slot (A/B)"
+        )
         return
 
     try:
@@ -197,9 +244,41 @@ def main() -> None:
             print("Invalid file path")
             return
 
-        print("Starting Flashing Procedure...")
-        send_bin(str(path), com_port)
-        sleep(5)
+        with Serial(
+            com_port,
+            baudrate=OBC_UART_BAUD_RATE,
+            parity=PARITY_NONE,
+            stopbits=STOPBITS_TWO,
+            timeout=15,
+        ) as ser:
+            if argv[3] == "A":
+                programming_session = ProgrammingSession.APP_SLOT_A
+            elif argv[3] == "B":
+                programming_session = ProgrammingSession.APP_SLOT_B
+            elif argv[3] != "NC":
+                print("Expected A/B/NC for activate app slot, recieved " + argv[3])
+
+            if not argv[3] == "NC":
+                if not write_command(
+                    ser,
+                    CmdCallbackId.CMD_ENABLE_BOOT_APP_A,
+                    programming_session=programming_session,
+                ):
+                    print("Failed to activate App A for boot")
+                    return
+
+        if argv[4] == "A":
+            programming_session = ProgrammingSession.APP_SLOT_A
+        elif argv[4] == "B":
+            programming_session = ProgrammingSession.APP_SLOT_B
+        elif argv[4] != "NC":
+            print("Expected A/B/NC for activate app slot, recieved " + argv[3])
+
+        if not argv[4] == "NC":
+            if not send_bin(str(path), com_port, programming_session):
+                print("Failed to write app")
+                return
+            sleep(5)
 
     except SerialException:
         print("Invalid port entered")

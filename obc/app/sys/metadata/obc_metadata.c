@@ -1,5 +1,6 @@
 #include "obc_metadata.h"
 #include "obc_errors.h"
+#include "magic_numbers.h"
 
 extern void _c_int00(void);
 extern uint32_t __crc_addr;
@@ -12,6 +13,7 @@ const metadata_t app_metadata __attribute__((section(".metadata"), used)) = {
     .release_ver_major = 0,
     .release_ver_minor = 1,
     .board_id = BOARD_ID,
+    .occupied_slot = (APP_SLOT == 0) ? 0 : SHORT_ENABLE_APP_MAGIC_NUMBER,
     .reserved = {0},
     .crc_addr = (uint32_t)&__crc_addr,
 };
