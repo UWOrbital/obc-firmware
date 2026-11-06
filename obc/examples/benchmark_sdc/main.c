@@ -89,7 +89,7 @@ void vSdcWorkerTask(void *pvParameters) {
   IDK WHAT THE FILESYSTEM WILL BE USED FOR SO ASK THIS
    */
 
-  TickType_t durationMs = pdTICKS_TO_MS(xTaskGetTickCount() - startTime);
+  TickType_t durationMs = ((xTaskGetTickCount() - startTime) * 1000U) / configTICK_RATE_HZ;
 
   /* Query FreeRTOS native runtime statistics */
   char statsBuffer[TASK_STATS_BUFFER_SIZE] = {0};

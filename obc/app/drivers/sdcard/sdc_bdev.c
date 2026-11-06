@@ -93,8 +93,12 @@ static volatile DSTATUS stat = STA_NOINIT; /* Disk status */
 static uint8_t cardType;                   /* Card type flags: b0:MMC, b1:SDC, b2:Block addressing */
 static sdc_power_t powerFlag = POWER_OFF;  /* indicates if "power" is on */
 
+#if (SDC_ENABLE_DMA == 1)
+/* Full 512-byte dummy buffers required because SPI DMA uses auto-incrementing memory pointers for full-duplex transfers
+ */
 static uint8_t sdcDmaDummyTx[SD_SECTOR_SIZE] = {[0 ... SD_SECTOR_SIZE - 1] = SDC_MOSI_HIGH};
 static uint8_t sdcDmaDummyRx[SD_SECTOR_SIZE];
+#endif
 
 /*---------------------------------------------*/
 /* SD Card Private Functions                   */
@@ -204,6 +208,7 @@ static bool rcvDataBlock(uint8_t *buff, uint32_t btr) {
   return true;
 }
 
+#if (SDC_ENABLE_DMA == 1)
 /**
  * @brief Receive a data packet from the SD card using DMA.
  * @param buff Buffer to store the received data.
@@ -250,6 +255,7 @@ static bool rcvDataBlockDMA(uint8_t *buff, uint32_t btr) {
 
   return true;
 }
+#endif /* SDC_ENABLE_DMA */
 
 #if _READONLY == 0
 
@@ -287,6 +293,7 @@ static bool sendDataBlock(const uint8_t *buff, uint8_t token) {
   return true;
 }
 
+#if (SDC_ENABLE_DMA == 1)
 /**
  * @brief Send a data packet to the SD card using DMA.
  * @param buff 512 uint8_t buffer containing the data to send.
@@ -324,6 +331,7 @@ static bool sendDataBlockDMA(const uint8_t *buff, uint8_t token) {
 
   return true;
 }
+#endif /* SDC_ENABLE_DMA */
 #endif /* _READONLY */
 
 /**
@@ -524,9 +532,11 @@ DSTATUS disk_initialize(uint8_t drv) {
     turnOffSDC();  // Initialization failed
   }
 
+#if (SDC_ENABLE_DMA == 1)
   // Initialize spiDMA to run on SD card's SPI reg (assuming dma always enabled)
   spiDmaInit(SDC_SPI_REG);
   initDmaSpiSemaphores();
+#endif
   return stat;
 }
 
@@ -569,12 +579,20 @@ DRESULT disk_read(uint8_t pdrv, uint8_t *buff, uint32_t sector, uint32_t count) 
 
   if (count == 1) {
     /* Single block read */
+#if (SDC_ENABLE_DMA == 1)
     if ((sendCMD(SDC_CMD17, sector) == 0) && rcvDataBlockDMA(buff, SD_SECTOR_SIZE)) count = 0;
+#else
+    if ((sendCMD(SDC_CMD17, sector) == 0) && rcvDataBlock(buff, SD_SECTOR_SIZE)) count = 0;
+#endif
   } else {
     /* Multiple block read */
     if (sendCMD(SDC_CMD18, sector) == 0) {
       do {
+#if (SDC_ENABLE_DMA == 1)
         if (!rcvDataBlockDMA(buff, SD_SECTOR_SIZE)) break;
+#else
+        if (!rcvDataBlock(buff, SD_SECTOR_SIZE)) break;
+#endif
         buff += SD_SECTOR_SIZE;
       } while (--count);
       stopTransmission();
@@ -622,7 +640,11 @@ DRESULT disk_write(uint8_t pdrv, const uint8_t *buff, uint32_t sector, uint32_t 
 
   if (count == 1) {
     /* Single block write */
+#if (SDC_ENABLE_DMA == 1)
     if ((sendCMD(SDC_CMD24, sector) == 0) && sendDataBlockDMA(buff, SDC_CMD24_DATA_TOKEN)) count = 0;
+#else
+    if ((sendCMD(SDC_CMD24, sector) == 0) && sendDataBlock(buff, SDC_CMD24_DATA_TOKEN)) count = 0;
+#endif
   } else {
     /* Multiple block write */
     if (cardType & CARD_TYPE_SDC_MASK) {
@@ -632,7 +654,11 @@ DRESULT disk_write(uint8_t pdrv, const uint8_t *buff, uint32_t sector, uint32_t 
 
     if (sendCMD(SDC_CMD25, sector) == 0) {
       do {
+#if (SDC_ENABLE_DMA == 1)
         if (!sendDataBlockDMA(buff, SDC_CMD25_DATA_TOKEN)) break;
+#else
+        if (!sendDataBlock(buff, SDC_CMD25_DATA_TOKEN)) break;
+#endif
         buff += SD_SECTOR_SIZE;
       } while (--count);
 
