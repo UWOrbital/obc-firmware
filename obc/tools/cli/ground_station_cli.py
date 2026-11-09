@@ -3,8 +3,7 @@ from datetime import datetime
 from multiprocessing import Process
 from sys import argv, exit
 
-from serial import Serial, SerialException
-
+from interfaces.obc_gs_interface.commands.python import CmdCallbackId
 from interfaces.utils.command_utils import (
     LOG_PATH,
     arg_parse,
@@ -12,7 +11,7 @@ from interfaces.utils.command_utils import (
     send_command,
     send_conn_request,
 )
-from interfaces.obc_gs_interface.commands.python import CmdCallbackId
+from serial import Serial, SerialException
 
 
 class GroundStationShell(Cmd):
