@@ -107,3 +107,51 @@ TEST(TestPackAndUnpack, ValidFloatPackUnpack) {
   EXPECT_EQ(len, sizeof(float));
   EXPECT_EQ(val, unpackedVal);
 }
+
+TEST(TestPackAndUnpack, LittleEndianUint16) {
+  const uint8_t expected[] = {0x34, 0x12};
+  uint8_t buf[sizeof(expected) + 1] = {0};
+  buf[sizeof(expected)] = 0xA5;
+  ASSERT_EQ(packUint16LE(buf, 0x1234U), OBC_GS_ERR_CODE_SUCCESS);
+  for (size_t i = 0; i < sizeof(expected); i++) {
+    EXPECT_EQ(buf[i], expected[i]);
+  }
+  EXPECT_EQ(buf[sizeof(expected)], 0xA5);
+
+  uint16_t value = 0;
+  ASSERT_EQ(unpackUint16LE(expected, &value), OBC_GS_ERR_CODE_SUCCESS);
+  EXPECT_EQ(value, 0x1234U);
+}
+
+TEST(TestPackAndUnpack, LittleEndianUint16RejectsNullPointers) {
+  const uint8_t buf[2] = {0};
+  uint16_t value = 0x1234U;
+  EXPECT_EQ(packUint16LE(nullptr, value), OBC_GS_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(unpackUint16LE(nullptr, &value), OBC_GS_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(value, 0x1234U);
+  EXPECT_EQ(unpackUint16LE(buf, nullptr), OBC_GS_ERR_CODE_INVALID_ARG);
+}
+
+TEST(TestPackAndUnpack, LittleEndianUint32) {
+  const uint8_t expected[] = {0x78, 0x56, 0x34, 0x12};
+  uint8_t buf[sizeof(expected) + 1] = {0};
+  buf[sizeof(expected)] = 0xA5;
+  ASSERT_EQ(packUint32LE(buf, 0x12345678U), OBC_GS_ERR_CODE_SUCCESS);
+  for (size_t i = 0; i < sizeof(expected); i++) {
+    EXPECT_EQ(buf[i], expected[i]);
+  }
+  EXPECT_EQ(buf[sizeof(expected)], 0xA5);
+
+  uint32_t value = 0;
+  ASSERT_EQ(unpackUint32LE(expected, &value), OBC_GS_ERR_CODE_SUCCESS);
+  EXPECT_EQ(value, 0x12345678U);
+}
+
+TEST(TestPackAndUnpack, LittleEndianUint32RejectsNullPointers) {
+  const uint8_t buf[4] = {0};
+  uint32_t value = 0x12345678U;
+  EXPECT_EQ(packUint32LE(nullptr, value), OBC_GS_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(unpackUint32LE(nullptr, &value), OBC_GS_ERR_CODE_INVALID_ARG);
+  EXPECT_EQ(value, 0x12345678U);
+  EXPECT_EQ(unpackUint32LE(buf, nullptr), OBC_GS_ERR_CODE_INVALID_ARG);
+}
