@@ -25,10 +25,6 @@ static StaticSemaphore_t adcConversionMutexBuffer;
 // Arbitrary
 #define ADC_MAX_WAIT_CYCLES 1000
 
-#define ADC_NUM_GROUPS 3
-
-#define ADC_INDEX(module, group) ((module) * ADC_NUM_GROUPS + (group))
-
 void initADC(void) {
   adcInit();
   if (adcConversionMutex == NULL) {
