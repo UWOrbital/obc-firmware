@@ -122,6 +122,7 @@ typedef enum config_value_type
 #endif
 
 /* USER CODE BEGIN (2) */
+#include "obc_log_source.h"
 
 /**
  * @brief Print information for a failed assertion.
@@ -129,14 +130,14 @@ typedef enum config_value_type
  * @param line Line of failed assertion.
  * @param expr Failed expression.
  */
-void uartAssertFailed(char *file, int line, char *expr);
+void uartAssertFailed(log_file_ref_t file, int line, char *expr);
 
 #undef ASSERT
 #ifdef DEBUG
 #define ASSERT(expr) {                                                          \
                          if(!(expr))                                            \
                          {                                                      \
-                             uartAssertFailed(__FILE__, __LINE__, #expr);       \
+                             uartAssertFailed(OBC_LOG_FILE, __LINE__, #expr);       \
                              taskDISABLE_INTERRUPTS();                          \
                              while(1);                                          \
                          }                                                      \

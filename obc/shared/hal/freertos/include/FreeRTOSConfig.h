@@ -173,9 +173,11 @@
 #define INCLUDE_xTaskGetIdleTaskHandle      1
 
 /* USER CODE BEGIN (4) */
-void freertosConfigAssert( const char * pcFile, unsigned long ulLine);
+#include "obc_log_source.h"
 
-#define configASSERT( x ) if( ( x ) == pdFALSE ) freertosConfigAssert(__FILE__, __LINE__);
+void freertosConfigAssert(log_file_ref_t file, unsigned long ulLine);
+
+#define configASSERT( x ) if( ( x ) == pdFALSE ) freertosConfigAssert(OBC_LOG_FILE, __LINE__);
 #ifndef configASSERT
 /* USER CODE END */
 

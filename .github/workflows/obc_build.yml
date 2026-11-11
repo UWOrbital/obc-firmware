@@ -74,6 +74,31 @@ jobs:
         cmake .. -DCMAKE_BUILD_TYPE=OBC -G"Unix Makefiles" -DBOARD_TYPE=OBC_REVISION_2 -DDEBUG=1
         make
 
+    - name: Build and compare compile-time logging IDs
+      run: |
+        source .venv/bin/activate
+        for mode in OFF ON; do
+          if [ "$mode" = ON ]; then build_dir=build-log-ids; else build_dir=build-log-paths; fi
+          mkdir -p "$build_dir"
+          ln -s "$PWD/build/toolchain" "$build_dir/toolchain"
+          cmake -S . -B "$build_dir" -DCMAKE_BUILD_TYPE=OBC -DBOARD_TYPE=RM46_LAUNCHPAD \
+            -DDEBUG=0 -DLOG_DEFAULT_OUTPUT_FORMAT=LOG_FORMAT_BINARY -DLOG_USE_FILE_IDS="$mode"
+          cmake --build "$build_dir" --target OBC-firmware.out -j 4
+          cmake --build "$build_dir" --target OBC_firmware-crc_bin -j 4
+          cmake --build "$build_dir" --target firmware_crc -j 4
+        done
+        python3 scripts/compare_log_file_id_builds.py build-log-paths build-log-ids
+
+    - name: Upload logging comparison binaries and mappings
+      uses: actions/upload-artifact@v4
+      with:
+        name: logging-size-comparison
+        path: |
+          build-log-paths/OBC-firmware.bin
+          build-log-paths/generated/logging/log_file_ids.json
+          build-log-ids/OBC-firmware.bin
+          build-log-ids/generated/logging/log_file_ids.json
+
     - name: Upload binary
       uses: actions/upload-artifact@v4
       with:

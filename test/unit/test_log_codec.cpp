@@ -162,6 +162,7 @@ TEST(TestLogCodec, DecodeRejectsTruncatedBuffer) {
   EXPECT_EQ(binaryLogDecode(buf, 3, &decoded, &consumedLen), OBC_ERR_CODE_FAILED_UNPACK);
 }
 
+#if !LOG_USE_FILE_IDS
 TEST(TestLogCodec, FileIdLookupRoundTrip) {
   ASSERT_GT(LOG_FILE_ID_COUNT, 0U);
 
@@ -189,6 +190,8 @@ TEST(TestLogCodec, FileIdLookupInvalidArgs) {
   EXPECT_EQ(logFileIdFromPath("not/a/real/file.c", nullptr), OBC_ERR_CODE_INVALID_ARG);
   EXPECT_EQ(logFileIdFromPath(nullptr, nullptr), OBC_ERR_CODE_INVALID_ARG);
 }
+
+#endif
 
 TEST(TestLogCodec, MsgIsTruncatedToMaxLen) {
   binary_log_entry_t entry = {};
