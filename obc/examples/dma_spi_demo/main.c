@@ -32,8 +32,9 @@ void task(void *pvParameters);
 
 static StackType_t stack[1024];
 static StaticTask_t taskBuf;
-uint16_t TX_DATA[D_SIZE];       /* transmit buffer in sys ram */
-uint16_t RX_DATA[D_SIZE] = {5}; /* receive  buffer in sys ram */
+uint8_t TX_DATA[D_SIZE];       /* transmit buffer in sys ram */
+uint8_t RX_DATA[D_SIZE] = {5}; /* receive  buffer in sys ram */
+// This was changed to document that DMA was reconfigured to 8 bits
 
 static const spiDAT1_t spiConfig = {.CS_HOLD = false, .WDEL = false, .DFSEL = 1};
 
@@ -92,7 +93,7 @@ void task(void *pvParameters) {
     TX_DATA[i] = 0xff;
   }
 
-  uint16_t RX_DATA_SECOND[51] = {0};
+  uint8_t RX_DATA_SECOND[51] = {0};
 
   assertChipSelect(spiPORT1, 0);
   dmaSpiTransmitandReceiveBytes(spiREG1, TX_DATA, RX_DATA_SECOND + 1, 50, 1000, 10000);

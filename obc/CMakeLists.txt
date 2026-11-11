@@ -76,6 +76,8 @@ elseif(${CMAKE_BUILD_TYPE} MATCHES Examples)
         add_executable(${OUT_FILE_NAME} examples/test_app_rs/main.c)
     elseif(${EXAMPLE_TYPE} MATCHES ARDUCAM)
         add_executable(${OUT_FILE_NAME} examples/test_app_arducam/main.c)
+    elseif(${EXAMPLE_TYPE} MATCHES BENCHMARK_SDC)
+        add_executable(${OUT_FILE_NAME} examples/benchmark_sdc/main.c)
 
   # ADD MORE EXAMPLES ABOVE THIS COMMENT
 	else ()
@@ -134,6 +136,7 @@ target_compile_definitions(${OUT_FILE_NAME} PRIVATE
     CSDC_DEMO_ENABLED=${CSDC_DEMO_ENABLED}
     ENABLE_TASK_STATS_COLLECTOR=${ENABLE_TASK_STATS_COLLECTOR}
     ENABLE_BL_BYPASS=${ENABLE_BL_BYPASS}
+    SDC_ENABLE_DMA=${SDC_ENABLE_DMA}
     ${PERIPHERAL_CONFIG}
 )
 
@@ -146,6 +149,7 @@ execute_process(
 
 # Set the SOURCE_PATH using the detected REPO_ROOT
 add_compile_definitions(SOURCE_PATH="${REPO_ROOT}/")
+add_compile_definitions(SDC_ENABLE_DMA=${SDC_ENABLE_DMA})
 
 target_include_directories(${OUT_FILE_NAME} PUBLIC
     ${CMAKE_BINARY_DIR}/toolchain/arm-none-eabi/include
