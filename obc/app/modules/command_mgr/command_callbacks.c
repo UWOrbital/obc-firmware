@@ -20,11 +20,13 @@
 #include "bl_config.h"
 #include "obc_privilege.h"
 #include "sys_core.h"
+#include "command.h"
 
 #include <redposix.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #define OBC_MAX_MSG_SIZE 64U
 #define APP_WRITE_PACKET_SIZE 208
@@ -63,7 +65,7 @@ static obc_error_code_t rtcSyncCmdCallback(cmd_msg_t *cmd, uint8_t *responseData
   *responseDataLen = sizeof(currentUnixTime);
 
   rtc_date_time_t dt;
-  RETURN_IF_ERROR_CODE(unixToDatetime(cmd->rtcSync.unixTime, &dt));
+  RETURN_IF_ERROR_CODE(unixToDatetime(cmd->data.rtcSync.unixTime, &dt));
   RETURN_IF_ERROR_CODE(setCurrentDateTimeRTC(&dt));
   RETURN_IF_ERROR_CODE(syncUnixTime());
 
@@ -140,20 +142,20 @@ static obc_error_code_t I2CProbeCmdCallback(cmd_msg_t *cmd, uint8_t *responseDat
 static obc_error_code_t obcEraseApp(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
   BaseType_t xRunningPrivileged = prvRaisePrivilege();
 
-  if (cmd == NULL || (cmd->downloadData.programmingSession != 0 &&
-                      cmd->downloadData.programmingSession != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
+  if (cmd == NULL || (cmd->data.downloadData.programmingSession != 0 &&
+                      cmd->data.downloadData.programmingSession != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
     portRESET_PRIVILEGE(xRunningPrivileged);
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
   uint32_t appStartAddress = 0;
 
-  if (cmd->downloadData.programmingSession == app_metadata.occupied_slot) {
+  if (cmd->data.downloadData.programmingSession == app_metadata.occupied_slot) {
     portRESET_PRIVILEGE(xRunningPrivileged);
     return OBC_ERR_CODE_RED_EACCES;
   }
 
-  if (cmd->downloadData.programmingSession == 0) {
+  if (cmd->data.downloadData.programmingSession == 0) {
     appStartAddress = CUSTOM_START_ADDRESS;
   } else {
     appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
@@ -186,11 +188,8 @@ static obc_error_code_t obcEraseApp(cmd_msg_t *cmd, uint8_t *responseData, uint8
 }
 
 static obc_error_code_t obcWriteApp(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
-  BaseType_t xRunningPrivileged = prvRaisePrivilege();
-
-  if (cmd == NULL || (cmd->downloadData.programmingSession != 0 &&
-                      cmd->downloadData.programmingSession != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
-    portRESET_PRIVILEGE(xRunningPrivileged);
+  if (cmd == NULL || (cmd->data.downloadData.programmingSession != 0 &&
+                      cmd->data.downloadData.programmingSession != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
@@ -198,12 +197,11 @@ static obc_error_code_t obcWriteApp(cmd_msg_t *cmd, uint8_t *responseData, uint8
   uint32_t flashLowLim = 0;
   uint32_t flashHighLim = 0;
 
-  if (cmd->downloadData.programmingSession == app_metadata.occupied_slot) {
-    portRESET_PRIVILEGE(xRunningPrivileged);
+  if (cmd->data.downloadData.programmingSession == app_metadata.occupied_slot) {
     return OBC_ERR_CODE_RED_EACCES;
   }
 
-  if (cmd->downloadData.programmingSession == 0) {
+  if (cmd->data.downloadData.programmingSession == 0) {
     appStartAddress = CUSTOM_START_ADDRESS;
     flashLowLim = CUSTOM_START_ADDRESS;
     flashHighLim = flashLowLim + APP_SIZE - 0x00000001;
@@ -213,14 +211,15 @@ static obc_error_code_t obcWriteApp(cmd_msg_t *cmd, uint8_t *responseData, uint8
     flashHighLim = flashLowLim + APP_SIZE - 0x00000001;
   }
 
-  if (cmd->downloadData.address < flashLowLim ||
-      cmd->downloadData.address + cmd->downloadData.length - 1 > flashHighLim) {
-    portRESET_PRIVILEGE(xRunningPrivileged);
+  if (cmd->data.downloadData.address < flashLowLim ||
+      cmd->data.downloadData.address + cmd->data.downloadData.length - 1 > flashHighLim) {
     return OBC_ERR_CODE_RED_EACCES;
   }
 
+  BaseType_t xRunningPrivileged = prvRaisePrivilege();
+
   // TODO: Replace magic number
-  if (!flashIsStartAddrValid(cmd->downloadData.address, APP_WRITE_PACKET_SIZE)) {
+  if (!flashIsStartAddrValid(cmd->data.downloadData.address, APP_WRITE_PACKET_SIZE)) {
     uint8_t msgSize = sizeof("Invalid start address\r\n");
     memcpy(responseData, "Invalid start address\r\n", msgSize);
     *responseDataLen = msgSize;
@@ -228,18 +227,21 @@ static obc_error_code_t obcWriteApp(cmd_msg_t *cmd, uint8_t *responseData, uint8
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
-  if ((cmd->downloadData.address - appStartAddress) % APP_WRITE_PACKET_SIZE != 0) {
+  portRESET_PRIVILEGE(xRunningPrivileged);
+
+  if ((cmd->data.downloadData.address - appStartAddress) % APP_WRITE_PACKET_SIZE != 0) {
     uint8_t msgSize = sizeof("Start address not 208 byte aligned\r\n");
     memcpy(responseData, "Start address not 208 byte aligned\r\n", msgSize);
     *responseDataLen = msgSize;
 
-    portRESET_PRIVILEGE(xRunningPrivileged);
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
+  xRunningPrivileged = prvRaisePrivilege();
+
   _disable_interrupt_();
-  flash_error_code_t errCode =
-      flashFapiBlockWrite(cmd->downloadData.address, (uint32_t)cmd->downloadData.data, cmd->downloadData.length, 0U);
+  flash_error_code_t errCode = flashFapiBlockWrite(
+      cmd->data.downloadData.address, (uint32_t)cmd->data.downloadData.data, cmd->data.downloadData.length, 0U);
   _enable_interrupt_();
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
@@ -263,18 +265,25 @@ static obc_error_code_t obcWriteApp(cmd_msg_t *cmd, uint8_t *responseData, uint8
 }
 
 static obc_error_code_t obcWriteFCmd(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
-  obc_error_code_t errCode = OBC_ERR_CODE_SUCCESS;
+  fcmd_flag_t fCmdFlag = {
+      .fCmd = cmd->data.fCmd,
+      .flag = ENABLE_FCMD_MAGIC_NUMBER,
+  };
 
-  return errCode;
+  BaseType_t xRunningPrivileged = prvRaisePrivilege();
+
+  _disable_interrupt_();
+  obc_error_code_t errCode = editFCmdFlag(fCmdFlag);
+  _enable_interrupt_();
+
+  if (errCode != OBC_ERR_CODE_SUCCESS) {
+    uint8_t msgSize = sizeof("Could not edit fcmd\r\n");
+    memcpy(responseData, "Could not edit fcmd\r\n", msgSize);
+    *responseDataLen = msgSize;
+  }
+
+  portRESET_PRIVILEGE(xRunningPrivileged) return errCode;
 }
-
-// static obc_error_code_t downlinkChallenge(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
-//   if (cmd == NULL) {
-//     return OBC_ERR_CODE_INVALID_ARG;
-//   }
-
-//   return OBC_ERR_CODE_SUCCESS;
-// }
 
 const cmd_info_t cmdsConfig[] = {
     [CMD_END_OF_FRAME] = {NULL, CMD_POLICY_PROD, CMD_TYPE_NORMAL},

@@ -3,7 +3,10 @@
 #include <stdint.h>
 #include "obc_errors.h"
 #include "obc_gs_command_data.h"
-#include "fcmd_msg.h"
+#include "bl_fcmd_flag.h"
+
+#define CMD_FORWARDING_START_ADDRESS 0xF0204000
+#define CMD_FORWARDING_SECTION_SIZE 0x00004000
 
 typedef obc_error_code_t (*cmd_callback_t)(cmd_msg_t *, uint8_t *, uint8_t *);
 
@@ -38,4 +41,22 @@ obc_error_code_t processNonTimeTaggedCommand(cmd_msg_t *cmd, cmd_info_t *currCmd
  * @param replacementFCmd Pointer to the command message
  * @return obc_error_code_t OBC_ERR_CODE_SUCCESS if successful, otherwise an error code
  */
-obc_error_code_t editFCmdMsg(fcmd_msg_t replacementFCmd);
+obc_error_code_t editFCmdFlag(fcmd_flag_t replacementFCmd);
+
+/**
+ * @brief Casts cmd to fcmd type. Does not check if cmd data is of type fcmd. Erases data union of the fcmd buffer.
+ *
+ * @param cmd_msg_t* cmd_msg Pointer to the cmd message
+ * @param fcmd_msg_t* fCmdBuffer Pointer to the buffer storing the fCmd
+ * @return obc_error_code_t OBC_ERR_CODE_SUCCESS if successful, otherwise an error code
+ */
+obc_error_code_t castCmdToFCmd(const cmd_msg_t *cmd_msg, fcmd_msg_t *fCmdBuffer);
+
+/**
+ * @brief Casts fcmd to cmd type. Erases data union of the cmd msg buffer.
+ *
+ * @param fcmd_msg_t* fcmd_msg Pointer to the cmd message
+ * @param cmd_msg_t* cmdBuffer Pointer to the buffer storing the fCmd
+ * @return obc_error_code_t OBC_ERR_CODE_SUCCESS if successful, otherwise an error code
+ */
+obc_error_code_t castFCmdToCmd(const fcmd_msg_t *fcmd_msg, cmd_msg_t *cmdBuffer);

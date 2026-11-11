@@ -12,7 +12,7 @@ set(BL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/source/bl_utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/source/bl_verification.c
     ${CMAKE_CURRENT_SOURCE_DIR}/source/bl_app_flag.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/fcmd_msg.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/bl_fcmd_flag.c
 
     ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/commands/src/obc_gs_command_pack.c
     ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/commands/src/obc_gs_commands_response_pack.c
@@ -34,5 +34,8 @@ set(BL_INCLUDES
 
 target_include_directories(OBC-bl.out PUBLIC ${BL_INCLUDES})
 target_sources(OBC-bl.out PUBLIC ${BL_SOURCES})
+
+target_include_directories(debug-tool.out PUBLIC ${INCLUDES})
+target_sources(debug-tool.out PUBLIC ${SOURCES})
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/hal)

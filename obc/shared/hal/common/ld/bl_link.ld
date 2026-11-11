@@ -56,11 +56,11 @@ SECTIONS
     . = ALIGN(32);
   } >APP_B_FLAG
   
-  .fcmd_msg :
+  .fcmd_flag :
   {
-    KEEP(*(.fcmd_msg))
+    KEEP(*(.fcmd_flag))
     . = ALIGN(32);
-  } >FCMD_MSG
+  } >FCMD_FLAG
 
   /* Constant data goes into RAM */
   .rodata :

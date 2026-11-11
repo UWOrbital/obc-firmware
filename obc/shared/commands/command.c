@@ -2,10 +2,9 @@
 #include "obc_errors.h"
 #include "obc_gs_command_id.h"
 #include "obc_logging.h"
-#include "bl_config.h"
 #include "flash.h"
-#include "fcmd_msg.h"
-#include "obc_board_config.h"  // Debugging
+#include "bl_fcmd_flag.h"
+#include <FreeRTOS.h>
 
 #ifdef NO_FREERTOS
 #include <stddef.h>
@@ -23,6 +22,7 @@ obc_error_code_t verifyCommand(cmd_msg_t *cmd, cmd_info_t *currCmdInfo) {
   if (cmd == NULL || currCmdInfo == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+
   if (cmd->id >= CMDS_CONFIG_SIZE) {
     return OBC_ERR_CODE_UNSUPPORTED_CMD;
   }
@@ -71,29 +71,63 @@ obc_error_code_t processNonTimeTaggedCommand(cmd_msg_t *cmd, cmd_info_t *currCmd
   return OBC_ERR_CODE_SUCCESS;
 }
 
-obc_error_code_t editFCmdMsg(fcmd_msg_t replacement_fcmd_msg) {
-  volatile fcmd_msg_t *volatile_fcmd_msg_pointer = (fcmd_msg_t *)CMD_FORWARDING_START_ADDRESS;
+obc_error_code_t editFCmdFlag(fcmd_flag_t replacement_fcmd_flag) {
+  volatile fcmd_flag_t *volatile_fcmd_flag_pointer = (fcmd_flag_t *)CMD_FORWARDING_START_ADDRESS;
 
-  uint32_t length = sizeof(replacement_fcmd_msg);
+  uint32_t length = sizeof(replacement_fcmd_flag);
 
   flash_error_code_t errCode =
       flashFapiBlockErase(CMD_FORWARDING_START_ADDRESS, (uint32_t)CMD_FORWARDING_SECTION_SIZE, 7U);
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
     return OBC_ERR_CODE_UNKNOWN;
-  };
+  }
 
-  errCode = flashFapiBlockWrite(CMD_FORWARDING_START_ADDRESS, (uint32_t)&replacement_fcmd_msg, length, 7U);
+  errCode = flashFapiBlockWrite(CMD_FORWARDING_START_ADDRESS, (uint32_t)&replacement_fcmd_flag, length, 7U);
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
     return OBC_ERR_CODE_UNKNOWN;
-  };
+  }
 
-  fcmd_msg_t readback = *volatile_fcmd_msg_pointer;
+  fcmd_flag_t readback = *volatile_fcmd_flag_pointer;
 
-  if (memcmp(&readback, &replacement_fcmd_msg, length)) {
+  if (memcmp(&readback, &replacement_fcmd_flag, length)) {
     return OBC_ERR_CODE_UNKNOWN;
   }
+
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+obc_error_code_t castCmdToFcmd(const cmd_msg_t *cmd_msg, fcmd_msg_t *fCmdBuffer) {
+  if (cmd_msg == NULL || fCmdBuffer == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  fCmdBuffer->id = cmd_msg->id;
+  fCmdBuffer->isTimeTagged = cmd_msg->isTimeTagged;
+  fCmdBuffer->timestamp = cmd_msg->timestamp;
+
+  uint8_t emptyString[sizeof(fCmdBuffer->data)] = {0};
+
+  memcpy(&fCmdBuffer->data, &emptyString, sizeof(fCmdBuffer->data));
+  memcpy(&fCmdBuffer->data, &cmd_msg->data, sizeof(fCmdBuffer->data));
+
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+obc_error_code_t castFCmdToCmd(const fcmd_msg_t *fcmd_msg, cmd_msg_t *cmdBuffer) {
+  if (fcmd_msg == NULL || cmdBuffer == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  cmdBuffer->id = fcmd_msg->id;
+  cmdBuffer->isTimeTagged = fcmd_msg->isTimeTagged;
+  cmdBuffer->timestamp = fcmd_msg->timestamp;
+
+  uint8_t emptyString[sizeof(cmdBuffer->data)] = {0};
+
+  memcpy(&cmdBuffer->data, &emptyString, sizeof(cmdBuffer->data));
+  memcpy(&cmdBuffer->data, &fcmd_msg->data, sizeof(fcmd_msg->data));
 
   return OBC_ERR_CODE_SUCCESS;
 }

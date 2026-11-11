@@ -12,7 +12,8 @@
 #include "bl_config.h"
 #include "bl_time.h"
 #include "bl_app_flag.h"
-#include "fcmd_msg.h"
+#include "bl_fcmd_flag.h"
+#include <string.h>
 
 /* DEFINES */
 #define MAX_PACKET_SIZE 223
@@ -105,8 +106,10 @@ obc_error_code_t blJumpToApp() {
 
   if (app_flag_pointer->app_b_flag == 0) {
     appStartAddress = CUSTOM_START_ADDRESS;
+    blUartWriteBytes(strlen("Attempting to boot app A\r\n"), (uint8_t *)"Attempting to boot app A\r\n");
   } else if (app_flag_pointer->app_b_flag == ENABLE_APP_MAGIC_NUM) {
     appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
+    blUartWriteBytes(strlen("Attempting to boot app B\r\n"), (uint8_t *)"Attempting to boot app B\r\n");
   } else {
     return OBC_ERR_CODE_INVALID_ARG;
   }
@@ -144,20 +147,21 @@ obc_error_code_t blJumpToApp() {
   return OBC_ERR_CODE_FAILED_TO_LOAD_APP;
 }
 
-obc_error_code_t blReadFCmd(fcmd_msg_t *buffer) {
+obc_error_code_t blReadAndDisableFCmd(fcmd_flag_t *buffer) {
   if (buffer == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
-  fcmd_msg_t *fCmd_pointer = (fcmd_msg_t *)CMD_FORWARDING_START_ADDRESS;
+  fcmd_flag_t *fCmd_flag_pointer = (fcmd_flag_t *)CMD_FORWARDING_START_ADDRESS;
 
-  *buffer = *fCmd_pointer;
+  *buffer = *fCmd_flag_pointer;
 
-  fcmd_msg_t replacement_fcmd_msg = *fCmd_pointer;
+  // Create copy since flag is in flash
+  fcmd_flag_t replacement_fcmd_flag = *fCmd_flag_pointer;
 
-  replacement_fcmd_msg.fEnabled = 0;
+  replacement_fcmd_flag.flag = 0;
 
-  editFCmdMsg(replacement_fcmd_msg);
+  editFCmdFlag(replacement_fcmd_flag);
 
   return OBC_ERR_CODE_SUCCESS;
 }

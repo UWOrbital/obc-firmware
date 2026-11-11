@@ -10,7 +10,6 @@
 #include "bl_time.h"
 #include "flash.h"
 #include "flash_errors.h"
-#include "fcmd_msg.h"
 #include "command.h"
 #include "F021.h"  // For testing purposes
 #if defined(DEBUG) && !defined(OBC_REVISION_2)
@@ -66,11 +65,13 @@ int main(void) {
     }
   }
 
-  fcmd_msg_t fCmd = {0};
+  fcmd_flag_t fCmd = {0};
 
-  blReadFCmd(&fCmd);
+  blReadAndDisableFCmd(&fCmd);
 
-  cmd_msg_t cmdMsg = fCmd.fCmd;
+  cmd_msg_t cmdMsg = {0};
+
+  castFCmdToCmd(&fCmd.fCmd, &cmdMsg);
 
   interfaceErr = flashFapiInitBank(RM46_FLASH_BANK);
 
@@ -86,7 +87,7 @@ int main(void) {
     }
   }
 
-  if (fCmd.fEnabled) {
+  if (fCmd.flag == ENABLE_FCMD_MAGIC_NUMBER) {
     LOG_IF_ERROR_CODE(blRunCommand(&cmdMsg));
   }
 

@@ -91,7 +91,7 @@ flash_error_code_t flashFapiBlockErase(uint32_t startAddr, uint32_t size, uint32
 
   flash_error_code_t errCode = FLASH_ERR_CODE_SUCCESS;
 
-  const uint32_t endAddr = startAddr + size;
+  const uint32_t endAddr = startAddr + size - 1;
 
   // Find the start and end of the sectors to erase. Assume flashSectors is sorted
   // by start address, and that the first sector starts at address 0

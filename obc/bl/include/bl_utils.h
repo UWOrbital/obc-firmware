@@ -3,7 +3,7 @@
 #include "obc_errors.h"
 #include "obc_gs_command_data.h"
 #include "bl_app_flag.h"
-#include "fcmd_msg.h"
+#include "bl_fcmd_flag.h"
 
 #include <stdint.h>
 
@@ -37,4 +37,4 @@ obc_error_code_t blJumpToApp(void);
 /**
  * @brief Reads the bytes at flash memory and returns the forwarded struct, afterwards clearing it.
  */
-obc_error_code_t blReadFCmd(fcmd_msg_t* buffer);
+obc_error_code_t blReadAndDisableFCmd(fcmd_flag_t* buffer);
