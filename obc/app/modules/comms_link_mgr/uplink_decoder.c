@@ -74,14 +74,14 @@ obc_error_code_t handleCommands(uint8_t *cmdBytes) {
       // means we have reached the end of the packet and rest can be ignored
       return OBC_ERR_CODE_SUCCESS;
     }
-    cmd_msg_t command;
+    cmd_msg_t command = {0};
     if (unpackCmdMsg(cmdBytes, &bytesUnpacked, &command) != OBC_GS_ERR_CODE_SUCCESS) {
       return OBC_ERR_CODE_FAILED_UNPACK;
     }
 
     if (command.id == CMD_OBC_WRITE_APP) {
       RETURN_IF_ERROR_CODE(sendToCommandQueue(&command));
-      bytesUnpacked += command.downloadData.length;
+      bytesUnpacked += command.data.downloadData.length;
     } else {
       RETURN_IF_ERROR_CODE(sendToCommandQueue(&command));
     }

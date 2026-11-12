@@ -34,4 +34,7 @@ set(BL_INCLUDES
 target_include_directories(OBC-bl.out PUBLIC ${BL_INCLUDES})
 target_sources(OBC-bl.out PUBLIC ${BL_SOURCES})
 
+target_include_directories(debug-tool.out PUBLIC ${INCLUDES})
+target_sources(debug-tool.out PUBLIC ${SOURCES})
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/hal)

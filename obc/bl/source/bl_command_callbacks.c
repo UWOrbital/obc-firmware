@@ -1,7 +1,5 @@
 #include "reg_system.h"
-#include "bl_errors.h"
 #include "bl_config.h"
-#include "bl_time.h"
 #include "obc_errors.h"
 #include "obc_general_util.h"
 #include "obc_gs_command_data.h"
@@ -39,7 +37,7 @@ static obc_error_code_t eraseAppCmdCallback(cmd_msg_t *cmd, uint8_t *responseDat
   uint32_t appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;  // We never allow eraseal of app A
 
   flash_error_code_t errCode =
-      flashFapiBlockErase((uint32_t)appStartAddress, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1);
+      flashFapiBlockErase((uint32_t)appStartAddress, (uint32_t)&__APP_IMAGE_TOTAL_SECTION_SIZE - 1, 0U);
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
     char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};
@@ -67,14 +65,14 @@ static obc_error_code_t downloadDataCmdCallback(cmd_msg_t *cmd, uint8_t *respons
   uint32_t appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;  // Should never write to app slot A
 
   // TODO: Replace magic number
-  if (!flashIsStartAddrValid(cmd->downloadData.address, APP_WRITE_PACKET_SIZE)) {
+  if (!flashIsStartAddrValid(cmd->data.downloadData.address, APP_WRITE_PACKET_SIZE)) {
     uint8_t msgSize = sizeof("Invalid start address\r\n");
     memcpy(responseData, "Invalid start address\r\n", msgSize);
     *responseDataLen = msgSize;
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
-  if ((cmd->downloadData.address - appStartAddress) % APP_WRITE_PACKET_SIZE != 0) {
+  if ((cmd->data.downloadData.address - appStartAddress) % APP_WRITE_PACKET_SIZE != 0) {
     uint8_t msgSize = sizeof("Start address not 208 byte aligned\r\n");
     memcpy(responseData, "Start address not 208 byte aligned\r\n", msgSize);
     *responseDataLen = msgSize;
@@ -85,8 +83,8 @@ static obc_error_code_t downloadDataCmdCallback(cmd_msg_t *cmd, uint8_t *respons
   // TODO: Figure out why you need to write a byte here before writing
   blUartWriteBytes(1, (uint8_t *)"W");
 
-  flash_error_code_t errCode =
-      flashFapiBlockWrite(cmd->downloadData.address, (uint32_t)cmd->downloadData.data, cmd->downloadData.length);
+  flash_error_code_t errCode = flashFapiBlockWrite(
+      cmd->data.downloadData.address, (uint32_t)cmd->data.downloadData.data, cmd->data.downloadData.length, 0U);
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
     char blUartWriteBuffer[BL_MAX_MSG_SIZE] = {0};

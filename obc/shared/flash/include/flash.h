@@ -24,7 +24,7 @@ flash_error_code_t flashFapiInitBank(uint32_t bankNum) FLASH_ATTR_RAMFUNC_SECTIO
  * @note Must initialize the bank first
  * @note All sectors with addresses in [startAddr, startAddr + size) will be erased
  */
-flash_error_code_t flashFapiBlockErase(uint32_t startAddr, uint32_t size) FLASH_ATTR_RAMFUNC_SECTION;
+flash_error_code_t flashFapiBlockErase(uint32_t startAddr, uint32_t size, uint32_t bankNum) FLASH_ATTR_RAMFUNC_SECTION;
 
 /**
  * @brief Write data to flash
@@ -34,8 +34,8 @@ flash_error_code_t flashFapiBlockErase(uint32_t startAddr, uint32_t size) FLASH_
  * @param numBytes The number of bytes to write
  * @return flash_error_code_t Error code
  */
-flash_error_code_t flashFapiBlockWrite(uint32_t flashAddress, uint32_t dataAddress,
-                                       uint32_t numBytes) FLASH_ATTR_RAMFUNC_SECTION;
+flash_error_code_t flashFapiBlockWrite(uint32_t flashAddress, uint32_t dataAddress, uint32_t numBytes,
+                                       uint32_t bankNum) FLASH_ATTR_RAMFUNC_SECTION;
 
 /**
  * @brief Checks if a given section has any bytes written

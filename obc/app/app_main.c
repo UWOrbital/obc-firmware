@@ -1,9 +1,13 @@
+#include "command.h"
+#include "obc_gs_command_data.h"
+#include "obc_gs_command_id.h"
 #include "obc_logging.h"
 #include "obc_sci_io.h"
 #include "obc_i2c_io.h"
 #include "obc_spi_io.h"
 #include "obc_reset.h"
 #include "obc_scheduler_config.h"
+#include "os_portmacro.h"
 #include "state_mgr.h"
 #include "flash.h"
 #include "bl_config.h"
@@ -21,6 +25,10 @@
 #include <can.h>
 #include <het.h>
 
+// Debugging
+#define STATE_MGR_DEBUG_LED_GIO_PORT gioPORTB
+#define STATE_MGR_DEBUG_LED_GIO_BIT 1
+
 /* LINKER EXPORTED SYMBOLS */
 extern uint32_t __ramFuncsLoadStart__;
 extern uint32_t __ramFuncsSize__;
@@ -37,6 +45,8 @@ uint32_t __stack_chk_guard_init(void);
 void __stack_chk_fail(void) { resetSystem(RESET_REASON_STACK_CHECK_FAIL); }
 
 int main(void) {
+  _disable_interrupt_();
+
   // Run hardware initialization code
   gioInit();
   sciInit();
@@ -44,18 +54,6 @@ int main(void) {
   spiInit();
   canInit();
   hetInit();
-  _enable_interrupt_();
-
-  BaseType_t xRunningPrivileged = prvRaisePrivilege();
-
-  // Initialize flash
-  memcpy(&__ramFuncsRunStart__, &__ramFuncsLoadStart__, (uint32_t)&__ramFuncsSize__);
-
-  _disable_interrupt_();
-  flashFapiInitBank(RM46_FLASH_BANK);
-  _enable_interrupt_();
-
-  portRESET_PRIVILEGE(xRunningPrivileged);
 
   // TODO implement error handling for if the flash init doesn't work.
 
@@ -68,5 +66,18 @@ int main(void) {
   obcSchedulerInitTask(OBC_SCHEDULER_CONFIG_ID_STATE_MGR);
   obcSchedulerCreateTask(OBC_SCHEDULER_CONFIG_ID_STATE_MGR);
 
+  // Initialize flash functions into memory
+  memcpy(&__ramFuncsRunStart__, &__ramFuncsLoadStart__, (uint32_t)&__ramFuncsSize__);
+
+  // Give privilege in the RTOS
+  BaseType_t xRunningPrivileged = prvRaisePrivilege();
+
+  flashFapiInitBank(RM46_FLASH_BANK);
+
+  // Remove privilege from RTOS
+  portRESET_PRIVILEGE(xRunningPrivileged);
+
   vTaskStartScheduler();
+
+  _enable_interrupt_();
 }
