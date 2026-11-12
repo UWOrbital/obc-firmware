@@ -165,16 +165,16 @@ typedef struct i2c_config_reg
 
 /* Configuration registers initial value for I2C*/
 #define I2C_OAR_CONFIGVALUE         0x00000000U   
-#define I2C_IMR_CONFIGVALUE       (((uint32)1U << 6U) \
-                                 | ((uint32)1U << 5U) \
-                                 | ((uint32)1U << 4U) \
-                                 | ((uint32)1U << 3U) \
-                                 | ((uint32)1U << 2U) \
-                                 | ((uint32)1U << 1U) \
-                                 | ((uint32)1U))
+#define I2C_IMR_CONFIGVALUE       (((uint32)0U << 6U) \
+                                 | ((uint32)0U << 5U) \
+                                 | ((uint32)0U << 4U) \
+                                 | ((uint32)0U << 3U) \
+                                 | ((uint32)0U << 2U) \
+                                 | ((uint32)0U << 1U) \
+                                 | ((uint32)0U))
   
-#define I2C_CLKL_CONFIGVALUE        36U        
-#define I2C_CLKH_CONFIGVALUE        36U        
+#define I2C_CLKL_CONFIGVALUE        34U        
+#define I2C_CLKH_CONFIGVALUE        34U        
 #define I2C_CNT_CONFIGVALUE         8U   
 #define I2C_SAR_CONFIGVALUE         0x000003FFU 
 #define I2C_MDR_CONFIGVALUE       ((uint32)0x00000000U \
@@ -188,7 +188,7 @@ typedef struct i2c_config_reg
 								 | (uint32)I2C_RESET_OUT)
   
 #define I2C_EMDR_CONFIGVALUE        0U
-#define I2C_PSC_CONFIGVALUE         8U
+#define I2C_PSC_CONFIGVALUE         13U
 #define I2C_DMAC_CONFIGVALUE        0x00000000U 
 #define I2C_FUN_CONFIGVALUE         0U  
 #define I2C_DIR_CONFIGVALUE       ((uint32)((uint32)0U << 1U) \

@@ -83,7 +83,7 @@ void adcInit(void)
     adcREG1->OPMODECR |= 0x80000000U;
 	
     /** - Setup prescaler */
-    adcREG1->CLOCKCR = 6U;
+    adcREG1->CLOCKCR = 10U;
  
     /** - Setup memory boundaries */
     adcREG1->BNDCR  = (uint32)((uint32)8U << 16U) | (8U + 8U);
@@ -106,7 +106,7 @@ void adcInit(void)
                    | (uint32)ADC1_EVENT;
 
     /** - Setup event group sample window */
-    adcREG1->EVSAMP = 2U;
+    adcREG1->EVSAMP = 1U;
 
     /** - Setup event group sample discharge 
     *     - Setup discharge prescaler
@@ -121,7 +121,7 @@ void adcInit(void)
     *     - Enable/Disable continuous conversion
     */
     adcREG1->GxMODECR[1U] = (uint32)ADC_12_BIT
-                          | (uint32)0x00000020U
+                          | (uint32)0x00000000U
                           | (uint32)0x00000000U
                           | (uint32)0x00000000U;
 
@@ -133,7 +133,7 @@ void adcInit(void)
                    | (uint32)ADC1_EVENT;
 
     /** - Setup group 1 sample window */
-    adcREG1->G1SAMP = 2U;
+    adcREG1->G1SAMP = 1U;
 
     /** - Setup group 1 sample discharge 
     *     - Setup discharge prescaler
@@ -148,7 +148,7 @@ void adcInit(void)
      *     - Enable/Disable continuous conversion
      */
     adcREG1->GxMODECR[2U] = (uint32)ADC_12_BIT
-                          | (uint32)0x00000020U
+                          | (uint32)0x00000000U
                           | (uint32)0x00000000U
                           | (uint32)0x00000000U;
 
@@ -160,7 +160,7 @@ void adcInit(void)
                    | (uint32)ADC1_EVENT;
 
     /** - Setup group 2 sample window */
-    adcREG1->G2SAMP = 2U;
+    adcREG1->G2SAMP = 1U;
 
     /** - Setup group 2 sample discharge 
     *     - Setup discharge prescaler
@@ -208,7 +208,7 @@ void adcInit(void)
     adcREG2->OPMODECR |= 0x80000000U;
 	
     /** - Setup prescaler */
-    adcREG2->CLOCKCR = 6U;
+    adcREG2->CLOCKCR = 10U;
  
     /** - Setup memory boundaries */
     adcREG2->BNDCR  = (uint32)((uint32)8U << 16U) | (8U + 8U);
@@ -231,7 +231,7 @@ void adcInit(void)
                    | (uint32)ADC2_EVENT;
 
     /** - Setup event group sample window */
-    adcREG2->EVSAMP = 2U;
+    adcREG2->EVSAMP = 1U;
 
     /** - Setup event group sample discharge 
     *     - Setup discharge prescaler
@@ -246,7 +246,7 @@ void adcInit(void)
     *     - Enable/Disable continuous conversion
 	*/
     adcREG2->GxMODECR[1U] = (uint32)ADC_12_BIT
-                          | (uint32)0x00000020U
+                          | (uint32)0x00000000U
                           | (uint32)0x00000000U
                           | (uint32)0x00000000U;
 
@@ -259,7 +259,7 @@ void adcInit(void)
 
 
     /** - Setup group 1 sample window */
-    adcREG2->G1SAMP = 2U;
+    adcREG2->G1SAMP = 1U;
 
     /** - Setup group 1 sample discharge 
     *     - Setup discharge prescaler
@@ -274,7 +274,7 @@ void adcInit(void)
     *     - Enable/Disable continuous conversion
 	*/
     adcREG2->GxMODECR[2U] = (uint32)ADC_12_BIT
-                          | (uint32)0x00000020U
+                          | (uint32)0x00000000U
                           | (uint32)0x00000000U
                           | (uint32)0x00000000U;
 
@@ -286,7 +286,7 @@ void adcInit(void)
                    | (uint32)ADC2_EVENT;
 
     /** - Setup group 2 sample window */
-    adcREG2->G2SAMP = 2U;
+    adcREG2->G2SAMP = 1U;
 
     /** - Setup group 2 sample discharge 
     *     - Setup discharge prescaler
@@ -361,22 +361,22 @@ static const uint32 s_adcSelect[2U][3U] =
     0x00000000U |
     0x00000000U |
     0x00000000U,
-    0x00000001U |
-    0x00000002U |
-    0x00000004U |
-    0x00000008U |
-    0x00000010U |
-    0x00000020U |
-    0x00000040U |
-    0x00000080U |
-    0x00000100U |
-    0x00000200U |
-    0x00000400U |
-    0x00000800U |
-    0x00001000U |
-    0x00002000U |
-    0x00004000U |
-    0x00008000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
     0x00000000U |
     0x00000000U |
     0x00000000U |
@@ -385,22 +385,22 @@ static const uint32 s_adcSelect[2U][3U] =
     0x00000000U |
     0x00000000U |
     0x00000000U,
-    0x00000001U |
-    0x00000002U |
-    0x00000004U |
-    0x00000008U |
-    0x00000010U |
-    0x00000020U |
-    0x00000040U |
-    0x00000080U |
-    0x00000100U |
-    0x00000200U |
-    0x00000400U |
-    0x00000800U |
-    0x00001000U |
-    0x00002000U |
-    0x00004000U |
-    0x00008000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
     0x00000000U |
     0x00000000U |
     0x00000000U |
@@ -425,38 +425,38 @@ static const uint32 s_adcSelect[2U][3U] =
     0x00000000U |
     0x00000000U |
     0x00000000U ,
-    0x00000001U |
-    0x00000002U |
-    0x00000004U |
-    0x00000008U |
-    0x00000010U |
-    0x00000020U |
-    0x00000040U |
-    0x00000080U |
-    0x00000100U |
-    0x00000200U |
-    0x00000400U |
-    0x00000800U |
-    0x00001000U |
-    0x00002000U |
-    0x00004000U |
-    0x00008000U,
-    0x00000001U |
-    0x00000002U |
-    0x00000004U |
-    0x00000008U |
-    0x00000010U |
-    0x00000020U |
-    0x00000040U |
-    0x00000080U |
-    0x00000100U |
-    0x00000200U |
-    0x00000400U |
-    0x00000800U |
-    0x00001000U |
-    0x00002000U |
-    0x00004000U |
-    0x00008000U}
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U,
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U}
 };
 
 /** - s_adcFiFoSize is used as constant table for channel selection */
@@ -471,6 +471,12 @@ static const uint32 s_adcFiFoSize[2U][3U] =
 };
 
 /* USER CODE BEGIN (6) */
+uint32_t adcGetNumChannels(uint32_t module, uint32_t group) {
+    if (module > 1 || group > 2) {
+        return 0;
+    }
+    return s_adcFiFoSize[module][group];
+}
 /* USER CODE END */
 
 /** @fn void adcStartConversion(adcBASE_t *adc, uint32 group)

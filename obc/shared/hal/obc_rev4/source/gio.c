@@ -82,17 +82,17 @@ void gioInit(void)
 
     /** - Port A direction */
     gioPORTA->DIR  = (uint32)((uint32)0U << 0U)  /* Bit 0 */
-                   | (uint32)((uint32)1U << 1U)  /* Bit 1 */
+                   | (uint32)((uint32)0U << 1U)  /* Bit 1 */
                    | (uint32)((uint32)0U << 2U)  /* Bit 2 */
                    | (uint32)((uint32)0U << 3U)  /* Bit 3 */
                    | (uint32)((uint32)0U << 4U)  /* Bit 4 */
-                   | (uint32)((uint32)1U << 5U)  /* Bit 5 */
+                   | (uint32)((uint32)0U << 5U)  /* Bit 5 */
                    | (uint32)((uint32)0U << 6U)  /* Bit 6 */
                    | (uint32)((uint32)0U << 7U); /* Bit 7 */
 
     /** - Port A open drain enable */
     gioPORTA->PDR  = (uint32)((uint32)0U << 0U)  /* Bit 0 */
-                   | (uint32)((uint32)1U << 1U)  /* Bit 1 */
+                   | (uint32)((uint32)0U << 1U)  /* Bit 1 */
                    | (uint32)((uint32)0U << 2U)  /* Bit 2 */
                    | (uint32)((uint32)0U << 3U)  /* Bit 3 */
                    | (uint32)((uint32)0U << 4U)  /* Bit 4 */
@@ -101,8 +101,8 @@ void gioInit(void)
                    | (uint32)((uint32)0U << 7U); /* Bit 7 */
 
     /** - Port A pullup / pulldown selection */
-    gioPORTA->PSL  = (uint32)((uint32)1U << 0U)  /* Bit 0 */
-                   | (uint32)((uint32)1U << 1U)  /* Bit 1 */
+    gioPORTA->PSL  = (uint32)((uint32)0U << 0U)  /* Bit 0 */
+                   | (uint32)((uint32)0U << 1U)  /* Bit 1 */
                    | (uint32)((uint32)0U << 2U)  /* Bit 2 */
                    | (uint32)((uint32)0U << 3U)  /* Bit 3 */
                    | (uint32)((uint32)0U << 4U)  /* Bit 4 */
@@ -112,7 +112,7 @@ void gioInit(void)
 
     /** - Port A pullup / pulldown enable*/
     gioPORTA->PULDIS  = (uint32)((uint32)0U << 0U)  /* Bit 0 */
-                      | (uint32)((uint32)1U << 1U)  /* Bit 1 */
+                      | (uint32)((uint32)0U << 1U)  /* Bit 1 */
                       | (uint32)((uint32)0U << 2U)  /* Bit 2 */
                       | (uint32)((uint32)0U << 3U)  /* Bit 3 */
                       | (uint32)((uint32)0U << 4U)  /* Bit 4 */
@@ -134,7 +134,7 @@ void gioInit(void)
 
     /** - Port B direction */
     gioPORTB->DIR  = (uint32)((uint32)0U << 0U)  /* Bit 0 */
-                   | (uint32)((uint32)1U << 1U)  /* Bit 1 */
+                   | (uint32)((uint32)0U << 1U)  /* Bit 1 */
                    | (uint32)((uint32)0U << 2U)  /* Bit 2 */
                    | (uint32)((uint32)0U << 3U)  /* Bit 3 */
                    | (uint32)((uint32)0U << 4U)  /* Bit 4 */
@@ -155,7 +155,7 @@ void gioInit(void)
     /** - Port B pullup / pulldown selection */
     gioPORTB->PSL  = (uint32)((uint32)0U << 0U)  /* Bit 0 */
                    | (uint32)((uint32)0U << 1U)  /* Bit 1 */
-                   | (uint32)((uint32)1U << 2U)  /* Bit 2 */
+                   | (uint32)((uint32)0U << 2U)  /* Bit 2 */
                    | (uint32)((uint32)0U << 3U)  /* Bit 3 */
                    | (uint32)((uint32)0U << 4U)  /* Bit 4 */
                    | (uint32)((uint32)0U << 5U)  /* Bit 5 */
@@ -165,7 +165,7 @@ void gioInit(void)
     /** - Port B pullup / pulldown enable*/
     gioPORTB->PULDIS  = (uint32)((uint32)0U << 0U) /* Bit 0 */
                       | (uint32)((uint32)0U << 1U)  /* Bit 1 */
-                      | (uint32)((uint32)1U << 2U)  /* Bit 2 */
+                      | (uint32)((uint32)0U << 2U)  /* Bit 2 */
                       | (uint32)((uint32)0U << 3U)  /* Bit 3 */
                       | (uint32)((uint32)0U << 4U)  /* Bit 4 */
                       | (uint32)((uint32)0U << 5U)  /* Bit 5 */
@@ -188,7 +188,7 @@ void gioInit(void)
                 | (uint32)((uint32)0U << 7U)   /* Bit 7 */
                 | (uint32)((uint32)0U << 8U)   /* Bit 8  */
                 | (uint32)((uint32)0U << 9U)   /* Bit 9  */
-                | (uint32)((uint32)1U << 10U)  /* Bit 10 */
+                | (uint32)((uint32)0U << 10U)  /* Bit 10 */
                 | (uint32)((uint32)0U << 11U)  /* Bit 11 */
                 | (uint32)((uint32)0U << 12U)  /* Bit 12 */
                 | (uint32)((uint32)0U << 13U)  /* Bit 13 */
@@ -197,7 +197,7 @@ void gioInit(void)
 
 
     /** - interrupt level */
-    gioREG->LVLSET = (uint32)((uint32)1U << 0U)   /* Bit 0 */
+    gioREG->LVLSET = (uint32)((uint32)0U << 0U)   /* Bit 0 */
                    | (uint32)((uint32)0U << 1U)   /* Bit 1 */
                    | (uint32)((uint32)0U << 2U)   /* Bit 2 */
                    | (uint32)((uint32)0U << 3U)   /* Bit 3 */
@@ -207,7 +207,7 @@ void gioInit(void)
                    | (uint32)((uint32)0U << 7U)   /* Bit 7 */
                    | (uint32)((uint32)0U << 8U)   /* Bit 8  */
                    | (uint32)((uint32)0U << 9U)   /* Bit 9  */
-                   | (uint32)((uint32)1U << 10U)  /* Bit 10 */
+                   | (uint32)((uint32)0U << 10U)  /* Bit 10 */
                    | (uint32)((uint32)0U << 11U)  /* Bit 11 */
                    | (uint32)((uint32)0U << 12U)  /* Bit 12 */
                    | (uint32)((uint32)0U << 13U)  /* Bit 13 */
@@ -221,18 +221,18 @@ void gioInit(void)
     gioREG->FLG = 0xFFU;
 
     /** - enable interrupts */
-    gioREG->ENASET = (uint32)((uint32)1U << 0U)   /* Bit 0 */
+    gioREG->ENASET = (uint32)((uint32)0U << 0U)   /* Bit 0 */
                    | (uint32)((uint32)0U << 1U)   /* Bit 1 */
                    | (uint32)((uint32)0U << 2U)   /* Bit 2 */
                    | (uint32)((uint32)0U << 3U)   /* Bit 3 */
                    | (uint32)((uint32)0U << 4U)   /* Bit 4 */
                    | (uint32)((uint32)0U << 5U)   /* Bit 5 */
-                   | (uint32)((uint32)1U << 6U)   /* Bit 6 */
-                   | (uint32)((uint32)1U << 7U)   /* Bit 7 */
+                   | (uint32)((uint32)0U << 6U)   /* Bit 6 */
+                   | (uint32)((uint32)0U << 7U)   /* Bit 7 */
                    | (uint32)((uint32)0U << 8U)   /* Bit 8  */
                    | (uint32)((uint32)0U << 9U)   /* Bit 9  */
                    | (uint32)((uint32)0U << 10U)  /* Bit 10 */
-                   | (uint32)((uint32)1U << 11U)  /* Bit 11 */
+                   | (uint32)((uint32)0U << 11U)  /* Bit 11 */
                    | (uint32)((uint32)0U << 12U)  /* Bit 12 */
                    | (uint32)((uint32)0U << 13U)  /* Bit 13 */
                    | (uint32)((uint32)0U << 14U)  /* Bit 14 */
@@ -512,80 +512,6 @@ void gioGetConfigValue(gio_config_reg_t *config_reg, config_value_type_t type)
     }
 }
 
-/* USER CODE BEGIN (13) */
-/* USER CODE END */
-
-/** @fn void gioHighLevelInterrupt(void)
-*   @brief GIO Interrupt Handler
-*
-*   High Level Interrupt handler for GIO pin interrupt
-*
-*/
-
-/* SourceId : GIO_SourceId_011 */
-/* DesignId : GIO_DesignId_011 */
-/* Requirements : HL_SR35, HL_SR36 */
-void gioHighLevelInterrupt(void)
-{
-    uint32 offset = gioREG->OFF1;
-
-/* USER CODE BEGIN (14) */
-/* USER CODE END */
-    
-    if (offset != 0U)
-    {
-        offset = offset - 1U;
-        if (offset >= 8U)
-        {
-            gioNotification(gioPORTB, offset - 8U);
-        }
-        else
-        {
-            gioNotification(gioPORTA, offset);
-        }
-    }
-/* USER CODE BEGIN (15) */
-/* USER CODE END */
-
-}
-
-/* USER CODE BEGIN (16) */
-/* USER CODE END */
-
-/** @fn void gioLowLevelInterrupt(void)
-*   @brief GIO Interrupt Handler
-*
-*   Low Level Interrupt handler for GIO pin interrupt
-*
-*/
-
-/* SourceId : GIO_SourceId_012 */
-/* DesignId : GIO_DesignId_011 */
-/* Requirements : HL_SR35, HL_SR36 */
-void gioLowLevelInterrupt(void)
-{
-    uint32 offset = gioREG->OFF2;
-
-/* USER CODE BEGIN (17) */
-/* USER CODE END */
-
-    if (offset != 0U)
-    {
-        offset = offset - 1U;
-        if (offset >= 8U)
-        {
-            gioNotification(gioPORTB, offset - 8U);
-        }
-        else
-        {
-            gioNotification(gioPORTA, offset);
-        }
-    }
-
-/* USER CODE BEGIN (18) */
-/* USER CODE END */
-
-}
 
 
 /* USER CODE BEGIN (19) */

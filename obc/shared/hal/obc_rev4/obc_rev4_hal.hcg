@@ -281,7 +281,9 @@
       <HDRRTI>
         <NAME>rti.h</NAME>
       </HDRRTI>
-      <SRCRTI/>
+      <SRCRTI>
+        <NAME>rti.c</NAME>
+      </SRCRTI>
       <HDRGIO_R>
         <NAME>reg_gio.h</NAME>
       </HDRGIO_R>
@@ -306,14 +308,18 @@
       <HDRLIN>
         <NAME>lin.h</NAME>
       </HDRLIN>
-      <SRCLIN/>
+      <SRCLIN>
+        <NAME>lin.c</NAME>
+      </SRCLIN>
       <HDRMIBSPI_R>
         <NAME>reg_mibspi.h</NAME>
       </HDRMIBSPI_R>
       <HDRMIBSPI>
         <NAME>mibspi.h</NAME>
       </HDRMIBSPI>
-      <SRCMIBSPI/>
+      <SRCMIBSPI>
+        <NAME>mibspi.c</NAME>
+      </SRCMIBSPI>
       <HDRSPI_R>
         <NAME>reg_spi.h</NAME>
       </HDRSPI_R>
@@ -410,23 +416,33 @@
       <HDRPHY>
         <NAME>phy_dp83640.h</NAME>
       </HDRPHY>
-      <SRC1EMAC/>
-      <SRC2EMAC/>
-      <SRCPHY/>
+      <SRC1EMAC>
+        <NAME>emac.c</NAME>
+      </SRC1EMAC>
+      <SRC2EMAC>
+        <NAME>mdio.c</NAME>
+      </SRC2EMAC>
+      <SRCPHY>
+        <NAME>phy_dp83640.c</NAME>
+      </SRCPHY>
       <HDRDCC_R>
         <NAME>reg_dcc.h</NAME>
       </HDRDCC_R>
       <HDRDCC>
         <NAME>dcc.h</NAME>
       </HDRDCC>
-      <SRCDCC/>
+      <SRCDCC>
+        <NAME>dcc.c</NAME>
+      </SRCDCC>
       <HDRPOM_R>
         <NAME>reg_pom.h</NAME>
       </HDRPOM_R>
       <HDRPOM>
         <NAME>pom.h</NAME>
       </HDRPOM>
-      <SRCPOM/>
+      <SRCPOM>
+        <NAME>pom.c</NAME>
+      </SRCPOM>
       <HDR1USB>
         <NAME>usbcdc.h</NAME>
       </HDR1USB>
@@ -469,28 +485,36 @@
       <HDRCRC>
         <NAME>crc.h</NAME>
       </HDRCRC>
-      <SRCCRC/>
+      <SRCCRC>
+        <NAME>crc.c</NAME>
+      </SRCCRC>
       <HDRETPWM_R>
         <NAME>reg_etpwm.h</NAME>
       </HDRETPWM_R>
       <HDRETPWM>
         <NAME>etpwm.h</NAME>
       </HDRETPWM>
-      <SRCETPWM/>
+      <SRCETPWM>
+        <NAME>etpwm.c</NAME>
+      </SRCETPWM>
       <HDRECAP_R>
         <NAME>reg_ecap.h</NAME>
       </HDRECAP_R>
       <HDRECAP>
         <NAME>ecap.h</NAME>
       </HDRECAP>
-      <SRCECAP/>
+      <SRCECAP>
+        <NAME>ecap.c</NAME>
+      </SRCECAP>
       <HDREQEP_R>
         <NAME>reg_eqep.h</NAME>
       </HDREQEP_R>
       <HDREQEP>
         <NAME>eqep.h</NAME>
       </HDREQEP>
-      <SRCEQEP/>
+      <SRCEQEP>
+        <NAME>eqep.c</NAME>
+      </SRCEQEP>
       <HDR1FEE>
         <NAME>Device_RM46.h</NAME>
       </HDR1FEE>
@@ -631,7 +655,7 @@
         <PATH>include\rti.h</PATH>
       </HDRRTI>
       <SRCRTI>
-        <PATH/>
+        <PATH>source\rti.c</PATH>
       </SRCRTI>
     </FILENAMES>
   </RTI>
@@ -670,7 +694,7 @@
         <PATH>include\lin.h</PATH>
       </HDRLIN>
       <SRCLIN>
-        <PATH/>
+        <PATH>source\lin.c</PATH>
       </SRCLIN>
     </FILENAMES>
   </LIN>
@@ -683,7 +707,7 @@
         <PATH>include\mibspi.h</PATH>
       </HDRMIBSPI>
       <SRCMIBSPI>
-        <PATH/>
+        <PATH>source\mibspi.c</PATH>
       </SRCMIBSPI>
     </FILENAMES>
   </MIBSPI>
@@ -798,13 +822,13 @@
         <PATH>include\phy_dp83640.h</PATH>
       </HDRPHY>
       <SRC1EMAC>
-        <PATH/>
+        <PATH>source\emac.c</PATH>
       </SRC1EMAC>
       <SRC2EMAC>
-        <PATH/>
+        <PATH>source\mdio.c</PATH>
       </SRC2EMAC>
       <SRCPHY>
-        <PATH/>
+        <PATH>source\phy_dp83640.c</PATH>
       </SRCPHY>
     </FILENAMES>
   </EMAC>
@@ -817,7 +841,7 @@
         <PATH>include\dcc.h</PATH>
       </HDRDCC>
       <SRCDCC>
-        <PATH/>
+        <PATH>source\dcc.c</PATH>
       </SRCDCC>
     </FILENAMES>
   </DCC>
@@ -830,7 +854,7 @@
         <PATH>include\pom.h</PATH>
       </HDRPOM>
       <SRCPOM>
-        <PATH/>
+        <PATH>source\pom.c</PATH>
       </SRCPOM>
     </FILENAMES>
   </POM>
@@ -901,7 +925,7 @@
         <PATH>include\crc.h</PATH>
       </HDRCRC>
       <SRCCRC>
-        <PATH/>
+        <PATH>source\crc.c</PATH>
       </SRCCRC>
     </FILENAMES>
   </CRC>
@@ -914,7 +938,7 @@
         <PATH>include\etpwm.h</PATH>
       </HDRETPWM>
       <SRCETPWM>
-        <PATH/>
+        <PATH>source\etpwm.c</PATH>
       </SRCETPWM>
     </FILENAMES>
   </ETPWM>
@@ -927,7 +951,7 @@
         <PATH>include\ecap.h</PATH>
       </HDRECAP>
       <SRCECAP>
-        <PATH/>
+        <PATH>source\ecap.c</PATH>
       </SRCECAP>
     </FILENAMES>
   </ECAP>
@@ -940,7 +964,7 @@
         <PATH>include\eqep.h</PATH>
       </HDREQEP>
       <SRCEQEP>
-        <PATH/>
+        <PATH>source\eqep.c</PATH>
       </SRCEQEP>
     </FILENAMES>
   </EQEP>

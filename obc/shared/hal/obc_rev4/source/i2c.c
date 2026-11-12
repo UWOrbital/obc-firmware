@@ -109,11 +109,11 @@ void i2cInit(void)
     i2cREG1->IMR = 0x00U;
 
     /** - set prescale */
-    i2cREG1->PSC = 8U;
+    i2cREG1->PSC = 13U;
 
     /** - set clock rate */
-    i2cREG1->CKH = 36U;
-    i2cREG1->CKL = 36U;
+    i2cREG1->CKH = 34U;
+    i2cREG1->CKL = 34U;
 
     /** - set i2c pins functional mode */
     i2cREG1->PFNC = (0U);
@@ -139,19 +139,19 @@ void i2cInit(void)
                   | (uint32)(1U);     /* scl pin */
 
     /** - set interrupt enable */
-    i2cREG1->IMR  = (uint32)((uint32)1U << 6U)     /* Address as slave interrupt      */
-                  | (uint32)((uint32)1U << 5U)     /* Stop Condition detect interrupt */
-                  | (uint32)((uint32)1U << 4U)     /* Transmit data ready interrupt   */
-                  | (uint32)((uint32)1U << 3U)     /* Receive data ready interrupt    */
-                  | (uint32)((uint32)1U << 2U)     /* Register Access ready interrupt */
-                  | (uint32)((uint32)1U << 1U)     /* No Acknowledgement interrupt    */
-                  | (uint32)((uint32)1U);     /* Arbitration Lost interrupt      */
+    i2cREG1->IMR  = (uint32)((uint32)0U << 6U)     /* Address as slave interrupt      */
+                  | (uint32)((uint32)0U << 5U)     /* Stop Condition detect interrupt */
+                  | (uint32)((uint32)0U << 4U)     /* Transmit data ready interrupt   */
+                  | (uint32)((uint32)0U << 3U)     /* Receive data ready interrupt    */
+                  | (uint32)((uint32)0U << 2U)     /* Register Access ready interrupt */
+                  | (uint32)((uint32)0U << 1U)     /* No Acknowledgement interrupt    */
+                  | (uint32)((uint32)0U);     /* Arbitration Lost interrupt      */
 
     /** - i2c Out of reset */
     i2cREG1->MDR |= (uint32)I2C_RESET_OUT;
 
     /** - initialize global transfer variables */
-    g_i2cTransfer_t.mode   = (uint32)1U << 4U;
+    g_i2cTransfer_t.mode   = (uint32)0U << 4U;
     g_i2cTransfer_t.length = 0U;
 
 /* USER CODE BEGIN (4) */
@@ -202,7 +202,7 @@ void i2cSetBaudrate(i2cBASE_t *i2c, uint32 baud)
     uint32 prescale;
     uint32 d;
     uint32 ck;
-    float64 vclk = 73.333F * 1000000.0F;
+    float64 vclk = 110.000F * 1000000.0F;
     float64 divider= 0.0F;
     uint32 temp = 0U;
 
@@ -759,106 +759,6 @@ void i2cGetConfigValue(i2c_config_reg_t *config_reg, config_value_type_t type)
 }
 
 
-/* USER CODE BEGIN (36) */
-/* USER CODE END */
-
-/** @fn void i2cInterrupt(void)
-*   @brief Interrupt for I2C
-*/
-
-/* SourceId : I2C_SourceId_022 */
-/* DesignId : I2C_DesignId_022 */
-/* Requirements : HL_SR298, HL_SR299 */
-void i2cInterrupt(void)
-{
-    uint32 vec = (i2cREG1->IVR & 0x00000007U);
-
-/* USER CODE BEGIN (37) */
-/* USER CODE END */
-
-    switch (vec)
-    {
-    case 1U:
-/* USER CODE BEGIN (38) */
-/* USER CODE END */
-        i2cNotification(i2cREG1, (uint32)I2C_AL_INT);
-        break;
-
-    case 2U:
-/* USER CODE BEGIN (39) */
-/* USER CODE END */
-        i2cNotification(i2cREG1, (uint32)I2C_NACK_INT);
-        break;
-
-    case 3U:
-/* USER CODE BEGIN (40) */
-/* USER CODE END */
-        i2cNotification(i2cREG1, (uint32)I2C_ARDY_INT);
-        break;
-
-    case 4U:
-/* USER CODE BEGIN (41) */
-/* USER CODE END */
-        /* receive */
-        {
-            uint8 byte = ((uint8)i2cREG1->DRR);
-
-        if (g_i2cTransfer_t.length > 0U)
-        {
-            *g_i2cTransfer_t.data = byte;
-            /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
-            g_i2cTransfer_t.data++;
-            g_i2cTransfer_t.length--;
-            if (g_i2cTransfer_t.length == 0U)
-            {
-                i2cNotification(i2cREG1, (uint32)I2C_RX_INT);
-            }
-        }
-        break;
-        }
-
-    case 5U:
-/* USER CODE BEGIN (42) */
-/* USER CODE END */
-        /* transmit */
-
-        if (g_i2cTransfer_t.length > 0U)
-        {
-            i2cREG1->DXR = *g_i2cTransfer_t.data;
-            /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
-            g_i2cTransfer_t.data++;
-            g_i2cTransfer_t.length--;
-            if(g_i2cTransfer_t.length == 0U)
-            {   /* Disable TX interrupt after desired data count transfered*/
-                i2cREG1->IMR &= (uint32)(~(uint32)I2C_TX_INT);
-                i2cNotification(i2cREG1, (uint32)I2C_TX_INT);
-            }
-        }
-        break;
-
-    case 6U:
-/* USER CODE BEGIN (43) */
-/* USER CODE END */
-        /* transmit */
-        i2cNotification(i2cREG1, (uint32)I2C_SCD_INT);
-        break;
-
-    case 7U:
-/* USER CODE BEGIN (44) */
-/* USER CODE END */
-        i2cNotification(i2cREG1, (uint32)I2C_AAS_INT);
-        break;
-
-    default:
-/* USER CODE BEGIN (45) */
-/* USER CODE END */
-        /* phantom interrupt, clear flags and return */
-        i2cREG1->STR = 0x000007FFU;
-        break;
-    }
-/* USER CODE BEGIN (46) */
-/* USER CODE END */
-}
 
 /** @fn i2cSetDirection(i2cBASE_t *i2c, uint32 dir)
 *   @brief Sets I2C as transmitter or receiver.

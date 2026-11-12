@@ -63,7 +63,7 @@ extern "C" {
 *
 *	@note: Use this macro for USER Mode Stack length (in bytes)
 */
-#define USER_STACK_LENGTH   0x00000300U
+#define USER_STACK_LENGTH   0x00001000U
 
 /** @def SVC_STACK_LENGTH
 *   @brief SVC Mode Stack length (in bytes)
