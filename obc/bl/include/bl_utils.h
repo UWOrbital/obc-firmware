@@ -3,7 +3,7 @@
 #include "obc_errors.h"
 #include "obc_gs_command_data.h"
 #include "bl_app_flag.h"
-#include "bl_fcmd_flag.h"
+#include "command.h"
 
 #include <stdint.h>
 

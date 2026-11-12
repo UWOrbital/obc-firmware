@@ -3,7 +3,6 @@
 #include "obc_gs_command_id.h"
 #include "obc_logging.h"
 #include "flash.h"
-#include "bl_fcmd_flag.h"
 #include <FreeRTOS.h>
 
 #ifdef NO_FREERTOS
@@ -17,6 +16,8 @@ extern const cmd_info_t cmdsConfig[];
 // Used to track whether a safety-critical command is currently being executed
 // This is inefficient space-wise, but simplifies the code. We can optimize later if needed.
 static bool cmdProgressTracker[NUM_CMD_CALLBACKS] = {false};
+
+const fcmd_flag_t bl_fcmd_flag __attribute__((section(".fcmd_flag"), used)) = {0};
 
 obc_error_code_t verifyCommand(cmd_msg_t *cmd, cmd_info_t *currCmdInfo) {
   if (cmd == NULL || currCmdInfo == NULL) {

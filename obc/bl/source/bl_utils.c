@@ -12,7 +12,6 @@
 #include "bl_config.h"
 #include "bl_time.h"
 #include "bl_app_flag.h"
-#include "bl_fcmd_flag.h"
 #include <string.h>
 
 /* DEFINES */

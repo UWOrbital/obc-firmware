@@ -3,10 +3,12 @@
 #include <stdint.h>
 #include "obc_errors.h"
 #include "obc_gs_command_data.h"
-#include "bl_fcmd_flag.h"
 
 #define CMD_FORWARDING_START_ADDRESS 0xF0204000
 #define CMD_FORWARDING_SECTION_SIZE 0x00004000
+
+#define FCMD_FLAG_START_ADDRESS 0xF0204000
+#define FCMD_FLAG_SECTION_SIZE 0x00004000
 
 typedef obc_error_code_t (*cmd_callback_t)(cmd_msg_t *, uint8_t *, uint8_t *);
 
@@ -15,6 +17,13 @@ typedef struct {
   cmd_policy_t policy;
   cmd_opt_t opts;  // Mask of command options
 } cmd_info_t;
+
+#define ENABLE_APP_MAGIC_NUM 0x4F4F4F4F
+
+typedef struct __attribute__((packed)) {
+  fcmd_msg_t fCmd;
+  uint32_t flag;
+} fcmd_flag_t;
 
 /**
  * @brief Verifies a command and assigns it's information to the currCmdInfo parameter.

@@ -243,3 +243,122 @@ TEST(TestCommandPackUnpack, ValidCmdEraseAppPackUnpack) {
   EXPECT_EQ(packOffset, unpackOffset);
   EXPECT_EQ(cmdMsg.id, unpackedCmdMsg.id);
 }
+
+// CMD_ENABLE_BOOT_APP_B
+TEST(TestCommandPackUnpack, ValidCmdEnableBootAppB) {
+  obc_gs_error_code_t errCode;
+  cmd_msg_t cmdMsg = {0};
+  cmdMsg.id = CMD_ENABLE_BOOT_APP_B;
+
+  uint8_t buff[MAX_CMD_MSG_SIZE] = {0};
+  uint32_t packOffset = 0;
+  uint8_t numPacked = 0;
+  errCode = packCmdMsg(buff, &packOffset, &cmdMsg, &numPacked);
+  ASSERT_EQ(errCode, OBC_GS_ERR_CODE_SUCCESS);
+
+  for (int i = 0; i < MAX_CMD_MSG_SIZE; i++) {
+    printf(" 0x%x", buff[i]);
+  }
+  printf(" %d", packOffset);
+
+  cmd_msg_t unpackedCmdMsg = {0};
+  uint32_t unpackOffset = 0;
+  errCode = unpackCmdMsg(buff, &unpackOffset, &unpackedCmdMsg);
+  ASSERT_EQ(errCode, OBC_GS_ERR_CODE_SUCCESS);
+
+  EXPECT_EQ(packOffset, unpackOffset);
+  EXPECT_EQ(cmdMsg.id, unpackedCmdMsg.id);
+}
+
+// CMD_OBC_ERASE_APP
+TEST(TestCommandPackUnpack, ValidCmdObcEraseApp) {
+  obc_gs_error_code_t errCode;
+  cmd_msg_t cmdMsg = {0};
+  cmdMsg.id = CMD_OBC_ERASE_APP;
+  cmdMsg.data.downloadData.programmingSession = APP_SLOT_A;
+
+  uint8_t buff[MAX_CMD_MSG_SIZE] = {0};
+  uint32_t packOffset = 0;
+  uint8_t numPacked = 0;
+  errCode = packCmdMsg(buff, &packOffset, &cmdMsg, &numPacked);
+  ASSERT_EQ(errCode, OBC_GS_ERR_CODE_SUCCESS);
+
+  for (int i = 0; i < MAX_CMD_MSG_SIZE; i++) {
+    printf(" 0x%x", buff[i]);
+  }
+  printf(" %d", packOffset);
+
+  cmd_msg_t unpackedCmdMsg = {0};
+  uint32_t unpackOffset = 0;
+  errCode = unpackCmdMsg(buff, &unpackOffset, &unpackedCmdMsg);
+  ASSERT_EQ(errCode, OBC_GS_ERR_CODE_SUCCESS);
+
+  EXPECT_EQ(packOffset, unpackOffset);
+  EXPECT_EQ(cmdMsg.id, unpackedCmdMsg.id);
+  cmdMsg.data.downloadData.programmingSession = APP_SLOT_A;
+}
+
+// CMD_OBC_WRITE_APP
+TEST(TestCommandPackUnpack, ValidCmdObcWriteApp) {
+  obc_gs_error_code_t errCode;
+  cmd_msg_t cmdMsg = {0};
+  cmdMsg.id = CMD_OBC_WRITE_APP;
+  cmdMsg.data.downloadData.programmingSession = APP_SLOT_A;
+  cmdMsg.data.downloadData.length = 208;
+  cmdMsg.data.downloadData.address = 0x00040000;
+
+  uint8_t buff[MAX_CMD_MSG_SIZE] = {0};
+  uint32_t packOffset = 0;
+  uint8_t numPacked = 0;
+  errCode = packCmdMsg(buff, &packOffset, &cmdMsg, &numPacked);
+  ASSERT_EQ(errCode, OBC_GS_ERR_CODE_SUCCESS);
+
+  for (int i = 0; i < MAX_CMD_MSG_SIZE; i++) {
+    printf(" 0x%x", buff[i]);
+  }
+  printf(" %d", packOffset);
+
+  cmd_msg_t unpackedCmdMsg = {0};
+  uint32_t unpackOffset = 0;
+  errCode = unpackCmdMsg(buff, &unpackOffset, &unpackedCmdMsg);
+  ASSERT_EQ(errCode, OBC_GS_ERR_CODE_SUCCESS);
+
+  EXPECT_EQ(packOffset, unpackOffset);
+  EXPECT_EQ(cmdMsg.id, unpackedCmdMsg.id);
+  EXPECT_EQ(cmdMsg.data.downloadData.programmingSession, unpackedCmdMsg.data.downloadData.programmingSession);
+  EXPECT_EQ(cmdMsg.data.downloadData.length, unpackedCmdMsg.data.downloadData.length);
+  EXPECT_EQ(cmdMsg.data.downloadData.address, unpackedCmdMsg.data.downloadData.address);
+}
+
+// CMD_OBC_WRITE_FCMD
+TEST(TestCommandPackUnpack, ValidCmdObcWriteFCmd) {
+  obc_gs_error_code_t errCode;
+  cmd_msg_t cmdMsg = {0};
+  fcmd_msg_t fCmdMsg = {0};
+  cmdMsg.id = CMD_OBC_WRITE_FCMD;
+  fCmdMsg.id = CMD_PING;
+
+  cmdMsg.data.fCmd = fCmdMsg;
+
+  uint8_t buff[MAX_CMD_MSG_SIZE] = {0};
+  uint32_t packOffset = 0;
+  uint8_t numPacked = 0;
+  errCode = packCmdMsg(buff, &packOffset, &cmdMsg, &numPacked);
+  ASSERT_EQ(errCode, OBC_GS_ERR_CODE_SUCCESS);
+
+  for (int i = 0; i < MAX_CMD_MSG_SIZE; i++) {
+    printf(" 0x%x", buff[i]);
+  }
+  printf(" %d", packOffset);
+
+  cmd_msg_t unpackedCmdMsg = {0};
+  uint32_t unpackOffset = 0;
+  errCode = unpackCmdMsg(buff, &unpackOffset, &unpackedCmdMsg);
+  ASSERT_EQ(errCode, OBC_GS_ERR_CODE_SUCCESS);
+
+  EXPECT_EQ(packOffset, unpackOffset);
+  EXPECT_EQ(cmdMsg.id, unpackedCmdMsg.id);
+  EXPECT_EQ(cmdMsg.data.fCmd.id, unpackedCmdMsg.data.fCmd.id);
+  EXPECT_EQ(cmdMsg.data.fCmd.isTimeTagged, unpackedCmdMsg.data.fCmd.isTimeTagged);
+  EXPECT_EQ(cmdMsg.data.fCmd.timestamp, unpackedCmdMsg.data.fCmd.timestamp);
+}
