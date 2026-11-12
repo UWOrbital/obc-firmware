@@ -56,12 +56,12 @@
 resetEntry:
         b   _c_int00    @ Reset
 undefEntry:
-        b   #0x40004     @ Undefined instruction
-        b   #0x40008     @ Software interrupt (SWI / SVC)
+        b   #(CUSTOM_START_ADDRESS + APP_ADDRESS_OFFSET + 0x4) @ Undefined instruction
+        b   #(CUSTOM_START_ADDRESS + APP_ADDRESS_OFFSET + 0x8) @ Software interrupt (SWI / SVC)
 prefetchEntry:
-        b   #0x4000c     @ Abort (prefetch)
+        b   #(CUSTOM_START_ADDRESS + APP_ADDRESS_OFFSET + 0xc)  @ Abort (prefetch)
         b   _dabort      @ Abort (data)
-        b   #0x40014     @ phantomInterrupt
+        b   #(CUSTOM_START_ADDRESS + APP_ADDRESS_OFFSET + 0x14) @ phantomInterrupt
         ldr pc,[pc,#-0x1b0]     @ IRQ
         ldr pc,[pc,#-0x1b0]     @ FIQ
 

@@ -5,7 +5,7 @@ set(INCLUDES
 )
 
 set(SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/bl_intvecs.s
+    ${CMAKE_CURRENT_SOURCE_DIR}/bl_intvecs.S
 )
 
 target_include_directories(OBC-bl.out PUBLIC ${INCLUDES})

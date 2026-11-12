@@ -11,6 +11,9 @@ typedef struct __attribute__((packed)) {
   uint8_t release_ver_major;
   uint8_t release_ver_minor;
   uint8_t board_id;
-  uint8_t reserved[7];
+  uint8_t occupied_slot;
+  uint8_t reserved[6];
   uint32_t crc_addr;
 } metadata_t;
+
+extern const metadata_t app_metadata;

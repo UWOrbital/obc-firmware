@@ -59,6 +59,7 @@ void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName) {
    * function is called if a stack overflow is detected.  This function is
    * provided as an example only as stack overflow checking does not function
    * when running the FreeRTOS POSIX port. */
+  
   vAssertCalled(__FILE__, __LINE__);
 }
 
