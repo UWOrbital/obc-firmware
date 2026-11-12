@@ -46,7 +46,6 @@
 @ import reference for interrupt routines
 
     .extern _c_int00
-    .extern vPortSWI
     .extern _dabort
     .extern phantomInterrupt
     .weak resetEntry
@@ -58,7 +57,8 @@ resetEntry:
         b   _c_int00
 undefEntry:
         b   undefEntry
-        b   vPortSWI
+svcEntry:
+        b   svcEntry
 prefetchEntry:
         b   prefetchEntry
         b   _dabort

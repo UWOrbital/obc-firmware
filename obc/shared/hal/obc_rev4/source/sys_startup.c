@@ -115,18 +115,6 @@ void _c_int00(void)
      * by its ECC logic for accesses to program flash or data RAM.
      */
     _coreEnableEventBusExport_();
-/* USER CODE BEGIN (9) */
-/* USER CODE END */
-
-    /* Enable response to ECC errors indicated by CPU for accesses to flash */
-    flashWREG->FEDACCTRL1 = 0x000A060AU;
-
-/* USER CODE BEGIN (10) */
-/* USER CODE END */
-
-    /* Enable CPU ECC checking for ATCM (flash accesses) */
-    _coreEnableFlashEcc_();
-	
 
 /* USER CODE BEGIN (11) */
 /* USER CODE END */
@@ -437,21 +425,6 @@ void _c_int00(void)
 
 /* USER CODE BEGIN (41) */
 /* USER CODE END */
-
-    /* Test the CPU ECC mechanism for Flash accesses.
-     * The checkFlashECC function uses the flash interface module's diagnostic mode 7
-     * to create single-bit and double-bit errors in CPU accesses to the flash. A double-bit
-     * error on reading from flash causes a data abort exception.
-     * The data abort handler is written to look for deliberately caused exception and
-     * to return the code execution to the instruction following the one that was aborted.
-     *
-     */
-    checkFlashECC();
-    flashWREG->FDIAGCTRL = 0x000A0007U;                    /* disable flash diagnostic mode */
-
-/* USER CODE BEGIN (42) */
-/* USER CODE END */
-
 /* USER CODE BEGIN (43) */
 /* USER CODE END */
 
@@ -657,7 +630,6 @@ void _c_int00(void)
     esmInit();
     {
     	extern uint32 _sidata, _sdata, _edata;
-    	extern uint32 _ksidata, _ksdata, _kedata;
     	uint32 *src, *dst;
 
     	src = &_sidata;
@@ -668,13 +640,6 @@ void _c_int00(void)
     		*dst++ = *src++;
     	}
 
-    	src = &_ksidata;
-    	dst = &_ksdata;
-
-       	while (dst < &_kedata)
-       	{
-    		*dst++ = *src++;
-    	}
     }
 /* USER CODE BEGIN (75) */
 /* USER CODE END */
