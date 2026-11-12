@@ -472,10 +472,10 @@ static const uint32 s_adcFiFoSize[2U][3U] =
 
 /* USER CODE BEGIN (6) */
 uint32_t adcGetNumChannels(uint32_t module, uint32_t group) {
-    if (module < 1 || module > 2 || group > 2) {
+    if (module > 2 || group > 2) {
         return 0;
     }
-    return s_adcFiFoSize[module - 1][group];
+    return s_adcFiFoSize[module][group];
 }
 /* USER CODE END */
 
