@@ -325,6 +325,13 @@ void adc2GetConfigValue(adc_config_reg_t *config_reg, config_value_type_t type);
 void adcNotification(adcBASE_t *adc, uint32 group);
 
 /* USER CODE BEGIN (3) */
+/**
+ * @brief Get the number of channels in a given ADC module and group
+ * @param module ADC module (1 or 2)
+ * @param group ADC group (0, 1, or 2)
+ * @return Number of channels in the specified module and group
+ */
+uint32_t adcGetNumChannels(uint32_t module, uint32_t group);
 /* USER CODE END */
 
 /**@}*/
