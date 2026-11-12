@@ -327,7 +327,7 @@ void adcNotification(adcBASE_t *adc, uint32 group);
 /* USER CODE BEGIN (3) */
 /**
  * @brief Get the number of channels in a given ADC module and group
- * @param module ADC module (1 or 2)
+ * @param module ADC module (0 or 1)
  * @param group ADC group (0, 1, or 2)
  * @return Number of channels in the specified module and group
  */
