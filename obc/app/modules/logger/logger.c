@@ -256,11 +256,11 @@ static obc_error_code_t sendToLoggerQueueFromISR(logger_event_t *event) {
   }
   BaseType_t xHigherPriorityTaskAwoken = pdFALSE;
 
-  xQueueSendFromISR(loggerQueueHandle, (void *)event, &xHigherPriorityTaskAwoken);
+  BaseType_t result = xQueueSendFromISR(loggerQueueHandle, (void *)event, &xHigherPriorityTaskAwoken);
 
   portYIELD_FROM_ISR(xHigherPriorityTaskAwoken);
 
-  return OBC_ERR_CODE_QUEUE_FULL;
+  return result == pdPASS ? OBC_ERR_CODE_SUCCESS : OBC_ERR_CODE_QUEUE_FULL;
 }
 
 void logSetOutputLocation(log_output_location_t newOutputLocation) { outputLocation = newOutputLocation; }
