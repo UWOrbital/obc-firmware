@@ -157,14 +157,14 @@ enum systemClockSource
 *
 *   RTI Clock frequency exported from HALCoGen GUI
 */
-#define RTI_FREQ     110.000F
+#define RTI_FREQ     73.333F
 
 /** @def AVCLK1_FREQ
 *   @brief AVCLK1 Domain frequency exported from HALCoGen GUI
 *
 *   AVCLK Domain frequency exported from HALCoGen GUI
 */
-#define AVCLK1_FREQ  110.000F
+#define AVCLK1_FREQ  73.333F
 
 /** @def AVCLK2_FREQ
 *   @brief AVCLK2 Domain frequency exported from HALCoGen GUI
@@ -178,21 +178,21 @@ enum systemClockSource
 *
 *   AVCLK3 Domain frequency exported from HALCoGen GUI
 */
-#define AVCLK3_FREQ  110.000F
+#define AVCLK3_FREQ  73.333F
 
 /** @def AVCLK4_FREQ
 *   @brief AVCLK4 Domain frequency exported from HALCoGen GUI
 *
 *   AVCLK4 Domain frequency exported from HALCoGen GUI
 */
-#define AVCLK4_FREQ  110.000F
+#define AVCLK4_FREQ  73.333F
 
 /** @def VCLK1_FREQ
 *   @brief VCLK1 Domain frequency exported from HALCoGen GUI
 *
 *   VCLK1 Domain frequency exported from HALCoGen GUI
 */
-#define VCLK1_FREQ   110.000F
+#define VCLK1_FREQ   73.333F
 
 /** @def VCLK2_FREQ
 *   @brief VCLK2 Domain frequency exported from HALCoGen GUI
@@ -367,7 +367,7 @@ typedef struct system_config_reg
 #define SYS_MMUGCR_CONFIGVALUE      0U
 
 #define SYS_CLKCNTL_CONFIGVALUE     ( 0x00000100U \
-                                    | (uint32)((uint32)1U << 16U) \
+                                    | (uint32)((uint32)2U << 16U) \
                                     | (uint32)((uint32)1U << 24U) ) 
                                     
 #define SYS_ECPCNTL_CONFIGVALUE     ( (uint32)((uint32)0U << 24U)\

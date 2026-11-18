@@ -252,31 +252,6 @@ typedef struct dcc_config_reg
     uint32 CONFIG_CNT0CLKSRC;
 } dcc_config_reg_t;
 
-
-/* Configuration registers initial value */
-#define DCC1_GCTRL_CONFIGVALUE       ( (uint32)0xAU \
-                                     | (uint32)((uint32)0xAU << 4U) \
-                                     | (uint32)((uint32)0x5U << 8U) \
-                                     | (uint32)((uint32)0xAU << 12U))
-                                     
-#define DCC1_CNT0SEED_CONFIGVALUE    39204U
-#define DCC1_VALID0SEED_CONFIGVALUE  792U
-#define DCC1_CNT1SEED_CONFIGVALUE    544500U
-#define DCC1_CNT1CLKSRC_CONFIGVALUE  ((uint32)((uint32)10U << 12U) | (uint32)DCC1_CNT1_PLL1)
-/*SAFETYMCUSW 79 S MR:19.4 <APPROVED> "Values come from GUI drop down option" */
-#define DCC1_CNT0CLKSRC_CONFIGVALUE  ((uint32)DCC1_CNT0_OSCIN)
-
-#define DCC2_GCTRL_CONFIGVALUE       ( (uint32)0xAU \
-                                     | (uint32)((uint32)0xAU << 4U) \
-                                     | (uint32)((uint32)0x5U << 8U) \
-                                     | (uint32)((uint32)0xAU << 12U))
-#define DCC2_CNT0SEED_CONFIGVALUE    0U
-#define DCC2_VALID0SEED_CONFIGVALUE  0U
-#define DCC2_CNT1SEED_CONFIGVALUE    0U
-#define DCC2_CNT1CLKSRC_CONFIGVALUE  ((uint32)((uint32)0xAU << 12U) | (uint32)DCC2_CNT1_VCLK)
-/*SAFETYMCUSW 79 S MR:19.4 <APPROVED> "Values come from GUI drop down option" */
-#define DCC2_CNT0CLKSRC_CONFIGVALUE  ((uint32)DCC2_CNT0_OSCIN)
-
 /* USER CODE BEGIN (1) */
 /* USER CODE END */
 
