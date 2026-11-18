@@ -27,12 +27,12 @@ obc_error_code_t blRunCommand(cmd_msg_t* unpackedCmdMsg);
  *
  * @param replacement_app_flag App flag struct to be written to flash
  */
-obc_error_code_t blEditAppFlag(app_flag_t replacement_app_flag);
+obc_error_code_t blEditAppFlag(app_flag_t replacement_app_flag, uint32_t activeApp);
 
 /**
  * @brief Checks the integrity of the app and jumps to it's reset vector
  */
-obc_error_code_t blJumpToApp(void);
+obc_error_code_t blJumpToApp(uint32_t activeApp);
 
 /**
  * @brief Reads the bytes at flash memory and returns the forwarded struct, afterwards clearing it.

@@ -2,6 +2,7 @@
 #include "bl_verification.h"
 #include "bl_uart.h"
 #include "flash.h"
+#include "obc_errors.h"
 #include "obc_gs_commands_response.h"
 #include "obc_gs_commands_response_pack.h"
 #include "obc_gs_errors.h"
@@ -70,18 +71,47 @@ obc_error_code_t blRunCommand(cmd_msg_t *unpackedCmdMsg) {
   return errCode;
 }
 
-obc_error_code_t blEditAppFlag(app_flag_t replacement_app_flag) {
-  volatile app_flag_t *volatile_app_flag_pointer = (app_flag_t *)APP_FLAG_START_ADDRESS;
+obc_error_code_t blReadAndDisableFCmd(fcmd_flag_t *buffer) {
+  if (buffer == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  fcmd_flag_t *fCmd_flag_pointer = (fcmd_flag_t *)CMD_FORWARDING_START_ADDRESS;
+
+  *buffer = *fCmd_flag_pointer;
+
+  // Create copy since flag is in flash
+  fcmd_flag_t replacement_fcmd_flag = *fCmd_flag_pointer;
+
+  replacement_fcmd_flag.flag = 0;
+
+  editFCmdFlag(replacement_fcmd_flag);
+
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+obc_error_code_t blEditAppFlag(app_flag_t replacement_app_flag, uint32_t activeApp) {
+  uint32_t app_flag_start_address = {0};
+
+  if (activeApp == 0) {
+    app_flag_start_address = APP_A_FLAG_START_ADDRESS;
+  } else if (activeApp == ENABLE_APP_B_MAGIC_NUM) {
+    app_flag_start_address = APP_B_FLAG_START_ADDRESS;
+  } else {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  volatile app_flag_t *volatile_app_flag_pointer = (app_flag_t *)app_flag_start_address;
 
   uint32_t length = sizeof(replacement_app_flag);
 
-  flash_error_code_t errCode = flashFapiBlockErase(APP_FLAG_START_ADDRESS, (uint32_t)APP_FLAG_SECTION_SIZE, 7U);
+  flash_error_code_t errCode = flashFapiBlockErase(app_flag_start_address, (uint32_t)APP_FLAG_SECTION_SIZE, 7U);
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
     return OBC_ERR_CODE_UNKNOWN;
   };
 
-  errCode = flashFapiBlockWrite(APP_FLAG_START_ADDRESS, (uint32_t)&replacement_app_flag, length, 7U);
+  errCode = flashFapiBlockWrite(app_flag_start_address, (uint32_t)&replacement_app_flag, length, 7U);
 
   if (errCode != FLASH_ERR_CODE_SUCCESS) {
     return OBC_ERR_CODE_UNKNOWN;
@@ -96,17 +126,15 @@ obc_error_code_t blEditAppFlag(app_flag_t replacement_app_flag) {
   return OBC_ERR_CODE_SUCCESS;
 }
 
-obc_error_code_t blJumpToApp() {
+obc_error_code_t blJumpToApp(uint32_t activeApp) {
   obc_error_code_t errCode;
 
   uint32_t appStartAddress = 0;
 
-  app_flag_t *app_flag_pointer = (app_flag_t *)(APP_FLAG_START_ADDRESS);
-
-  if (app_flag_pointer->app_b_flag == 0) {
+  if (activeApp == 0) {
     appStartAddress = CUSTOM_START_ADDRESS;
     blUartWriteBytes(strlen("Attempting to boot app A\r\n"), (uint8_t *)"Attempting to boot app A\r\n");
-  } else if (app_flag_pointer->app_b_flag == ENABLE_APP_MAGIC_NUM) {
+  } else if (activeApp == ENABLE_APP_B_MAGIC_NUM) {
     appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
     blUartWriteBytes(strlen("Attempting to boot app B\r\n"), (uint8_t *)"Attempting to boot app B\r\n");
   } else {
@@ -144,23 +172,4 @@ obc_error_code_t blJumpToApp() {
   // If it was not possible to jump to the app, we log that error here
   blUartWriteBytes(strlen("ERROR: Failed to run application\r\n"), (uint8_t *)"ERROR: Failed to run application\r\n");
   return OBC_ERR_CODE_FAILED_TO_LOAD_APP;
-}
-
-obc_error_code_t blReadAndDisableFCmd(fcmd_flag_t *buffer) {
-  if (buffer == NULL) {
-    return OBC_ERR_CODE_INVALID_ARG;
-  }
-
-  fcmd_flag_t *fCmd_flag_pointer = (fcmd_flag_t *)CMD_FORWARDING_START_ADDRESS;
-
-  *buffer = *fCmd_flag_pointer;
-
-  // Create copy since flag is in flash
-  fcmd_flag_t replacement_fcmd_flag = *fCmd_flag_pointer;
-
-  replacement_fcmd_flag.flag = 0;
-
-  editFCmdFlag(replacement_fcmd_flag);
-
-  return OBC_ERR_CODE_SUCCESS;
 }

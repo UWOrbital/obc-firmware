@@ -20,7 +20,6 @@ from interfaces.obc_gs_interface.commands.python.command_factories import (
     create_cmd_erase_app,
     create_cmd_verify_crc,
     create_cmd_enable_boot_app_a,
-    create_cmd_enable_boot_app_b,
 )
 
 from interfaces.obc_gs_interface.commands.python.command_response_callbacks import (
@@ -134,10 +133,6 @@ def write_command(
             cmd_print_response = True
         case CmdCallbackId.CMD_ENABLE_BOOT_APP_A:
             packed_command = pack_command(create_cmd_enable_boot_app_a()).ljust(
-                RS_DECODED_DATA_SIZE, b"\x00"
-            )
-        case CmdCallbackId.CMD_ENABLE_BOOT_APP_B:
-            packed_command = pack_command(create_cmd_enable_boot_app_b()).ljust(
                 RS_DECODED_DATA_SIZE, b"\x00"
             )
         case _:

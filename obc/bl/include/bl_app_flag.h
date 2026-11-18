@@ -1,11 +1,10 @@
 #pragma once
 #include <stdint.h>
+#include "bl_state_mgr.h"
 
-#define ENABLE_APP_MAGIC_NUM 0x4F4F4F4F
+#define ENABLE_APP_B_MAGIC_NUM 0x4F4F4F4F
 
-typedef struct __attribute__((packed)) {
-  uint32_t app_status;
-  uint32_t boot_attempts;
-  uint32_t app_b_flag;
-  uint32_t crc_selector;
+typedef struct {
+  uint8_t boot_attempts;
+  app_state_t app_state;
 } app_flag_t;

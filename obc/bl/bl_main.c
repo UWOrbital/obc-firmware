@@ -1,3 +1,4 @@
+#include "bl_app_flag.h"
 #include "bl_utils.h"
 #include "bl_uart.h"
 #include "obc_errors.h"
@@ -11,7 +12,7 @@
 #include "flash.h"
 #include "flash_errors.h"
 #include "command.h"
-#include "F021.h"  // For testing purposes
+#include "bl_state_mgr.h"
 #if defined(DEBUG) && !defined(OBC_REVISION_2)
 #include <gio.h>
 #endif
@@ -109,7 +110,7 @@ int main(void) {
     }
 
     if (blGetCurrentTick() > jumpToAppTimeout) {
-      LOG_IF_ERROR_CODE(blJumpToApp());
+      blStateMgr();
     }
   }
   memset(recvBuffer, 0, MAX_PACKET_SIZE);

@@ -3,6 +3,7 @@
 #include "obc_gs_command_id.h"
 #include "obc_logging.h"
 #include "flash.h"
+#include "bl_config.h"
 #include <FreeRTOS.h>
 
 #ifdef NO_FREERTOS
@@ -107,6 +108,7 @@ obc_error_code_t castCmdToFcmd(const cmd_msg_t *cmd_msg, fcmd_msg_t *fCmdBuffer)
   fCmdBuffer->id = cmd_msg->id;
   fCmdBuffer->isTimeTagged = cmd_msg->isTimeTagged;
   fCmdBuffer->timestamp = cmd_msg->timestamp;
+  fCmdBuffer->programmingSession = cmd_msg->programmingSession;
 
   uint8_t emptyString[sizeof(fCmdBuffer->data)] = {0};
 
@@ -124,6 +126,7 @@ obc_error_code_t castFCmdToCmd(const fcmd_msg_t *fcmd_msg, cmd_msg_t *cmdBuffer)
   cmdBuffer->id = fcmd_msg->id;
   cmdBuffer->isTimeTagged = fcmd_msg->isTimeTagged;
   cmdBuffer->timestamp = fcmd_msg->timestamp;
+  cmdBuffer->programmingSession = fcmd_msg->programmingSession;
 
   uint8_t emptyString[sizeof(cmdBuffer->data)] = {0};
 

@@ -1,3 +1,5 @@
+#include "bl_state_mgr.h"
+#include "magic_numbers.h"
 #include "reg_system.h"
 #include "bl_config.h"
 #include "obc_errors.h"
@@ -109,13 +111,11 @@ static obc_error_code_t verifyCrcCmdCallback(cmd_msg_t *cmd, uint8_t *responseDa
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
-  app_flag_t *app_flag_pointer = (app_flag_t *)(APP_FLAG_START_ADDRESS);
+  uint32_t appStartAddress = {0};
 
-  uint32_t appStartAddress = 0;
-
-  if (app_flag_pointer->crc_selector == 0) {
+  if (cmd->programmingSession == 0) {
     appStartAddress = CUSTOM_START_ADDRESS;
-  } else if (app_flag_pointer->crc_selector == ENABLE_APP_MAGIC_NUM) {
+  } else if (cmd->programmingSession == SHORT_ENABLE_APP_MAGIC_NUMBER) {
     appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
   } else {
     return OBC_ERR_CODE_INVALID_ARG;
@@ -159,28 +159,25 @@ static obc_error_code_t execObcResetCmdCallback(cmd_msg_t *cmd, uint8_t *respons
   return OBC_ERR_CODE_SUCCESS;
 }
 
+// Changes state of app B to get bootloader to load into app A on the next reset (Given that it is validated)
 static obc_error_code_t enableBootAppA(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
   if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
-  app_flag_t replacement_app_flag = (app_flag_t) * (app_flag_t *)APP_FLAG_START_ADDRESS;
+  app_flag_t *app_A_flag_pointer = (app_flag_t *)APP_A_FLAG_START_ADDRESS;
+  app_flag_t *app_B_flag_pointer = (app_flag_t *)APP_B_FLAG_START_ADDRESS;
 
-  replacement_app_flag.app_b_flag = 0;
-
-  return blEditAppFlag(replacement_app_flag);
-}
-
-static obc_error_code_t enableBootAppB(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
-  if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
-    return OBC_ERR_CODE_INVALID_ARG;
+  if (app_A_flag_pointer->app_state != VALIDATED) {
+    return OBC_ERR_CODE_INVALID_STATE;
+  }
+  if (app_B_flag_pointer->app_state == VALIDATED) {
+    app_B_flag_pointer->app_state = DEPRIORITIZED;
   }
 
-  app_flag_t replacement_app_flag = (app_flag_t) * (app_flag_t *)(APP_FLAG_START_ADDRESS);
+  blEditAppFlag(*app_B_flag_pointer, ENABLE_APP_B_MAGIC_NUM);
 
-  replacement_app_flag.app_b_flag = ENABLE_APP_MAGIC_NUM;
-
-  return blEditAppFlag(replacement_app_flag);
+  return OBC_ERR_CODE_SUCCESS;
 }
 
 const cmd_info_t cmdsConfig[] = {
@@ -190,7 +187,6 @@ const cmd_info_t cmdsConfig[] = {
     [CMD_DOWNLOAD_DATA] = {downloadDataCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_VERIFY_CRC] = {verifyCrcCmdCallback, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
     [CMD_ENABLE_BOOT_APP_A] = {enableBootAppA, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
-    [CMD_ENABLE_BOOT_APP_B] = {enableBootAppB, CMD_POLICY_PROD, CMD_TYPE_NORMAL},
 };
 
 // This function is purely to trick the compiler into thinking we are using the cmdsConfig variable so we avoid the

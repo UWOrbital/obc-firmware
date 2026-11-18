@@ -50,7 +50,13 @@ SECTIONS
     _etext = .;        /* define a global symbols at end of code */
   } >BL_FLASH
 
-  .app_flag :
+  .app_A_flag :
+  {
+    KEEP(*(.app_flag))
+    . = ALIGN(32);
+  } >APP_A_FLAG
+  
+  .app_B_flag :
   {
     KEEP(*(.app_flag))
     . = ALIGN(32);

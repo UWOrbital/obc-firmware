@@ -1,8 +1,11 @@
 #include "bl_app_flag.h"
 
-const app_flag_t bl_app_flag __attribute__((section(".app_flag"), used)) = {
-    .app_status = 0xFFF03333,
-    .boot_attempts = 0xFFF03333,
-    .app_b_flag = 0,
-    .crc_selector = ENABLE_APP_MAGIC_NUM,
+const app_flag_t bl_app_A_flag __attribute__((section(".app_A_flag"), used)) = {
+    .app_state = VALIDATED,
+    .boot_attempts = 0,
+};
+
+const app_flag_t bl_app_B_flag __attribute__((section(".app_B_flag"), used)) = {
+    .app_state = VALIDATED,
+    .boot_attempts = 0,
 };

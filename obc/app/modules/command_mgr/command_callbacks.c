@@ -142,20 +142,19 @@ static obc_error_code_t I2CProbeCmdCallback(cmd_msg_t *cmd, uint8_t *responseDat
 static obc_error_code_t obcEraseApp(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
   BaseType_t xRunningPrivileged = prvRaisePrivilege();
 
-  if (cmd == NULL || (cmd->data.downloadData.programmingSession != 0 &&
-                      cmd->data.downloadData.programmingSession != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
+  if (cmd == NULL || (cmd->programmingSession != 0 && cmd->programmingSession != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
     portRESET_PRIVILEGE(xRunningPrivileged);
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
   uint32_t appStartAddress = 0;
 
-  if (cmd->data.downloadData.programmingSession == app_metadata.occupied_slot) {
+  if (cmd->programmingSession == app_metadata.occupied_slot) {
     portRESET_PRIVILEGE(xRunningPrivileged);
     return OBC_ERR_CODE_RED_EACCES;
   }
 
-  if (cmd->data.downloadData.programmingSession == 0) {
+  if (cmd->programmingSession == 0) {
     appStartAddress = CUSTOM_START_ADDRESS;
   } else {
     appStartAddress = CUSTOM_START_ADDRESS + APP_SIZE;
@@ -188,8 +187,7 @@ static obc_error_code_t obcEraseApp(cmd_msg_t *cmd, uint8_t *responseData, uint8
 }
 
 static obc_error_code_t obcWriteApp(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
-  if (cmd == NULL || (cmd->data.downloadData.programmingSession != 0 &&
-                      cmd->data.downloadData.programmingSession != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
+  if (cmd == NULL || (cmd->programmingSession != 0 && cmd->programmingSession != SHORT_ENABLE_APP_MAGIC_NUMBER)) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
 
@@ -197,11 +195,11 @@ static obc_error_code_t obcWriteApp(cmd_msg_t *cmd, uint8_t *responseData, uint8
   uint32_t flashLowLim = 0;
   uint32_t flashHighLim = 0;
 
-  if (cmd->data.downloadData.programmingSession == app_metadata.occupied_slot) {
+  if (cmd->programmingSession == app_metadata.occupied_slot) {
     return OBC_ERR_CODE_RED_EACCES;
   }
 
-  if (cmd->data.downloadData.programmingSession == 0) {
+  if (cmd->programmingSession == 0) {
     appStartAddress = CUSTOM_START_ADDRESS;
     flashLowLim = CUSTOM_START_ADDRESS;
     flashHighLim = flashLowLim + APP_SIZE - 0x00000001;
