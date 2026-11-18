@@ -25,22 +25,6 @@ static StaticSemaphore_t adcConversionMutexBuffer;
 // Arbitrary
 #define ADC_MAX_WAIT_CYCLES 1000
 
-#define ADC_NUM_GROUPS 3
-
-typedef enum {
-  ADC1_GROUP0_NUM_CHANNELS = 16U,
-  ADC1_GROUP1_NUM_CHANNELS = 16U,
-  ADC1_GROUP2_NUM_CHANNELS = 16U,
-  ADC2_GROUP0_NUM_CHANNELS = 16U,
-  ADC2_GROUP1_NUM_CHANNELS = 16U,
-  ADC2_GROUP2_NUM_CHANNELS = 16U
-} adc_group_channels_t;
-
-#define ADC_INDEX(module, group) ((module) * ADC_NUM_GROUPS + (group))
-
-const uint32_t adcGroupLengths[6] = {ADC1_GROUP0_NUM_CHANNELS, ADC1_GROUP1_NUM_CHANNELS, ADC1_GROUP2_NUM_CHANNELS,
-                                     ADC2_GROUP0_NUM_CHANNELS, ADC2_GROUP1_NUM_CHANNELS, ADC2_GROUP2_NUM_CHANNELS};
-
 void initADC(void) {
   adcInit();
   if (adcConversionMutex == NULL) {
@@ -105,8 +89,7 @@ obc_error_code_t adcGetSingleData(adc_module_t adc, adc_channel_t channel, adc_g
   obc_error_code_t errCode;
   RETURN_IF_ERROR_CODE(adcGetGroupReadings(adc, group, adcData, blockTime));
 
-  uint8_t index = ADC_INDEX(adc, group);
-  uint32_t groupSize = adcGroupLengths[index];
+  uint32_t groupSize = adcGetNumChannels((uint32_t)adc, (uint32_t)group);
 
   for (uint32_t i = 0; i < groupSize; i++) {
     if (adcData[i].id == channel) {
@@ -132,8 +115,7 @@ obc_error_code_t adcGetGroupData(adc_module_t adc, adc_group_t group, uint16_t *
   obc_error_code_t errCode;
   RETURN_IF_ERROR_CODE(adcGetGroupReadings(adc, group, adcData, blockTime));
 
-  uint8_t index = ADC_INDEX(adc, group);
-  uint32_t groupSize = adcGroupLengths[index];
+  uint32_t groupSize = adcGetNumChannels((uint32_t)adc, (uint32_t)group);
 
   for (uint32_t i = 0; i < groupSize; i++) {
     readings[i] = adcData[i].value;
