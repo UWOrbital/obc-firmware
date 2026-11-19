@@ -14,7 +14,7 @@
 #include "flash.h"
 #include "bl_utils.h"
 #include "obc_metadata.h"
-#include "bl_app_flag.h"
+#include "app_flag.h"
 #include <stdio.h>
 
 #define BL_BIN_RX_CHUNK_SIZE 208U  // Bytes
@@ -175,7 +175,7 @@ static obc_error_code_t enableBootAppA(cmd_msg_t *cmd, uint8_t *responseData, ui
     app_B_flag_pointer->app_state = DEPRIORITIZED;
   }
 
-  blEditAppFlag(*app_B_flag_pointer, ENABLE_APP_B_MAGIC_NUM);
+  editAppFlag(*app_B_flag_pointer, ENABLE_APP_B_MAGIC_NUM);
 
   return OBC_ERR_CODE_SUCCESS;
 }

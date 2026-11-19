@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "obc_errors.h"
 #include "obc_gs_command_data.h"
+#include "app_flag.h"
 
 typedef obc_error_code_t (*cmd_callback_t)(cmd_msg_t *, uint8_t *, uint8_t *);
 
@@ -61,3 +62,10 @@ obc_error_code_t castCmdToFCmd(const cmd_msg_t *cmd_msg, fcmd_msg_t *fCmdBuffer)
  * @return obc_error_code_t OBC_ERR_CODE_SUCCESS if successful, otherwise an error code
  */
 obc_error_code_t castFCmdToCmd(const fcmd_msg_t *fcmd_msg, cmd_msg_t *cmdBuffer);
+
+/**
+ * @brief Edits App flag struct in flash
+ *
+ * @param replacement_app_flag App flag struct to be written to flash
+ */
+obc_error_code_t editAppFlag(app_flag_t replacement_app_flag, uint32_t activeApp);

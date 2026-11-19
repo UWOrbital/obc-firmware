@@ -1,4 +1,4 @@
-#include "bl_app_flag.h"
+#include "app_flag.h"
 #include "bl_utils.h"
 #include "bl_uart.h"
 #include "obc_errors.h"
@@ -87,6 +87,15 @@ int main(void) {
       blUartWriteBytes(blUartWriteBufferLen, (uint8_t *)blUartWriteBuffer);
     }
   }
+
+  app_flag_t app_A_flag = *(app_flag_t *)APP_A_FLAG_START_ADDRESS;
+  app_flag_t app_B_flag = *(app_flag_t *)APP_B_FLAG_START_ADDRESS;
+
+  app_A_flag.boot_attempts = 0;
+  app_B_flag.boot_attempts = 0;
+
+  editAppFlag(app_A_flag, 0);
+  editAppFlag(app_B_flag, ENABLE_APP_B_MAGIC_NUM);
 
   if (fCmd.flag == ENABLE_FCMD_MAGIC_NUMBER) {
     LOG_IF_ERROR_CODE(blRunCommand(&cmdMsg));

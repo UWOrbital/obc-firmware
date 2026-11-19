@@ -5,6 +5,7 @@
 #include "flash.h"
 #include "bl_config.h"
 #include <FreeRTOS.h>
+#include "app_flag.h"
 
 #ifdef NO_FREERTOS
 #include <stddef.h>
@@ -132,6 +133,42 @@ obc_error_code_t castFCmdToCmd(const fcmd_msg_t *fcmd_msg, cmd_msg_t *cmdBuffer)
 
   memcpy(&cmdBuffer->data, &emptyString, sizeof(cmdBuffer->data));
   memcpy(&cmdBuffer->data, &fcmd_msg->data, sizeof(fcmd_msg->data));
+
+  return OBC_ERR_CODE_SUCCESS;
+}
+
+obc_error_code_t editAppFlag(app_flag_t replacement_app_flag, uint32_t activeApp) {
+  uint32_t app_flag_start_address = {0};
+
+  if (activeApp == 0) {
+    app_flag_start_address = APP_A_FLAG_START_ADDRESS;
+  } else if (activeApp == ENABLE_APP_B_MAGIC_NUM) {
+    app_flag_start_address = APP_B_FLAG_START_ADDRESS;
+  } else {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
+  volatile app_flag_t *volatile_app_flag_pointer = (app_flag_t *)app_flag_start_address;
+
+  uint32_t length = sizeof(replacement_app_flag);
+
+  flash_error_code_t errCode = flashFapiBlockErase(app_flag_start_address, (uint32_t)APP_FLAG_SECTION_SIZE, 7U);
+
+  if (errCode != FLASH_ERR_CODE_SUCCESS) {
+    return OBC_ERR_CODE_UNKNOWN;
+  };
+
+  errCode = flashFapiBlockWrite(app_flag_start_address, (uint32_t)&replacement_app_flag, length, 7U);
+
+  if (errCode != FLASH_ERR_CODE_SUCCESS) {
+    return OBC_ERR_CODE_UNKNOWN;
+  };
+
+  app_flag_t readback = *volatile_app_flag_pointer;
+
+  if (memcmp(&readback, &replacement_app_flag, length)) {
+    return OBC_ERR_CODE_UNKNOWN;
+  }
 
   return OBC_ERR_CODE_SUCCESS;
 }

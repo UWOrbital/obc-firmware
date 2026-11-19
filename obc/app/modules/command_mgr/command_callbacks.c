@@ -263,6 +263,10 @@ static obc_error_code_t obcWriteApp(cmd_msg_t *cmd, uint8_t *responseData, uint8
 }
 
 static obc_error_code_t obcWriteFCmd(cmd_msg_t *cmd, uint8_t *responseData, uint8_t *responseDataLen) {
+  if (cmd == NULL || responseData == NULL || responseDataLen == NULL) {
+    return OBC_ERR_CODE_INVALID_ARG;
+  }
+
   fcmd_flag_t fCmdFlag = {
       .fCmd = cmd->data.fCmd,
       .flag = ENABLE_FCMD_MAGIC_NUMBER,

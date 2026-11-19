@@ -2,7 +2,7 @@
 
 #include "obc_errors.h"
 #include "obc_gs_command_data.h"
-#include "bl_app_flag.h"
+#include "app_flag.h"
 #include "command.h"
 
 #include <stdint.h>
@@ -21,13 +21,6 @@ obc_error_code_t blUnpackCommand(uint8_t recvBuffer[], cmd_msg_t* unpackedCmdMsg
  * @param unpackedCmdMsg CmdMsg to run
  */
 obc_error_code_t blRunCommand(cmd_msg_t* unpackedCmdMsg);
-
-/**
- * @brief Edits App flag struct in flash
- *
- * @param replacement_app_flag App flag struct to be written to flash
- */
-obc_error_code_t blEditAppFlag(app_flag_t replacement_app_flag, uint32_t activeApp);
 
 /**
  * @brief Checks the integrity of the app and jumps to it's reset vector
