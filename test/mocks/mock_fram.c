@@ -2,11 +2,13 @@
 
 #include "obc_errors.h"
 #include "obc_assert.h"
+#include "obc_persistent.h"
 
 #include <stdint.h>
 #include <string.h>
 
-#define MOCK_FRAM_MAX_SIZE 1000  // Change as needed
+// Callback pointers make the persistent layout larger on 64-bit test hosts.
+#define MOCK_FRAM_MAX_SIZE sizeof(obc_persist_t)
 static uint8_t memory[MOCK_FRAM_MAX_SIZE] = {0};
 
 STATIC_ASSERT(MOCK_FRAM_MAX_SIZE <= FRAM_MAX_ADDRESS, "Mock FRAM exceeds available FRAM space");

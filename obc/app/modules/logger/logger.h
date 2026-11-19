@@ -14,7 +14,7 @@
 
 typedef struct {
   log_entry_t logEntry;
-  const char *file;
+  log_file_ref_t file;
   uint32_t line;
 #if defined(LOG_DATE_TIME)
   rtc_date_time_t timestamp;

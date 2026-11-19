@@ -69,9 +69,15 @@ obc_error_code_t sciPrintSetBaudrate(uint32_t baudRate) {
   return OBC_ERR_CODE_SUCCESS;
 }
 
-void uartAssertFailed(char *file, int line, char *expr) {
-  if (file == NULL || line < 0 || expr == NULL)
-    return;  // Only called by assert, so we can assume that the arguments are valid
+void uartAssertFailed(log_file_ref_t file, int line, char *expr) {
+#if !LOG_USE_FILE_IDS
+  if (file == NULL) return;
+#endif
+  if (line < 0 || expr == NULL) return;  // Only called by assert, so we can assume that the arguments are valid
 
+#if LOG_USE_FILE_IDS
+  sciPrintf("ASSERTION FAILED: %s, file %u, line %d\r\n", expr, (unsigned int)file, line);
+#else
   sciPrintf("ASSERTION FAILED: %s, file %s, line %d\r\n", expr, file, line);
+#endif
 }

@@ -9,8 +9,10 @@ set(TEST_DEPENDENCIES
     ${CMAKE_SOURCE_DIR}/interfaces/data_pack_unpack/data_unpack_utils.c
     ${CMAKE_SOURCE_DIR}/obc/app/sys/persistent/obc_persistent.c
     ${CMAKE_SOURCE_DIR}/obc/shared/logging/obc_logging_codec.c
-    ${CMAKE_SOURCE_DIR}/obc/shared/logging/obc_log_file_ids.c
 )
+if(NOT LOG_USE_FILE_IDS)
+    list(APPEND TEST_DEPENDENCIES "${LOG_FILE_IDS_SOURCE}")
+endif()
 
 set(TEST_MOCKS
     ${CMAKE_SOURCE_DIR}/test/mocks/mock_logging.c
@@ -30,7 +32,6 @@ set(TEST_SOURCES
 set(TEST_SOURCES ${TEST_SOURCES} ${TEST_DEPENDENCIES} ${TEST_MOCKS})
 
 add_executable(${TEST_BINARY} ${TEST_SOURCES})
-add_dependencies(${TEST_BINARY} generate-log-file-ids)
 
 target_include_directories(${TEST_BINARY}
     PRIVATE
