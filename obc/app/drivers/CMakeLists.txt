@@ -14,6 +14,7 @@ SET(INCLUDES
     ${CMAKE_CURRENT_SOURCE_DIR}/tpl5010
     ${CMAKE_CURRENT_SOURCE_DIR}/bd621x
     ${CMAKE_CURRENT_SOURCE_DIR}/vn100
+    ${CMAKE_CURRENT_SOURCE_DIR}/qeynet
 )
 
 SET(SOURCES
@@ -54,6 +55,8 @@ SET(SOURCES
 
     ${CMAKE_CURRENT_SOURCE_DIR}/vn100/vn100.c
     ${CMAKE_CURRENT_SOURCE_DIR}/vn100/vn100_binary_parsing.c
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/qeynet/qeynet_beacon_uart.c
 )
 
 target_include_directories(${OUT_FILE_NAME} PUBLIC ${INCLUDES})
