@@ -1,21 +1,36 @@
+#include <FreeRTOS.h>
+#include <os_task.h>
+
 #include "obc_errors.h"
-#include "test_mgr.h"
+#include "obc_scheduler_config.h"
+#include "onboard_test_mgr.h"
 
-obc_error_code_t cc1120OnboardTest();
-
-obc_error_code_t commsMgrOnboardTest();
-
-const onboard_test_callback_t onboardTests[NUM_MODULES] = {
-    [cc1120] = cc1120OnboardTest,
-    [comms_mgr] = commsMgrOnboardTest,
-};
+const obc_scheduler_config_id_t onboardTestTasks[NUM_MODULES] = {
+    [PLACEHOLDER_TASK] = OBC_SCHEDULER_CONFIG_ID_PLACEHOLDER_TEST,
+};  // Add tasks here
 
 // Implement test functions below
 
-// Each function should either
-// a) Send a request to the queue of a peripheral, and send a test res after its done
-// b) Call the peripheral directly, and send a test res after its done.
+// Each function should follow the format:
+// a) Is an RTOS task that runs a while loop
+// b) Calls a peripheral and awaits expected behavior
+// c) Sends a test_res_t instance to testResQueue (Using testResQueueHandle) upon
+//    receiving expected behavior, stays silent otherwise.
+//
+// Note that you must reflect functions in obc_scheduler_config.c, scheduler_config.toml,
+// and digital_watchdog_mgr.c
 
-obc_error_code_t cc1120OnboardTest() { return OBC_ERR_CODE_SUCCESS; };
+// Ex:
+// void obcTaskInitCommsManagerTest(void)
+// void obcTaskFunctionCommsManagerTest( void *pvParameters )
 
-obc_error_code_t commsMgrOnboardTest() { return OBC_ERR_CODE_SUCCESS; };
+void obcTaskInitPlaceholderTest(void) {};
+void obcTaskFunctionPlaceholderTest(void *pvParameters) {
+  test_res_t testRes = {
+      .errCode = OBC_ERR_CODE_SUCCESS,
+      .moduleId = PLACEHOLDER_TASK,
+  };
+
+  sendToTestResQueue(&testRes);
+  vTaskDelete(NULL);
+};

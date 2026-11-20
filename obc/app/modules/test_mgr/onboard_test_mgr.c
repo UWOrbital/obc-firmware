@@ -1,14 +1,16 @@
 #include "app_flag.h"
 #include "magic_numbers.h"
 #include "obc_errors.h"
+#include "obc_privilege.h"
+#include "obc_scheduler_config.h"
 #include "os_portmacro.h"
 #include "os_projdefs.h"
 #include "obc_metadata.h"
 #include "command.h"
-#include "test_mgr.h"
-#include "alarm_handler.h"
+#include "onboard_test_mgr.h"
 #include "obc_time.h"
 #include "obc_reset.h"
+#include "obc_privilege.h"
 
 #include <FreeRTOS.h>
 #include <stdint.h>
@@ -16,11 +18,11 @@
 #include <os_task.h>
 #include <os_queue.h>
 
-static bool testLogs[NUM_MODULES] = {0};
+static bool testLogs[NUM_MODULES] = {false};
 
-extern const onboard_test_callback_t onboardTests[];
+extern const obc_scheduler_config_id_t onboardTestTasks[];
 
-#define ONBOARD_TEST_TIMEOUT 15
+#define ONBOARD_TEST_TIMEOUT 1
 
 QueueHandle_t testResQueueHandle;
 static StaticQueue_t testResQueue;
@@ -64,22 +66,24 @@ void obcTaskFunctionTestMgr(void *pvParameters) {
   }
 
   for (uint8_t i = 0; i < NUM_MODULES; ++i) {
-    if (onboardTests[i]() != OBC_ERR_CODE_SUCCESS) {
-      // TODO: log something
-    }
+    obcSchedulerInitTask(onboardTestTasks[i]);
+
+    taskENTER_CRITICAL();
+    obcSchedulerCreateTask(onboardTestTasks[i]);
+    taskEXIT_CRITICAL();
   }
 
   while (1) {
     test_res_t testRes = {0};
     uint8_t validated = 0xFF;  // Magic number with large hamming distance from 0
 
-    if (xQueueReceive(testResQueueHandle, &testRes, portMAX_DELAY) == pdPASS) {
+    if (xQueueReceive(testResQueueHandle, &testRes, pdMS_TO_TICKS(500)) == pdPASS) {
       testLogs[testRes.moduleId] = testRes.errCode == OBC_ERR_CODE_SUCCESS ? true : false;
+    }
 
-      for (uint8_t i = 0; i < NUM_MODULES; ++i) {
-        if (testLogs[i] == 0) {
-          validated = 0;
-        }
+    for (uint8_t i = 0; i < NUM_MODULES; ++i) {
+      if (testLogs[i] == false) {
+        validated = 0;
       }
     }
 
@@ -89,7 +93,11 @@ void obcTaskFunctionTestMgr(void *pvParameters) {
           .boot_attempts = 0,
       };
 
+      BaseType_t xRunningPrivileged = prvRaisePrivilege();
       editAppFlag(replacement_app_flag, activeApp);
+      portRESET_PRIVILEGE(xRunningPrivileged)
+
+          vTaskDelete(NULL);
     }
 
     if (getCurrentUnixTime() - startTime > ONBOARD_TEST_TIMEOUT) {
@@ -98,9 +106,11 @@ void obcTaskFunctionTestMgr(void *pvParameters) {
           .boot_attempts = 0,
       };
 
+      BaseType_t xRunningPrivileged = prvRaisePrivilege();
       editAppFlag(replacement_app_flag, activeApp);
+      portRESET_PRIVILEGE(xRunningPrivileged)
 
-      resetSystem(RESET_REASON_CMD_EXEC_OBC_RESET);
+          resetSystem(RESET_REASON_CMD_EXEC_OBC_RESET);
     }
   }
 }

@@ -110,3 +110,17 @@ stack_size = 1024
 priority = "3U"
 function_stem = "GncMgr"
 config_id_stem = "GNC_MGR"
+
+[[tasks]]
+task_name = "test_mgr"
+stack_size = 1024
+priority = "3U"
+function_stem = "TestMgr"
+config_id_stem = "TEST_MGR"
+
+[[tasks]]
+task_name = "placeholder_test"
+stack_size = 1024
+priority = "3U"
+function_stem = "PlaceholderTest"
+config_id_stem = "PLACEHOLDER_TEST"

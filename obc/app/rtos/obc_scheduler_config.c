@@ -43,6 +43,8 @@ extern void obcTaskInitHealthCollector(void);
 extern void obcTaskInitStatsCollector(void);
 extern void obcTaskInitLogger(void);
 extern void obcTaskInitGncMgr(void);
+extern void obcTaskInitTestMgr(void);
+extern void obcTaskInitPlaceholderTest(void);
 
 /* TASK FUNCTION PROTOTYPES */
 extern void obcTaskFunctionStateMgr(void *params);
@@ -60,6 +62,8 @@ extern void obcTaskFunctionHealthCollector(void *params);
 extern void obcTaskFunctionStatsCollector(void *params);
 extern void obcTaskFunctionLogger(void *params);
 extern void obcTaskFunctionGncMgr(void *params);
+extern void obcTaskFunctionTestMgr(void *params);
+extern void obcTaskFunctionPlaceholderTest(void *params);
 
 /* PRIVATE FUNCTION PROTOTYPES */
 static obc_scheduler_config_t *obcSchedulerGetConfig(obc_scheduler_config_id_t taskID);
@@ -97,6 +101,10 @@ static StackType_t obcTaskStackLogger[512U];
 static StaticTask_t obcTaskBufferLogger;
 static StackType_t obcTaskStackGncMgr[1024U];
 static StaticTask_t obcTaskBufferGncMgr;
+static StackType_t obcTaskStackTestMgr[1024U];
+static StaticTask_t obcTaskBufferTestMgr;
+static StackType_t obcTaskStackPlaceholderTest[1024U];
+static StaticTask_t obcTaskBufferPlaceholderTest;
 
 static obc_scheduler_config_t obcSchedulerConfig[] = {
     [OBC_SCHEDULER_CONFIG_ID_STATE_MGR] =
@@ -250,6 +258,26 @@ static obc_scheduler_config_t obcSchedulerConfig[] = {
             .priority = 3U,
             .taskFunc = obcTaskFunctionGncMgr,
             .taskInit = obcTaskInitGncMgr,
+        },
+    [OBC_SCHEDULER_CONFIG_ID_TEST_MGR] =
+        {
+            .taskName = "test_mgr",
+            .taskStack = obcTaskStackTestMgr,
+            .taskBuffer = &obcTaskBufferTestMgr,
+            .stackSize = 1024U,
+            .priority = 3U,
+            .taskFunc = obcTaskFunctionTestMgr,
+            .taskInit = obcTaskInitTestMgr,
+        },
+    [OBC_SCHEDULER_CONFIG_ID_PLACEHOLDER_TEST] =
+        {
+            .taskName = "placeholder_test",
+            .taskStack = obcTaskStackPlaceholderTest,
+            .taskBuffer = &obcTaskBufferPlaceholderTest,
+            .stackSize = 1024U,
+            .priority = 3U,
+            .taskFunc = obcTaskFunctionPlaceholderTest,
+            .taskInit = obcTaskInitPlaceholderTest,
         },
 };
 
