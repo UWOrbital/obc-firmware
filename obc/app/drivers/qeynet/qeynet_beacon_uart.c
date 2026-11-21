@@ -10,9 +10,9 @@
 #define QEYNET_BEACON_DEFAULT_PACKET_SIZE 57U // 55 + CR LF
 
 // For thermistor temperature calculations
-#define T_0 25.0
-#define R_0 10.0
-#define B 3248.0
+#define T_0 25.0f
+#define R_0 10.0f
+#define B 3248.0f
 
 float qeynetAdcToVoltage(uint16_t adcValue) {
   return (((float)adcValue / 4095.0) * 1.5);
@@ -50,6 +50,12 @@ float qeynetTempT2(const qeynet_beacon_uart_packet_t* packet) {
          ) - 273.15;
 }
 
+/**
+ * @brief Convert a hexadecimal character to its 4-bit integer value
+ * @param hexChar The hexadecimal character
+ * @param out Where to output the integer value
+ * @return True if hexChar is a valid hexadecimal character, otherwise false
+ */
 static inline bool hexCharToInt16(char hexChar, uint16_t* out) {
   if ('0' <= hexChar && hexChar <= '9') {
     *out = hexChar - '0';

@@ -13,6 +13,10 @@ typedef struct {
     uint16_t adcVT2;
 } qeynet_beacon_uart_packet_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**const 
  * @brief Convert adc value from qeynet uart packet to a decimal voltage
  * @param adcValue The adc value to convert
@@ -69,3 +73,7 @@ float qeynetTempT2(const qeynet_beacon_uart_packet_t* packet);
  * @return OBC_ERR_CODE_SUCCESS on success, else an error code
  */
 obc_error_code_t qeynetBeaconUARTParsePacket(const char* packet, size_t packetLen, qeynet_beacon_uart_packet_t* parsedPacket);
+
+#ifdef __cplusplus
+}
+#endif

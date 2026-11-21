@@ -10,6 +10,7 @@ set(TEST_DEPENDENCIES
     ${CMAKE_SOURCE_DIR}/obc/app/sys/persistent/obc_persistent.c
     ${CMAKE_SOURCE_DIR}/obc/shared/logging/obc_logging_codec.c
     ${CMAKE_SOURCE_DIR}/obc/shared/logging/obc_log_file_ids.c
+    ${CMAKE_SOURCE_DIR}/obc/app/drivers/qeynet/qeynet_beacon_uart.c
 )
 
 set(TEST_MOCKS
@@ -25,6 +26,7 @@ set(TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/test/unit/test_vn100_unpack.cpp
     ${CMAKE_SOURCE_DIR}/test/unit/test_obc_persistent.cpp
     ${CMAKE_SOURCE_DIR}/test/unit/test_log_codec.cpp
+    ${CMAKE_SOURCE_DIR}/test/unit/test_qeynet_uart.cpp
 )
 
 set(TEST_SOURCES ${TEST_SOURCES} ${TEST_DEPENDENCIES} ${TEST_MOCKS})
@@ -51,6 +53,7 @@ target_include_directories(${TEST_BINARY}
     ${CMAKE_SOURCE_DIR}/obc/app/modules/command_mgr
     ${CMAKE_SOURCE_DIR}/interfaces/obc_gs_interface/commands/inc
     ${CMAKE_SOURCE_DIR}/obc/shared/commands
+    ${CMAKE_SOURCE_DIR}/obc/app/drivers/qeynet
 )
 
 # Add peripheral configs
