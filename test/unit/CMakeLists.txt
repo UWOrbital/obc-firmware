@@ -35,6 +35,7 @@ add_dependencies(${TEST_BINARY} generate-log-file-ids)
 target_include_directories(${TEST_BINARY}
     PRIVATE
     ${CMAKE_SOURCE_DIR}/obc/shared/obc_errors
+    ${CMAKE_SOURCE_DIR}/obc/shared/config
     ${CMAKE_SOURCE_DIR}/obc/app/sys/time
     ${CMAKE_SOURCE_DIR}/obc/app/sys/utils
     ${CMAKE_SOURCE_DIR}/obc/shared/logging
