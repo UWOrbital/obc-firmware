@@ -17,12 +17,11 @@ const obc_scheduler_config_id_t onboardTestTasks[NUM_MODULES] = {
 // c) Sends a test_res_t instance to testResQueue (Using testResQueueHandle) upon
 //    receiving expected behavior, stays silent otherwise.
 //
-// Note that you must reflect functions in obc_scheduler_config.c, scheduler_config.toml,
-// and digital_watchdog_mgr.c
+// Note that you must reflect functions in scheduler_config.toml and digital_watchdog_mgr.c
 
 // Ex:
-// void obcTaskInitCommsManagerTest(void)
-// void obcTaskFunctionCommsManagerTest( void *pvParameters )
+// void obcTaskInitCommsManagerTest(void) {}
+// void obcTaskFunctionCommsManagerTest( void *pvParameters ) { vTaskDelete(NULL); }
 
 void obcTaskInitPlaceholderTest(void) {};
 void obcTaskFunctionPlaceholderTest(void *pvParameters) {
