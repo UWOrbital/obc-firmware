@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 # ---------- Configurable options ----------
 CSV_PATH = "./example_csv/digital.csv"
