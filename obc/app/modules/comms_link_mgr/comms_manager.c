@@ -524,6 +524,7 @@ static obc_error_code_t handleUplinkingState(void) {
   LOG_IF_ERROR_CODE(cc1120ReceiveToDecodeTask());
   RETURN_IF_ERROR_CODE(cc1120StrobeSpi(CC1120_STROBE_SFSTXON));
 #endif
+
   comms_event_t uplinkFinishedEvent = {.eventID = COMMS_EVENT_UPLINK_FINISHED};
   RETURN_IF_ERROR_CODE(sendToCommsManagerQueue(&uplinkFinishedEvent));
   return OBC_ERR_CODE_SUCCESS;

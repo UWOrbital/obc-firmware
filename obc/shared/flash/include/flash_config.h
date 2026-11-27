@@ -14,13 +14,13 @@ typedef struct {
 
 typedef struct {
   void *start;
-  uint32_t length;  // number of 32-bit words
+  uint32_t length;  // In bytes
   uint32_t bankNumber;
   uint32_t flashBaseAddress;
   uint32_t numOfSectors;
 } bank_info_t;
 
-#define NUM_FLASH_SECTORS 16
+#define NUM_FLASH_SECTORS 20
 const sector_info_t flashSectors[NUM_FLASH_SECTORS] = {
     {(void *)0x00000000, 0x04000, 0, 0, 0xfff87000},  {(void *)0x00004000, 0x04000, 0, 1, 0xfff87000},
     {(void *)0x00008000, 0x04000, 0, 2, 0xfff87000},  {(void *)0x0000C000, 0x04000, 0, 3, 0xfff87000},
@@ -29,9 +29,12 @@ const sector_info_t flashSectors[NUM_FLASH_SECTORS] = {
     {(void *)0x00040000, 0x20000, 0, 8, 0xfff87000},  {(void *)0x00060000, 0x20000, 0, 9, 0xfff87000},
     {(void *)0x00080000, 0x20000, 0, 10, 0xfff87000}, {(void *)0x000A0000, 0x20000, 0, 11, 0xfff87000},
     {(void *)0x000C0000, 0x20000, 0, 12, 0xfff87000}, {(void *)0x000E0000, 0x20000, 0, 13, 0xfff87000},
-    {(void *)0x00100000, 0x20000, 0, 14, 0xfff87000}, {(void *)0x00120000, 0x20000, 0, 15, 0xfff87000}};
+    {(void *)0x00100000, 0x20000, 0, 14, 0xfff87000}, {(void *)0x00120000, 0x20000, 0, 15, 0xfff87000},
+    {(void *)0xF0200000, 0x04000, 7, 0, 0xfff87000},  {(void *)0xF0204000, 0x04000, 0, 1, 0xfff87000},
+    {(void *)0xF0208000, 0x04000, 7, 2, 0xfff87000},  {(void *)0xF020C000, 0x04000, 0, 3, 0xfff87000}};
 
-#define NUM_FLASH_BANKS 1
+#define NUM_FLASH_BANKS 2
 const bank_info_t flashBanks[NUM_FLASH_BANKS] = {
     {(void *)0x00000000, 0x140000, 0, 0xfff87000, 16},
+    {(void *)0xF0200000, 0x010000, 7, 0xfff87000, 4},
 };

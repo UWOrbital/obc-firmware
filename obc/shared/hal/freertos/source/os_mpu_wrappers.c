@@ -91,7 +91,7 @@
 BaseType_t prvRaisePrivilege( void )
 {
 	register BaseType_t return_value asm("r0");
-	asm( " swi 1 " );
+  __asm volatile ("svc #1" : "=r"(return_value) : : "memory");
 	return return_value;
 }
 

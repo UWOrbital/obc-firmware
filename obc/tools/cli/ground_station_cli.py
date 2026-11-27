@@ -11,6 +11,7 @@ from interfaces.utils.command_utils import (
     poll,
     send_command,
     send_conn_request,
+    uplink_bin,
 )
 from interfaces.obc_gs_interface.commands.python import CmdCallbackId
 
@@ -90,9 +91,9 @@ class GroundStationShell(Cmd):
         Sends a command to the ground station
         """
         # Preliminary checks for the function to run
-        # if not self._conn_request_sent:
-        #     print("Connection Request needs to be sent first. Aborting...")
-        #     return
+        if not self._conn_request_sent:
+            print("Connection Request needs to be sent first. Aborting...")
+            return
 
         if self.background_logging is not None:
             self.background_logging.kill()
@@ -104,6 +105,23 @@ class GroundStationShell(Cmd):
             and cmd_response.cmd_id == CmdCallbackId.CMD_EXEC_OBC_RESET
         ):
             self._conn_request_sent = False
+
+        self._restart_logging()
+
+    def do_uplink_bin(self, line: str) -> None:
+        """
+        Uplinks the app binary to the satellite
+        """
+
+        # Preliminary checks for the function to run
+        if not self._conn_request_sent:
+            print("Connection Request needs to be sent first. Aborting...")
+            return
+
+        if self.background_logging is not None:
+            self.background_logging.kill()
+
+        uplink_bin(line, self._com_port, 1)
 
         self._restart_logging()
 
@@ -192,8 +210,8 @@ def main() -> None:
         print("Comm port set to: " + str(ser.name))
         ser.close()
         GroundStationShell(com_port).cmdloop()
-    except SerialException:
-        print("Invalid port entered")
+    except SerialException as e:
+        print(f"Serial error: {e}")
         # We call a loop and the command shell runs as expected
 
 
