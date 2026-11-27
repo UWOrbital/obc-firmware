@@ -94,3 +94,76 @@ jobs:
       run: |
         echo "CRC checksum:"
         cksum OBC-firmware.bin
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/selvahini/nexus-ci'
+    needs: crc
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Firmware
+        uses: actions/download-artifact@v4
+        with:
+          name: bin-file
+          path: release_input
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate Release Package
+        run: |
+          python scripts/package_release.py \
+            --binary release_input/OBC-firmware.bin \
+            --board OBC_REVISION_2 \
+            --build-type Release
+
+      - name: Display Release Contents
+        shell: bash
+        run: |
+          VERSION=$(find release -mindepth 1 -maxdepth 1 -type d | head -n 1 | xargs basename)
+
+          echo "Release version: $VERSION"
+          echo "Release contents:"
+          find "release/$VERSION" -maxdepth 1 -type f -print
+
+      - name: Verify Release Package
+        shell: bash
+        run: |
+          VERSION=$(find release -mindepth 1 -maxdepth 1 -type d | head -n 1 | xargs basename)
+
+          python scripts/verify_release.py \
+            --release "release/$VERSION"
+
+      - name: Upload Release to Nexus
+        env:
+          NEXUS_URL: ${{ secrets.NEXUS_URL }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+
+        shell: bash
+        run: |
+          VERSION=$(find release -mindepth 1 -maxdepth 1 -type d | head -n 1 | xargs basename)
+
+          echo "Uploading release $VERSION to Nexus..."
+
+          for file in "release/$VERSION"/*; do
+              filename=$(basename "$file")
+
+              echo "Uploading $filename"
+
+              curl --fail --silent --show-error \
+                -u "$NEXUS_USERNAME:$NEXUS_PASSWORD" \
+                --upload-file "$file" \
+                "$NEXUS_URL/repository/firmware-releases/$VERSION/$filename"
+          done
+
+          echo "Nexus upload complete."
+
+      - name: Upload Release Package as GitHub Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-release
+          path: release/
