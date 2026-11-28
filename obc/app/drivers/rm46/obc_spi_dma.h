@@ -23,16 +23,18 @@ void initDmaSpiSemaphores(void);
  * @brief Uses the DMA to transmit and receive bytes over SPI
  *
  * @param spiReg the SPI bus to use for the transfer
- * @param txData array of uint16_t to be sent over the SPI bus
- * @param rxData buffer of atleast dataLen size to hold the received bytes
- * @param dataLen number of uint16_t to send
+ * @param txData array of uint8_t to be sent over the SPI bus, or NULL to send 0xFF dummy bytes
+ * @param rxData buffer of atleast dataLen size to hold the received bytes, or NULL to discard them
+ *               (txData and rxData cannot both be NULL)
+ * @param dataLen number of bytes to send
  * @param spiMutexTimeoutMs time in milliseconds to wait for the spi bus to become available
  * @param transferCompleteTimeoutMs time to wait for the SPI transfer to finish
  *
  * @return obc_error_code_t - whether or not the transfer was successful
  */
-obc_error_code_t dmaSpiTransmitandReceiveBytes(spiBASE_t *spiReg, uint16_t *txData, uint16_t *rxData, size_t dataLen,
-                                               uint32_t spiMutexTimeoutMs, uint32_t transferCompleteTimeoutMs);
+obc_error_code_t dmaSpiTransmitandReceiveBytes(spiBASE_t *spiReg, const uint8_t *txData, uint8_t *rxData,
+                                               size_t dataLen, uint32_t spiMutexTimeoutMs,
+                                               uint32_t transferCompleteTimeoutMs);
 
 /**
  * @brief callback function to be called from ISR when DMA Block transfer is complete for SPI1

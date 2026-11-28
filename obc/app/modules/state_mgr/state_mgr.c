@@ -5,6 +5,7 @@
 #include "obc_logging.h"
 #include "obc_reliance_fs.h"
 #include "obc_scheduler_config.h"
+#include "obc_spi_dma.h"
 #include "obc_time.h"
 
 #include "fm25v20a.h"
@@ -96,6 +97,9 @@ void obcTaskFunctionStateMgr(void *pvParameters) {
   /* Initialize critical peripherals */
 
 #ifdef CONFIG_SDCARD
+#if (SDC_ENABLE_DMA == 1)
+  LOG_IF_ERROR_CODE(spiDmaInit(SDC_SPI_REG));  // SPI DMA for the SD card, must run before the file system mounts
+#endif
   LOG_IF_ERROR_CODE(setupFileSystem());  // microSD card (commented out due to bug)
 #endif                                   // CONFIG_SDCARD
 #ifdef CONFIG_DS3232

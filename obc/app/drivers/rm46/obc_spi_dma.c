@@ -17,27 +17,34 @@ static StaticSemaphore_t dmaSpi1FinishedSemaphoreBuffer;
 static SemaphoreHandle_t dmaSpi3FinishedSemaphore = NULL;
 static StaticSemaphore_t dmaSpi3FinishedSemaphoreBuffer;
 
+/* 1-byte dummies for the unused half of a full-duplex transfer. The DMA channel on the dummy side uses ADDR_FIXED, so
+ * it reads/writes this same byte for every element instead of walking past it in memory. */
+static const uint8_t dmaSpiDummyTx = 0xFF; /* MOSI held high, as required by e.g. SD cards during reads */
+static uint8_t dmaSpiDummyRx;              /* received bytes are discarded here */
+
 /**
  * @brief configures DMA for a single spi transmission
  *
  * @param spiReg SPI bus to use for the transfer
  * @param txDataAddr starting address of the data that needs to be sent
- * @param dataLen number of uint16_t to send
+ * @param dataLen number of bytes to send
+ * @param readAddrMode ADDR_INC1 to walk through txDataAddr, ADDR_FIXED to resend the same byte
  *
  * @return obc_error_code_t - whether or not the configuration was successful
  */
-static obc_error_code_t spiDmaTxConfig(spiBASE_t *spiReg, uint32_t txDataAddr, size_t dataLen);
+static obc_error_code_t spiDmaTxConfig(spiBASE_t *spiReg, uint32_t txDataAddr, size_t dataLen, uint32_t readAddrMode);
 
 /**
  * @brief configures DMA for a single spi transmission
  *
  * @param spiReg SPI bus to use for the transfer
  * @param rxDataAddr starting address of the buffer for received data
- * @param dataLen number of uint16_t to send
+ * @param dataLen number of bytes to send
+ * @param writeAddrMode ADDR_INC1 to fill rxDataAddr sequentially, ADDR_FIXED to overwrite the same byte
  *
  * @return obc_error_code_t - whether or not the configuration was successful
  */
-static obc_error_code_t spiDmaRxConfig(spiBASE_t *spiReg, uint32_t rxDataAddr, size_t dataLen);
+static obc_error_code_t spiDmaRxConfig(spiBASE_t *spiReg, uint32_t rxDataAddr, size_t dataLen, uint32_t writeAddrMode);
 
 /**
  * @brief initializes the semaphores for using the DMA for SPI1
@@ -63,6 +70,13 @@ obc_error_code_t spiDmaInit(spiBASE_t *spiReg) {
   if (spiReg == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
+
+  // Ensure semaphores are created before DMA interrupts can trigger callbacks
+  initDmaSpiSemaphores();
+
+  BaseType_t xRunningPrivileged = prvRaisePrivilege();
+  /* START PRIVILEGED SECTION */
+  /* Accessing DMA registers in unprivileged user mode causes a Data Abort */
   switch ((uint32_t)spiReg) {
     case (uint32_t)spiREG1:
       dmaReqAssign(DMA_SPI_1_RX_CHANNEL,
@@ -84,12 +98,15 @@ obc_error_code_t spiDmaInit(spiBASE_t *spiReg) {
       break;
     // Add more cases as we start to implement different spi buses with DMA
     default:
+      portRESET_PRIVILEGE(xRunningPrivileged);
       return OBC_ERR_CODE_INVALID_ARG;
   }
+  /* END PRIVILEGED SECTION */
+  portRESET_PRIVILEGE(xRunningPrivileged);
   return OBC_ERR_CODE_SUCCESS;
 }
 
-static obc_error_code_t spiDmaRxConfig(spiBASE_t *spiReg, uint32_t rxDataAddr, size_t dataLen) {
+static obc_error_code_t spiDmaRxConfig(spiBASE_t *spiReg, uint32_t rxDataAddr, size_t dataLen, uint32_t writeAddrMode) {
   if (spiReg == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
@@ -108,11 +125,11 @@ static obc_error_code_t spiDmaRxConfig(spiBASE_t *spiReg, uint32_t rxDataAddr, s
   dmaCtrlPktRx.ELSOFFSET = 0;
   dmaCtrlPktRx.FRDOFFSET = 0;
   dmaCtrlPktRx.FRSOFFSET = 0;
-  dmaCtrlPktRx.RDSIZE = ACCESS_16_BIT;
-  dmaCtrlPktRx.WRSIZE = ACCESS_16_BIT;
+  dmaCtrlPktRx.RDSIZE = ACCESS_8_BIT;
+  dmaCtrlPktRx.WRSIZE = ACCESS_8_BIT;
   dmaCtrlPktRx.TTYPE = FRAME_TRANSFER;
   dmaCtrlPktRx.ADDMODERD = ADDR_FIXED;
-  dmaCtrlPktRx.ADDMODEWR = ADDR_INC1;
+  dmaCtrlPktRx.ADDMODEWR = writeAddrMode;
   dmaCtrlPktRx.AUTOINIT = AUTOINIT_ON;
 
   switch ((uint32_t)spiReg) {
@@ -129,7 +146,7 @@ static obc_error_code_t spiDmaRxConfig(spiBASE_t *spiReg, uint32_t rxDataAddr, s
   return OBC_ERR_CODE_SUCCESS;
 }
 
-static obc_error_code_t spiDmaTxConfig(spiBASE_t *spiReg, uint32_t txDataAddr, size_t dataLen) {
+static obc_error_code_t spiDmaTxConfig(spiBASE_t *spiReg, uint32_t txDataAddr, size_t dataLen, uint32_t readAddrMode) {
   if (spiReg == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
@@ -148,10 +165,10 @@ static obc_error_code_t spiDmaTxConfig(spiBASE_t *spiReg, uint32_t txDataAddr, s
   dmaCtrlPktTx.ELSOFFSET = 0;
   dmaCtrlPktTx.FRDOFFSET = 0;
   dmaCtrlPktTx.FRSOFFSET = 0;
-  dmaCtrlPktTx.RDSIZE = ACCESS_16_BIT;
-  dmaCtrlPktTx.WRSIZE = ACCESS_16_BIT;
+  dmaCtrlPktTx.RDSIZE = ACCESS_8_BIT;
+  dmaCtrlPktTx.WRSIZE = ACCESS_8_BIT;
   dmaCtrlPktTx.TTYPE = FRAME_TRANSFER;
-  dmaCtrlPktTx.ADDMODERD = ADDR_INC1;
+  dmaCtrlPktTx.ADDMODERD = readAddrMode;
   dmaCtrlPktTx.ADDMODEWR = ADDR_FIXED;
   dmaCtrlPktTx.AUTOINIT = AUTOINIT_ON;
 
@@ -169,15 +186,13 @@ static obc_error_code_t spiDmaTxConfig(spiBASE_t *spiReg, uint32_t txDataAddr, s
   return OBC_ERR_CODE_SUCCESS;
 }
 
-obc_error_code_t dmaSpiTransmitandReceiveBytes(spiBASE_t *spiReg, uint16_t *txData, uint16_t *rxData, size_t dataLen,
-                                               uint32_t spiMutexTimeoutMs, uint32_t transferCompleteTimeoutMs) {
+obc_error_code_t dmaSpiTransmitandReceiveBytes(spiBASE_t *spiReg, const uint8_t *txData, uint8_t *rxData,
+                                               size_t dataLen, uint32_t spiMutexTimeoutMs,
+                                               uint32_t transferCompleteTimeoutMs) {
   if (spiReg == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
-  if (txData == NULL) {
-    return OBC_ERR_CODE_INVALID_ARG;
-  }
-  if (rxData == NULL) {
+  if (txData == NULL && rxData == NULL) {
     return OBC_ERR_CODE_INVALID_ARG;
   }
   if (dataLen == 0) {
@@ -195,30 +210,40 @@ obc_error_code_t dmaSpiTransmitandReceiveBytes(spiBASE_t *spiReg, uint16_t *txDa
   /* START PRIVILEGED SECTION */
   /* The following code causes hard fault if not done in priveleged mode */
 
-  RETURN_IF_ERROR_CODE(spiDmaRxConfig(spiReg, (uint32_t)rxData, dataLen));
-  RETURN_IF_ERROR_CODE(spiDmaTxConfig(spiReg, (uint32_t)txData, dataLen));
+  // A NULL buffer means that side is a dummy: point the DMA at a 1-byte dummy and keep the address fixed
+  uint32_t rxAddr = (rxData != NULL) ? (uint32_t)rxData : (uint32_t)&dmaSpiDummyRx;
+  uint32_t txAddr = (txData != NULL) ? (uint32_t)txData : (uint32_t)&dmaSpiDummyTx;
+  RETURN_IF_ERROR_CODE(spiDmaRxConfig(spiReg, rxAddr, dataLen, (rxData != NULL) ? ADDR_INC1 : ADDR_FIXED));
+  RETURN_IF_ERROR_CODE(spiDmaTxConfig(spiReg, txAddr, dataLen, (txData != NULL) ? ADDR_INC1 : ADDR_FIXED));
 
   spiEnableNotification(spiReg, SPI_NOTIFICATION_DMA_REQ);
 
   /* END PRIVILEGED SECTION */
   portRESET_PRIVILEGE(xRunningPrivileged);
 
+  obc_error_code_t transferStatus = OBC_ERR_CODE_SUCCESS;
   switch ((uint32_t)spiReg) {
     case (uint32_t)spiREG1:
       if (xSemaphoreTake(dmaSpi1FinishedSemaphore, pdMS_TO_TICKS(transferCompleteTimeoutMs)) != pdPASS) {
-        return OBC_ERR_CODE_SEMAPHORE_TIMEOUT;
+        transferStatus = OBC_ERR_CODE_SEMAPHORE_TIMEOUT;
       }
       break;
     case (uint32_t)spiREG3:
       if (xSemaphoreTake(dmaSpi3FinishedSemaphore, pdMS_TO_TICKS(transferCompleteTimeoutMs)) != pdPASS) {
-        return OBC_ERR_CODE_SEMAPHORE_TIMEOUT;
+        transferStatus = OBC_ERR_CODE_SEMAPHORE_TIMEOUT;
       }
       break;
     default:
-      return OBC_ERR_CODE_INVALID_ARG;
+      transferStatus = OBC_ERR_CODE_INVALID_ARG;
+      break;
   }
 
-  return OBC_ERR_CODE_SUCCESS;
+  // Disable SPI DMA request generation so subsequent non-DMA SPI transfers operate in standard polling mode
+  xRunningPrivileged = prvRaisePrivilege();
+  spiDisableNotification(spiReg, SPI_NOTIFICATION_DMA_REQ);
+  portRESET_PRIVILEGE(xRunningPrivileged);
+
+  return transferStatus;
 }
 
 /**
@@ -226,10 +251,13 @@ obc_error_code_t dmaSpiTransmitandReceiveBytes(spiBASE_t *spiReg, uint16_t *txDa
  */
 void dmaSpi1FinishedCallback(void) {
   BaseType_t xHigherPriorityTaskAwoken = pdFALSE;
-  // give semaphore and set xHigherPriorityTaskAwoken to pdTRUE if this unblocks a higher priority task than the current
+  // Guard against NULL pointer dereference if an interrupt fires before semaphore initialization
+  // Give semaphore and set xHigherPriorityTaskAwoken to pdTRUE if this unblocks a higher priority task than the current
   // one
-  if (xSemaphoreGiveFromISR(dmaSpi1FinishedSemaphore, &xHigherPriorityTaskAwoken) != pdPASS) {
-    /* TODO: figure out how to log from ISR */
+  if (dmaSpi1FinishedSemaphore != NULL) {
+    if (xSemaphoreGiveFromISR(dmaSpi1FinishedSemaphore, &xHigherPriorityTaskAwoken) != pdPASS) {
+      LOG_ERROR_CODE_FROM_ISR(OBC_ERR_CODE_SEMAPHORE_FULL);
+    }
   }
   // if xHigherPriorityTaskAwoken == pdTRUE then request a context switch since this means a higher priority task has
   // been unblocked
@@ -241,10 +269,13 @@ void dmaSpi1FinishedCallback(void) {
  */
 void dmaSpi3FinishedCallback(void) {
   BaseType_t xHigherPriorityTaskAwoken = pdFALSE;
-  // give semaphore and set xHigherPriorityTaskAwoken to pdTRUE if this unblocks a higher priority task than the current
+  // Guard against NULL pointer dereference if an interrupt fires before semaphore initialization
+  // Give semaphore and set xHigherPriorityTaskAwoken to pdTRUE if this unblocks a higher priority task than the current
   // one
-  if (xSemaphoreGiveFromISR(dmaSpi3FinishedSemaphore, &xHigherPriorityTaskAwoken) != pdPASS) {
-    /* TODO: figure out how to log from ISR */
+  if (dmaSpi3FinishedSemaphore != NULL) {
+    if (xSemaphoreGiveFromISR(dmaSpi3FinishedSemaphore, &xHigherPriorityTaskAwoken) != pdPASS) {
+      LOG_ERROR_CODE_FROM_ISR(OBC_ERR_CODE_SEMAPHORE_FULL);
+    }
   }
   // if xHigherPriorityTaskAwoken == pdTRUE then request a context switch since this means a higher priority task has
   // been unblocked

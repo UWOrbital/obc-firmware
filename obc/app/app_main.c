@@ -11,6 +11,7 @@
 
 #include <sys_common.h>
 #include <sys_core.h>
+#include <sys_dma.h>
 #include <gio.h>
 #include <sci.h>
 #include <i2c.h>
@@ -34,6 +35,8 @@ int main(void) {
   spiInit();
   canInit();
   hetInit();
+  dmaEnable();
+
   _enable_interrupt_();
 
   // Initialize bus mutexes
