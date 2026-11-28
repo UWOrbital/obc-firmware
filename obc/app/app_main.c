@@ -2,7 +2,6 @@
 #include "obc_sci_io.h"
 #include "obc_i2c_io.h"
 #include "obc_spi_io.h"
-#include "obc_spi_dma.h"
 #include "obc_reset.h"
 #include "obc_scheduler_config.h"
 #include "state_mgr.h"

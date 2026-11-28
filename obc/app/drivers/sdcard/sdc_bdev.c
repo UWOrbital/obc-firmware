@@ -93,13 +93,6 @@ static volatile DSTATUS stat = STA_NOINIT; /* Disk status */
 static uint8_t cardType;                   /* Card type flags: b0:MMC, b1:SDC, b2:Block addressing */
 static sdc_power_t powerFlag = POWER_OFF;  /* indicates if "power" is on */
 
-#if (SDC_ENABLE_DMA == 1)
-/* Full 512-byte dummy buffers required because SPI DMA uses auto-incrementing memory pointers for full-duplex transfers
- */
-static uint8_t sdcDmaDummyTx[SD_SECTOR_SIZE] = {[0 ... SD_SECTOR_SIZE - 1] = SDC_MOSI_HIGH};
-static uint8_t sdcDmaDummyRx[SD_SECTOR_SIZE];
-#endif
-
 /*---------------------------------------------*/
 /* SD Card Private Functions                   */
 /*---------------------------------------------*/
@@ -239,7 +232,7 @@ static bool rcvDataBlockDMA(uint8_t *buff, uint32_t btr) {
   /* Receive the data block into buffer using DMA */
   while (btr > 0) {
     uint32_t transferSize = (btr > SD_SECTOR_SIZE) ? SD_SECTOR_SIZE : btr;
-    errCode = dmaSpiTransmitandReceiveBytes(SDC_SPI_REG, sdcDmaDummyTx, buff, transferSize, 1000, 10000);
+    errCode = dmaSpiTransmitandReceiveBytes(SDC_SPI_REG, NULL, buff, transferSize, 1000, 10000);
     if (errCode != OBC_ERR_CODE_SUCCESS) {
       LOG_ERROR_CODE(errCode);
       return false;
@@ -313,7 +306,7 @@ static bool sendDataBlockDMA(const uint8_t *buff, uint8_t token) {
     if (buff == NULL) return false;
 
     // Send data block using DMA
-    errCode = dmaSpiTransmitandReceiveBytes(SDC_SPI_REG, (uint8_t *)buff, sdcDmaDummyRx, SD_SECTOR_SIZE, 1000, 10000);
+    errCode = dmaSpiTransmitandReceiveBytes(SDC_SPI_REG, buff, NULL, SD_SECTOR_SIZE, 1000, 10000);
     if (errCode != OBC_ERR_CODE_SUCCESS) {
       LOG_ERROR_CODE(errCode);
       return false;
@@ -532,11 +525,6 @@ DSTATUS disk_initialize(uint8_t drv) {
     turnOffSDC();  // Initialization failed
   }
 
-#if (SDC_ENABLE_DMA == 1)
-  // Initialize spiDMA to run on SD card's SPI reg (assuming dma always enabled)
-  spiDmaInit(SDC_SPI_REG);
-  initDmaSpiSemaphores();
-#endif
   return stat;
 }
 

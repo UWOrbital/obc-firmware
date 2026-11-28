@@ -1,8 +1,10 @@
 #include "obc_sci_io.h"
 #include "obc_print.h"
 #include "obc_spi_io.h"
+#include "obc_spi_dma.h"
 #include "obc_privilege.h"
 #include "sdc_diskio.h"
+#include "obc_board_config.h"
 
 #include <FreeRTOS.h>
 #include <os_task.h>
@@ -59,7 +61,16 @@ void vSdcWorkerTask(void *pvParameters) {
   sciPrintf("  SD Card DMA & CPU Free Time Benchmark \r\n");
   sciPrintf("========================================\r\n");
 
-  /* Initialize the SD Card (configures SPI DMA and hardware) */
+#if (SDC_ENABLE_DMA == 1)
+  /* Set up SPI DMA for the SD card's bus (done by state_mgr in the full app) */
+  if (spiDmaInit(SDC_SPI_REG) != OBC_ERR_CODE_SUCCESS) {
+    sciPrintf("ERROR: Failed to initialize SPI DMA\r\n");
+    while (1) {
+    }
+  }
+#endif
+
+  /* Initialize the SD Card */
   DSTATUS stat = disk_initialize(0);
   if (stat & STA_NOINIT) {
     sciPrintf("ERROR: Failed to initialize SD card (DSTATUS: 0x%02X)\r\n", stat);
